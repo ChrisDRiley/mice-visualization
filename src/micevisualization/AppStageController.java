@@ -31,8 +31,14 @@ public class AppStageController {
     file system viewer. This implementation supports Windows, Mac, and Unix
     operating systems (http://docs.oracle.com/javafx/2/ui_controls/file-chooser.htm).
     */
+    
+    int timesConfigured = 0;
+    
     @FXML protected void openFileAction(ActionEvent event) {
-        configureFileChooser(fileChooser);
+        if (timesConfigured == 0) {
+            configureFileChooser(fileChooser);
+            timesConfigured++;
+        }
         File file = fileChooser.showOpenDialog(stage);
         if (file != null) {
             openFile(file);
