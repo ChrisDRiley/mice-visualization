@@ -88,12 +88,16 @@ public class AppStageController {
     private void openFile(File file) {
         try {
             leftStatus.setText("Opening " + file.getName() + " ...");
+            /* FIrst attempt below, generic way of loading file line by line:  */
 //            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 //                String line;
 //                while ((line = br.readLine()) != null) {
 //                  System.out.println(line);
 //                }
 //            }
+
+        /* FileInputStream implementation below from 
+        * http://www.baeldung.com/java-read-lines-large-file */
         FileInputStream inputStream = null;
         Scanner sc = null;
         try {
