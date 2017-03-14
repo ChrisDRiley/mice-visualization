@@ -1,7 +1,11 @@
 package micevisualization;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Scanner;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,7 +27,7 @@ public class AppStageController {
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
     final FileChooser fileChooser = new FileChooser();
-    
+
     /* 
     Parker (3/2/17): 
     openFileAction is the event handler called when the user clicks on the 
@@ -31,10 +35,9 @@ public class AppStageController {
     file system viewer. This implementation supports Windows, Mac, and Unix
     operating systems (http://docs.oracle.com/javafx/2/ui_controls/file-chooser.htm).
     */
-    
     int timesConfigured = 0;
-    
     @FXML protected void openFileAction(ActionEvent event) {
+        // prevent the file chooser from being configured multiple times
         if (timesConfigured == 0) {
             configureFileChooser(fileChooser);
             timesConfigured++;
@@ -85,6 +88,37 @@ public class AppStageController {
     private void openFile(File file) {
         try {
             leftStatus.setText("Opening " + file.getName() + " ...");
+//            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+//                String line;
+//                while ((line = br.readLine()) != null) {
+//                  System.out.println(line);
+//                }
+//            }
+        FileInputStream inputStream = null;
+        Scanner sc = null;
+        try {
+            inputStream = new FileInputStream(file.getPath());
+            sc = new Scanner(inputStream, "UTF-8");
+            long start = System.currentTimeMillis();
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                //System.out.println(line);
+            }
+            long end = System.currentTimeMillis();
+            long elapsed = end - start;
+            System.out.println("done reading file! It took " + elapsed + " milliseconds");
+            // note that Scanner suppresses exceptions
+            if (sc.ioException() != null) {
+                throw sc.ioException();
+            }
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            if (sc != null) {
+                sc.close();
+            }
+        }
         } catch(Exception e) { 
             System.out.println(e); 
         }
