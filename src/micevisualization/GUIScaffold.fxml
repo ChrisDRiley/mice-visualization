@@ -6,6 +6,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.shape.Rectangle?>
 
 <VBox fx:controller="micevisualization.AppStageController" 
       xmlns:fx="http://javafx.com/fxml/1">
@@ -14,14 +16,52 @@
       <menus>
         <Menu mnemonicParsing="false" text="File">
           <items>
-            <MenuItem mnemonicParsing="false" text="Open…" 
-                      onAction="#openFileAction"/>
-            <MenuItem mnemonicParsing="false" text="Save" />
-            <MenuItem mnemonicParsing="false" text="Save As…" />
-            <MenuItem mnemonicParsing="false" text="Export Image…" />
+            <CustomMenuItem mnemonicParsing="false" onAction="#openFileAction">
+                <content>
+                    <Label text="Open...">
+                        <tooltip >
+                          <Tooltip text="Open a data set file to read from."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
+            <CustomMenuItem mnemonicParsing="false">
+                <content>
+                    <Label text="Save">
+                        <tooltip >
+                          <Tooltip text="Save the current session's data."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
+          <CustomMenuItem mnemonicParsing="false">
+                <content>
+                    <Label text="Save As...">
+                        <tooltip >
+                          <Tooltip text="Save the current session, creating a new session file."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
+            <CustomMenuItem mnemonicParsing="false">
+                <content>
+                    <Label text="Export Image...">
+                        <tooltip >
+                          <Tooltip text="Export the current visualization as an image file."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
             <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Exit" 
-                      onAction="#exitApplication"/>
+            <CustomMenuItem mnemonicParsing="false">
+                <content>
+                    <Label text="Exit">
+                        <tooltip >
+                          <Tooltip text="Exit the program."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
           </items>
         </Menu>
         <Menu mnemonicParsing="false" text="Help" >
@@ -36,22 +76,30 @@
                focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" 
                VBox.vgrow="ALWAYS" id="mainSplitPane">
       <items>
-        <AnchorPane prefWidth="200.0" maxWidth="250.0">
+        <AnchorPane prefWidth="200.0" maxWidth="300.0">
           <children>
             <Label alignment="CENTER" layoutX="21.0" layoutY="14.0" 
                    minWidth="60.0" prefHeight="27.0" prefWidth="157.0" 
-                   text="Data Set Manager" textAlignment="CENTER" wrapText="true" 
+                   text="Session Manager" textAlignment="CENTER" wrapText="true" 
                    AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" 
                    styleClass="headerLabel">
             </Label>
                   <ListView layoutX="20.0" layoutY="102.0" prefHeight="184.0" prefWidth="184.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
-                  <Label alignment="CENTER" layoutX="20.0" layoutY="75.0" text="Select Data Set" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
+                  <Label alignment="CENTER" layoutX="20.0" layoutY="75.0" text="Recent sessions:" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
                      <padding>
                         <Insets bottom="5.0" top="5.0" />
                      </padding>
                   </Label>
-                  <Button layoutX="20.0" layoutY="299.0" mnemonicParsing="false" text="Load Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
-                  <Button layoutX="20.0" layoutY="335.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Delete Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+                  <Button layoutX="20.0" layoutY="299.0" mnemonicParsing="false" text="Load Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
+                      <tooltip >
+                          <Tooltip text="Load the selected session."/>
+                      </tooltip>
+                  </Button>
+                  <Button layoutX="20.0" layoutY="335.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Delete Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
+                      <tooltip >
+                          <Tooltip text="Delete the selected session (data set files will remain on disk)."/>
+                      </tooltip>
+                  </Button>
           </children>
         </AnchorPane>
         <ScrollPane prefWidth="586.0">

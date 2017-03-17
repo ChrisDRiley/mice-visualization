@@ -5,6 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Optional;
 import java.util.Scanner;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -16,6 +20,7 @@ import javafx.stage.Stage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
 
 public class AppStageController {
     // Parker (3/2/17): access AppStage.java's stage variable during file IO
@@ -27,6 +32,14 @@ public class AppStageController {
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
     final FileChooser fileChooser = new FileChooser();
+    
+    // Parker (3/17/17)
+    // variables for tracking if the current session is new / old and determining
+    // if to prompt user to save data
+    Boolean isFileLoaded = false;
+    String currentFilePath = "";
+    Boolean isSessionLoaded = false;
+    String currentSessionPath = "";
 
     /* 
     Parker (3/2/17): 
@@ -88,41 +101,63 @@ public class AppStageController {
     private void openFile(File file) {
         try {
             leftStatus.setText("Opening " + file.getName() + " ...");
-            /* FIrst attempt below, generic way of loading file line by line:  */
-//            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-//                String line;
-//                while ((line = br.readLine()) != null) {
-//                  System.out.println(line);
-//                }
-//            }
+            /* Parker (3-15-17):
+            * FileInputStream implementation below from 
+            * http://www.baeldung.com/java-read-lines-large-file */
+            FileInputStream inputStream = null;
+            Scanner sc = null;
+            // Parker (3-17-17): the try {} block below contains code that will
+            // execute until the data set loading is finished. The finally {}
+            // block contains code that happens after the data set has been loaded.
+            try {
+                inputStream = new FileInputStream(file.getPath());
+                sc = new Scanner(inputStream, "UTF-8");
+                long start = System.currentTimeMillis();
+                while (sc.hasNextLine()) {
+                    String line = sc.nextLine();
+                    //System.out.println(line);
+                }
+                long end = System.currentTimeMillis();
+                long elapsed = end - start;
+                System.out.println("done reading file! It took " + elapsed + " milliseconds");
+                // note that Scanner suppresses exceptions
+                if (sc.ioException() != null) {
+                    throw sc.ioException();
+                }
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                    // Parker (3-17-17): Set currentFilePath and isFileLoaded:
+                    currentFilePath = file.getPath();
+                    isFileLoaded = true;
+                    // Parker (3-17-17): If the current session is new, ask user
+                    // if they would like to create a new one:
+                    if (!isSessionLoaded) {
+                        // Parker (3-17-17): Create a default name, consisting of the
+                        // current date and time, for the potential new session:
+                        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                        Date date = new Date();
+                        String defaultSessionName = "Session " + dateFormat.format(date);
+                        
+                        // Parker (3-17-17): Prompt the user asking if they would like
+                        // to save the currently loaded data set file within a new
+                        // session:
+                        TextInputDialog dialog = new TextInputDialog(defaultSessionName);
+                        dialog.setTitle("Create new session?");
+                        dialog.setHeaderText("Sessions save program settings and data, maintaining your current work.");
+                        dialog.setContentText("Please enter a name for this session:");
 
-        /* FileInputStream implementation below from 
-        * http://www.baeldung.com/java-read-lines-large-file */
-        FileInputStream inputStream = null;
-        Scanner sc = null;
-        try {
-            inputStream = new FileInputStream(file.getPath());
-            sc = new Scanner(inputStream, "UTF-8");
-            long start = System.currentTimeMillis();
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                //System.out.println(line);
+                        // Traditional way to get the response value.
+                        Optional<String> result = dialog.showAndWait();
+                        if (result.isPresent()){
+                            System.out.println("Session name: " + result.get());
+                        }
+                    }
+                }
+                if (sc != null) {
+                    sc.close();
+                }
             }
-            long end = System.currentTimeMillis();
-            long elapsed = end - start;
-            System.out.println("done reading file! It took " + elapsed + " milliseconds");
-            // note that Scanner suppresses exceptions
-            if (sc.ioException() != null) {
-                throw sc.ioException();
-            }
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-            if (sc != null) {
-                sc.close();
-            }
-        }
         } catch(Exception e) { 
             System.out.println(e); 
         }
