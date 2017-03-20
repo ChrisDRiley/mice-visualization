@@ -8,6 +8,8 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.shape.Rectangle?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 
 <VBox fx:controller="micevisualization.AppStageController" 
       xmlns:fx="http://javafx.com/fxml/1">
@@ -53,7 +55,7 @@
                 </content>
             </CustomMenuItem>
             <SeparatorMenuItem mnemonicParsing="false" />
-            <CustomMenuItem mnemonicParsing="false">
+            <CustomMenuItem mnemonicParsing="false" onAction="#exitApplication">
                 <content>
                     <Label text="Exit">
                         <tooltip >
@@ -84,18 +86,18 @@
                    AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" 
                    styleClass="headerLabel">
             </Label>
-                  <ListView layoutX="20.0" layoutY="102.0" prefHeight="184.0" prefWidth="184.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+                  <ListView  fx:id="sessionsListView" layoutX="20.0" layoutY="102.0" prefHeight="184.0" prefWidth="184.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
                   <Label alignment="CENTER" layoutX="20.0" layoutY="75.0" text="Recent sessions:" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
                      <padding>
                         <Insets bottom="5.0" top="5.0" />
                      </padding>
                   </Label>
-                  <Button layoutX="20.0" layoutY="299.0" mnemonicParsing="false" text="Load Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
+                  <Button fx:id="sessionsLoadButton" disable="true" layoutX="20.0" layoutY="299.0" mnemonicParsing="false" text="Load Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
                       <tooltip >
                           <Tooltip text="Load the selected session."/>
                       </tooltip>
                   </Button>
-                  <Button layoutX="20.0" layoutY="335.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Delete Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
+                  <Button onAction="#deleteSessionFileAction" fx:id="sessionsDeleteButton" disable="true" layoutX="20.0" layoutY="335.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Delete Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
                       <tooltip >
                           <Tooltip text="Delete the selected session (data set files will remain on disk)."/>
                       </tooltip>
@@ -123,7 +125,15 @@
                    text="Visualization Options" textAlignment="CENTER" wrapText="true" 
                    AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" 
                    styleClass="headerLabel"/>
-                  <ChoiceBox layoutX="20.0" layoutY="89.0" prefWidth="150.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="89.0" />
+                   <ChoiceBox layoutX="20.0" layoutY="89.0" prefWidth="150.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="89.0">
+                       <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:id="staticMapOption" fx:value="Static" />
+                                <String fx:id="animatedMapOption" fx:value="Animated" />
+                                <String fx:id="overlayMapOption" fx:value="Overlay" />
+                            </FXCollections>
+                        </items>
+                   </ChoiceBox>
                   <ListView layoutX="20.0" layoutY="152.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
                   <Label alignment="CENTER" layoutX="20.0" layoutY="125.0" text="Selected Mice" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
                      <padding>
@@ -187,7 +197,7 @@
                 </padding>
             </HBox>
             <HBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                <ProgressBar progress="0.0" prefWidth="300.0"/>
+                <ProgressBar fx:id="progressBar" progress="0.0" prefWidth="300.0"/>
             </HBox>
             <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="2" GridPane.rowIndex="0">
                 <Label text="Right Status"/>
