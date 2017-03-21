@@ -23,6 +23,8 @@ public class Session {
     String currentSessionFilePath = "";
     Boolean isNewSession = true;
     
+    String visualizationType = "";
+    
     /**
      * @author: parker
      * 
@@ -64,4 +66,5 @@ public class Session {
         ps.println(json);
         ps.close();
     }
+
 }

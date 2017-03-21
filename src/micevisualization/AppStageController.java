@@ -36,13 +36,18 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import static java.lang.System.out;
 import java.util.ArrayList;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.AnchorPane;
 
 
 
@@ -54,6 +59,9 @@ public class AppStageController {
     @FXML private ListView sessionsListView;
     @FXML private Button sessionsLoadButton;
     @FXML private Button sessionsDeleteButton;
+    @FXML private AnchorPane visualizationOptionsAnchorPane;
+    @FXML private AnchorPane sessionsAnchorPane;
+    @FXML private ChoiceBox visualizationTypeChoiceBox;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -78,11 +86,43 @@ public class AppStageController {
     @FXML
     private void initialize() throws URISyntaxException {
         refreshListOfSessions();
+        
+        visualizationTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                try {
+                    session.visualizationType = newValue;
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
     }
     
     /**
      * 
-     * @author parker
+     * @author: parker
+     * 
+     * restores the state of the program by setting GUI control values equal to their
+     * values contained within the session object. This function is called after
+     * a user successfully loads a session json file.
+     * 
+     * @param s the session object.
+     */
+    public void restoreState(Session s) {
+        visualizationTypeChoiceBox.getSelectionModel().select(s.visualizationType);
+    }
+    
+    public void resetToDefaultState() {
+        session = new Session();
+        visualizationTypeChoiceBox.getSelectionModel().clearSelection();
+        visualizationOptionsAnchorPane.setDisable(true);
+    }
+    
+    /**
+     * 
+     * @author: parker
      * 
      * Refreshes the list of session files in the sessionsListView control.
      * The files within the sessions folder are counted and their names are
@@ -102,12 +142,10 @@ public class AppStageController {
                     }
                 }
                 if (sessionFiles.size() > 0) {
-                    sessionsLoadButton.setDisable(false);
-                    sessionsDeleteButton.setDisable(false);
+                    sessionsAnchorPane.setDisable(false);
                 }
                 else {
-                    sessionsLoadButton.setDisable(true);
-                    sessionsDeleteButton.setDisable(true);
+                    sessionsAnchorPane.setDisable(true);
                 }
                 sessionsListView.setItems(sessionFiles);
             }
@@ -135,12 +173,26 @@ public class AppStageController {
             timesConfigured++;
         }
         File fileToOpen = fileChooser.showOpenDialog(stage);
-        if (fileToOpen != null) {
-            if (openFile(fileToOpen)) {
-                session.dataSetFileLoaded(fileToOpen.getPath()); // update the program's state via the session variable
-                if (session.isNewSession) { // Check if the current session is new
-                    promptUserToCreateNewSessionFile(session); // prompt the user to create a new session file
-                }
+        if (fileToOpen != null) { 
+            String extension = getFileExtension(fileToOpen.toString());
+            if (extension.equals("csv")) {
+                if (openFile(fileToOpen)) {
+                    session.dataSetFileLoaded(fileToOpen.getPath()); // update the program's state via the session variable
+                    visualizationOptionsAnchorPane.setDisable(false);
+                    if (session.isNewSession) { // Check if the current session is new
+                        promptUserToCreateNewSessionFile(session); // prompt the user to create a new session file
+                    }
+                }  
+            }
+            else if (extension.equals("json")) {
+                loadSessionFile(fileToOpen);
+            }
+            else {
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Program Notification");
+                alert.setHeaderText("Invalid file type");
+                alert.setContentText("Allowable file types are:\n\n.csv data files\n.json session files");
+                alert.showAndWait();
             }
         }
     }
@@ -162,12 +214,47 @@ public class AppStageController {
         alert.setContentText("Do you want to continue?");
 
         Optional<ButtonType> retryFileCreationAnswer = alert.showAndWait();
-        if (retryFileCreationAnswer.get() == ButtonType.OK){
-            File deleteFile = new File(getSessionsFolderPath().toString() + "\\" + currentListViewItem);
-            if (!deleteFile.delete()) {
-                simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
+        if (retryFileCreationAnswer.get() == ButtonType.OK) { // check if the file the user is trying to delete is the current session file:
+            int i = session.currentSessionFilePath.lastIndexOf("\\"); // get the filename from the currentSessionFilePath
+            if (currentListViewItem.equals(session.currentSessionFilePath.substring(i + 1))) { // compare the filename to the selected session name
+                alert = new Alert(AlertType.CONFIRMATION);
+                alert.setTitle("Warning! You are trying to delete the current session.");
+                alert.setHeaderText("If you delete the current session file, then the current session will be reset to default.");
+                alert.setContentText("Do you want to continue?");
+                
+                retryFileCreationAnswer = alert.showAndWait();
+                if (retryFileCreationAnswer.get() == ButtonType.OK) { // delete the current session file:
+                    File deleteFile = new File(getSessionsFolderPath().toString() + "\\" + currentListViewItem);
+                    if (!deleteFile.delete()) {
+                        simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
+                    }
+                    else {
+                        resetToDefaultState(); // create a new Session object and reset the GUI
+                    }
+                }
+            }
+            else { // delete the file and maintain the current session:
+                File deleteFile = new File(getSessionsFolderPath().toString() + "\\" + currentListViewItem);
+                if (!deleteFile.delete()) {
+                    simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
+                }
             }
             refreshListOfSessions();
+        }
+    }
+    
+    @FXML protected void loadSessionFromManagerAction(ActionEvent event) throws URISyntaxException {
+        if (sessionsListView.getSelectionModel().getSelectedItem() != null) { // if there was a session name selected
+            String selectedSession = sessionsListView.getSelectionModel().getSelectedItem().toString(); // get the selected name from the Recent sessions listView
+            int i = selectedSession.lastIndexOf('.'); // we need to trim the extension off the filename, so get the index of the last period
+            selectedSession = selectedSession.substring(0, i); // trim the extension off of the selectedSession string
+            Optional<String> sessionName = Optional.of(selectedSession); // create an optional for use with constructSessionFilePath()
+            File sessionFile = constructSessionFilePath(sessionName); // recreate the path to the session file, which should reside in the sessions folder
+            if (sessionFile.exists()) {
+                loadSessionFile(sessionFile); // load the session file
+            }
+        } else {
+            simpleAlert("Please select a session filename from the list of sessions.", null);
         }
     }
    
@@ -182,8 +269,11 @@ public class AppStageController {
      * @param event 
      */
     @FXML
-    public void exitApplication(ActionEvent event) {
+    public void exitApplication(ActionEvent event) throws FileNotFoundException {
        System.out.println("Platform is closing");
+       if (!session.isNewSession) {
+           session.saveState();
+       }
        Platform.exit();
     }
     
@@ -253,6 +343,33 @@ public class AppStageController {
      * 
      * @author: parker
      * 
+     * loads a json session file, updates the program GUI, and restores the state
+     * of the program contained within the json file.
+     * 
+     * @param sessionFile the session file to load
+     * @return true if session file was loaded, false if otherwise
+     */
+    public Boolean loadSessionFile(File sessionFile) {
+        if (openFile(sessionFile)) {
+            // if the selected session file contains a different session filename than the one listed in the 
+            // currentSessionFilePath property of the session object, update the session object:
+            if (session.currentSessionFilePath != sessionFile.getPath().toString()) {
+                session.currentSessionFilePath = sessionFile.getPath().toString();
+            }
+            File dataFile = new File(session.currentDataSetFilePath);
+            if (openFile(dataFile)) {
+                visualizationOptionsAnchorPane.setDisable(false);
+                restoreState(session);
+                return true;
+            } 
+        }
+        return false;
+    }
+    
+    /**
+     * 
+     * @author: parker
+     * 
      * checks if the 'name' parameter consists of only alphanumeric characters, '-', ' ', '.', and/or '_'.
      * returns true if so, false if not.
      * 
@@ -267,6 +384,17 @@ public class AppStageController {
             }
         }
         return true;
+    }
+    
+    
+    public String getFileExtension(String name) {
+        int i = name.lastIndexOf('.');
+        String ext;
+        if (i > 0) {
+            ext = name.substring(i+1);
+            return ext;
+        }
+        return null;
     }
     
     /**
@@ -514,11 +642,27 @@ public class AppStageController {
                 
                 long start = System.currentTimeMillis(); // start timing the file processing action
                 
-                int linesProcessed = 0;
-                while (sc.hasNextLine()) {
-                    String line = sc.nextLine();
-                    linesProcessed++;
-                    //System.out.println(line);
+                String extension = getFileExtension(file.toString());
+                if (extension.equals("csv")) { // process .csv data files:
+                    int linesProcessed = 0;
+                    while (sc.hasNextLine()) {
+                        String line = sc.nextLine();
+                        linesProcessed++;
+                    }
+                }
+                else if (extension.equals("json")) { // process .json session files:
+                    String jsonData = "";
+                    while (sc.hasNextLine()) {
+                        jsonData = sc.nextLine();
+                    }
+                    Gson gson = new GsonBuilder().create();
+                    try {
+                        Session loadedSession = gson.fromJson(jsonData, Session.class);
+                        session = loadedSession; // replace the current session's info with the loaded session's info
+                    }
+                    catch (Exception e) {
+                        return false;
+                    }
                 }
                 
                 long end = System.currentTimeMillis(); // file processing finished; calculate the time spent

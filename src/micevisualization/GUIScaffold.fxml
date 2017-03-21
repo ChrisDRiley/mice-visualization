@@ -78,7 +78,7 @@
                focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" 
                VBox.vgrow="ALWAYS" id="mainSplitPane">
       <items>
-        <AnchorPane prefWidth="200.0" maxWidth="300.0">
+        <AnchorPane fx:id="sessionsAnchorPane" disable="true" prefWidth="200.0" maxWidth="300.0">
           <children>
             <Label alignment="CENTER" layoutX="21.0" layoutY="14.0" 
                    minWidth="60.0" prefHeight="27.0" prefWidth="157.0" 
@@ -92,12 +92,12 @@
                         <Insets bottom="5.0" top="5.0" />
                      </padding>
                   </Label>
-                  <Button fx:id="sessionsLoadButton" disable="true" layoutX="20.0" layoutY="299.0" mnemonicParsing="false" text="Load Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
+                  <Button onAction="#loadSessionFromManagerAction" fx:id="sessionsLoadButton" layoutX="20.0" layoutY="299.0" mnemonicParsing="false" text="Load Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
                       <tooltip >
                           <Tooltip text="Load the selected session."/>
                       </tooltip>
                   </Button>
-                  <Button onAction="#deleteSessionFileAction" fx:id="sessionsDeleteButton" disable="true" layoutX="20.0" layoutY="335.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Delete Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
+                  <Button onAction="#deleteSessionFileAction" fx:id="sessionsDeleteButton" layoutX="20.0" layoutY="335.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Delete Selected" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" >
                       <tooltip >
                           <Tooltip text="Delete the selected session (data set files will remain on disk)."/>
                       </tooltip>
@@ -118,14 +118,14 @@
             </AnchorPane>
           </content>
         </ScrollPane>
-        <AnchorPane prefHeight="551.0" prefWidth="250.0" maxWidth="250.0">
+        <AnchorPane fx:id="visualizationOptionsAnchorPane" disable="true" prefHeight="551.0" prefWidth="250.0" maxWidth="250.0">
           <children>
             <Label alignment="CENTER" layoutX="3.0" layoutY="14.0" 
                    minWidth="60.0" prefHeight="27.0" prefWidth="173.0" 
                    text="Visualization Options" textAlignment="CENTER" wrapText="true" 
                    AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" 
                    styleClass="headerLabel"/>
-                   <ChoiceBox layoutX="20.0" layoutY="89.0" prefWidth="150.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="89.0">
+                   <ChoiceBox fx:id="visualizationTypeChoiceBox" layoutX="20.0" layoutY="89.0" prefWidth="150.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="89.0">
                        <items>
                             <FXCollections fx:factory="observableArrayList">
                                 <String fx:id="staticMapOption" fx:value="Static" />
