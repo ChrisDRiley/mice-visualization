@@ -636,6 +636,7 @@ public class AppStageController {
             * http://www.baeldung.com/java-read-lines-large-file */
             FileInputStream inputStream = null;
             Scanner sc = null;
+            int linesProcessed = 0;
             try {
                 inputStream = new FileInputStream(file.getPath());
                 sc = new Scanner(inputStream, "UTF-8");
@@ -644,9 +645,9 @@ public class AppStageController {
                 
                 String extension = getFileExtension(file.toString());
                 if (extension.equals("csv")) { // process .csv data files:
-                    int linesProcessed = 0;
                     while (sc.hasNextLine()) {
                         String line = sc.nextLine();
+                        //System.out.println(line);
                         linesProcessed++;
                     }
                 }
@@ -668,6 +669,7 @@ public class AppStageController {
                 long end = System.currentTimeMillis(); // file processing finished; calculate the time spent
                 long elapsed = end - start;
                 System.out.println("done reading file! It took " + elapsed + " milliseconds");
+                System.out.println("Lines Processed = " + linesProcessed);
                 
                 // note that Scanner suppresses exceptions
                 if (sc.ioException() != null) {
