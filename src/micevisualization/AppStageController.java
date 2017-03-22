@@ -72,16 +72,20 @@ public class AppStageController {
     // Create a session variable to store the state of the program:
     Session session = new Session();
     
-    // Alex (3/21/17)
-    // Creating mouse class variables to store file information
-    Mouse1 m1 = new Mouse1();
-    Mouse2 m2 = new Mouse2();
-    Mouse3 m3 = new Mouse3();
-    Mouse4 m4 = new Mouse4();
-    Mouse5 m5 = new Mouse5();
-    Mouse6 m6 = new Mouse6();
-    Mouse7 m7 = new Mouse7();
-    Mouse8 m8 = new Mouse8();
+    // Parker (3/22/17)
+    // Create a mice variable to store the mice read in from the data file:
+    Mice mice = new Mice();
+    
+//    // Alex (3/21/17)
+//    // Creating mouse class variables to store file information
+//    Mouse1 m1 = new Mouse1();
+//    Mouse2 m2 = new Mouse2();
+//    Mouse3 m3 = new Mouse3();
+//    Mouse4 m4 = new Mouse4();
+//    Mouse5 m5 = new Mouse5();
+//    Mouse6 m6 = new Mouse6();
+//    Mouse7 m7 = new Mouse7();
+//    Mouse8 m8 = new Mouse8();
     
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
@@ -657,60 +661,98 @@ public class AppStageController {
                 
                 String extension = getFileExtension(file.toString());
                 if (extension.equals("csv")) { // process .csv data files:
+                    
+                    // (Parker) these represent the indices of specific columns of data in the data set file.
+                    // Note: an enum also could have worked here, but this serves the same purpose:
+                    int TIMESTAMP = 0;
+                    int ID_RFID = 1;
+                    int ID_LABEL = 2;
+                    int UNIT_LABEL = 3;
+                    int EVENT_DURATION = 4;
+                    
                     while (sc.hasNextLine()) {
+                        linesProcessed++;
                         String line = sc.nextLine(); //pulls next line of input
-                        System.out.println(line); //testing purposes, prints out line
+                        //System.out.println(line); //testing purposes, prints out line
                         List<String> items = Arrays.asList(line.split(",")); //splits up line using commas
                         
-                        // Loops through the line, searching for which mouse class it should belong to
-                        for(int i=0; i < items.size(); i++) {
-                            String item = items.get(i); //retrieves next item in the list
-                            System.out.println(" -->" + items.get(i)); //TESTING PURPOSES -> prints out what it is
-                            
-                            //Checks the 3rd line to determine which mouse it is, then adds it to that classes arrayList
-                            if(item.equals("Female_ 1")) {
-                                System.out.println("MOUSE 1!\n"); //TESTING PURPOSES -> prints out that it belongs to that class
-                                m1.mouse_one.add(line);
-                                System.out.println("GETTING = " + m1.mouse_one.get(0)); //TESTING PURPOSES -> checks to make sure its in arrayList of class
-                            }//end if
-                            else if(item.equals("Female_ 2")) {
-                                System.out.println("MOUSE 2!\n");
-                                m2.mouse_two.add(line);
-                                System.out.println("GETTING = " + m2.mouse_two.get(0));
-                            }//end else if
-                            else if(item.equals("Female_ 3")) {
-                                System.out.println("MOUSE 3!\n");
-                                m3.mouse_three.add(line);
-                                System.out.println("GETTING = " + m3.mouse_three.get(0));
-                            }//end else if
-                            else if(item.equals("Female_ 4")) {
-                                System.out.println("MOUSE 4!\n");
-                                m4.mouse_four.add(line);
-                                System.out.println("GETTING = " + m4.mouse_four.get(0));
-                            }//end else if
-                            else if(item.equals("Female_ 5")) {
-                                System.out.println("MOUSE 5!\n");
-                                m5.mouse_five.add(line);
-                                System.out.println("GETTING = " + m5.mouse_five.get(0));
-                            }//end else if
-                            else if(item.equals("Female_ 6")) {
-                                System.out.println("MOUSE 6!\n");
-                                m6.mouse_six.add(line);
-                                System.out.println("GETTING = " + m6.mouse_six.get(0));
-                            }//end else if
-                            else if(item.equals("Female_ 7")) {
-                                System.out.println("MOUSE 7!\n");
-                                m7.mouse_seven.add(line);
-                                System.out.println("GETTING = " + m7.mouse_seven.get(0));
-                            }//end else if
-                            else if(item.equals("Female_ 8")) {
-                                System.out.println("MOUSE 8!\n");
-                                m8.mouse_eight.add(line);
-                                System.out.println("GETTING = " + m8.mouse_eight.get(0));
-                            }//end else if
-                        }//end for
-                        linesProcessed++;
+                        /*
+                        Parker (3/22/17):
+                        For each row of data in the data set, take each tokenized string of data
+                        representing each column of data. Since there are only five columns of
+                        data within the data set that are relevant (DateTime,IdRFID,IdLabel,unitLabel,eventDuration), 
+                        only consider those columns. Next, check if the mice object contains a
+                        mouse with the current 
+                        
+                        */
+                        
+                        if (linesProcessed == 1) continue; // skip the header line
+                        
+                        // loop through the tokenized row of data, stop at the fifth column (end of relevant info):
+                        for (int i = 0; i < items.size() && i < 5; ++i) {
+                            // extract the location and timestamp data for the current row:
+                            MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
+                            // check if the mice object contains a mouse with the current row's IdRFID:
+                            if (mice.hasMouse(items.get(ID_RFID)) == false) {
+                                Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
+                                m.addLocTime(mlt);
+                                mice.add(m);
+                            }
+                            else {
+                                mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
+                            }
+                        }
+                        
+                        
+//                        // Loops through the line, searching for which mouse class it should belong to
+//                        for(int i=0; i < items.size(); i++) {
+//                            String item = items.get(i); //retrieves next item in the list
+//                            System.out.println(" -->" + items.get(i)); //TESTING PURPOSES -> prints out what it is
+//                            
+//                            //Checks the 3rd line to determine which mouse it is, then adds it to that classes arrayList
+//                            if(item.equals("Female_ 1")) {
+//                                System.out.println("MOUSE 1!\n"); //TESTING PURPOSES -> prints out that it belongs to that class
+//                                m1.mouse_one.add(line);
+//                                System.out.println("GETTING = " + m1.mouse_one.get(0)); //TESTING PURPOSES -> checks to make sure its in arrayList of class
+//                            }//end if
+//                            else if(item.equals("Female_ 2")) {
+//                                System.out.println("MOUSE 2!\n");
+//                                m2.mouse_two.add(line);
+//                                System.out.println("GETTING = " + m2.mouse_two.get(0));
+//                            }//end else if
+//                            else if(item.equals("Female_ 3")) {
+//                                System.out.println("MOUSE 3!\n");
+//                                m3.mouse_three.add(line);
+//                                System.out.println("GETTING = " + m3.mouse_three.get(0));
+//                            }//end else if
+//                            else if(item.equals("Female_ 4")) {
+//                                System.out.println("MOUSE 4!\n");
+//                                m4.mouse_four.add(line);
+//                                System.out.println("GETTING = " + m4.mouse_four.get(0));
+//                            }//end else if
+//                            else if(item.equals("Female_ 5")) {
+//                                System.out.println("MOUSE 5!\n");
+//                                m5.mouse_five.add(line);
+//                                System.out.println("GETTING = " + m5.mouse_five.get(0));
+//                            }//end else if
+//                            else if(item.equals("Female_ 6")) {
+//                                System.out.println("MOUSE 6!\n");
+//                                m6.mouse_six.add(line);
+//                                System.out.println("GETTING = " + m6.mouse_six.get(0));
+//                            }//end else if
+//                            else if(item.equals("Female_ 7")) {
+//                                System.out.println("MOUSE 7!\n");
+//                                m7.mouse_seven.add(line);
+//                                System.out.println("GETTING = " + m7.mouse_seven.get(0));
+//                            }//end else if
+//                            else if(item.equals("Female_ 8")) {
+//                                System.out.println("MOUSE 8!\n");
+//                                m8.mouse_eight.add(line);
+//                                System.out.println("GETTING = " + m8.mouse_eight.get(0));
+//                            }//end else if
+//                        }//end for
                     }
+                    mice.print();
                 }
                 else if (extension.equals("json")) { // process .json session files:
                     String jsonData = "";
