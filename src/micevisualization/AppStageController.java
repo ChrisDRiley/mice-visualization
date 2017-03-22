@@ -76,17 +76,6 @@ public class AppStageController {
     // Create a mice variable to store the mice read in from the data file:
     Mice mice = new Mice();
     
-//    // Alex (3/21/17)
-//    // Creating mouse class variables to store file information
-//    Mouse1 m1 = new Mouse1();
-//    Mouse2 m2 = new Mouse2();
-//    Mouse3 m3 = new Mouse3();
-//    Mouse4 m4 = new Mouse4();
-//    Mouse5 m5 = new Mouse5();
-//    Mouse6 m6 = new Mouse6();
-//    Mouse7 m7 = new Mouse7();
-//    Mouse8 m8 = new Mouse8();
-    
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
     
@@ -702,55 +691,6 @@ public class AppStageController {
                                 mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
                             }
                         }
-                        
-                        
-//                        // Loops through the line, searching for which mouse class it should belong to
-//                        for(int i=0; i < items.size(); i++) {
-//                            String item = items.get(i); //retrieves next item in the list
-//                            System.out.println(" -->" + items.get(i)); //TESTING PURPOSES -> prints out what it is
-//                            
-//                            //Checks the 3rd line to determine which mouse it is, then adds it to that classes arrayList
-//                            if(item.equals("Female_ 1")) {
-//                                System.out.println("MOUSE 1!\n"); //TESTING PURPOSES -> prints out that it belongs to that class
-//                                m1.mouse_one.add(line);
-//                                System.out.println("GETTING = " + m1.mouse_one.get(0)); //TESTING PURPOSES -> checks to make sure its in arrayList of class
-//                            }//end if
-//                            else if(item.equals("Female_ 2")) {
-//                                System.out.println("MOUSE 2!\n");
-//                                m2.mouse_two.add(line);
-//                                System.out.println("GETTING = " + m2.mouse_two.get(0));
-//                            }//end else if
-//                            else if(item.equals("Female_ 3")) {
-//                                System.out.println("MOUSE 3!\n");
-//                                m3.mouse_three.add(line);
-//                                System.out.println("GETTING = " + m3.mouse_three.get(0));
-//                            }//end else if
-//                            else if(item.equals("Female_ 4")) {
-//                                System.out.println("MOUSE 4!\n");
-//                                m4.mouse_four.add(line);
-//                                System.out.println("GETTING = " + m4.mouse_four.get(0));
-//                            }//end else if
-//                            else if(item.equals("Female_ 5")) {
-//                                System.out.println("MOUSE 5!\n");
-//                                m5.mouse_five.add(line);
-//                                System.out.println("GETTING = " + m5.mouse_five.get(0));
-//                            }//end else if
-//                            else if(item.equals("Female_ 6")) {
-//                                System.out.println("MOUSE 6!\n");
-//                                m6.mouse_six.add(line);
-//                                System.out.println("GETTING = " + m6.mouse_six.get(0));
-//                            }//end else if
-//                            else if(item.equals("Female_ 7")) {
-//                                System.out.println("MOUSE 7!\n");
-//                                m7.mouse_seven.add(line);
-//                                System.out.println("GETTING = " + m7.mouse_seven.get(0));
-//                            }//end else if
-//                            else if(item.equals("Female_ 8")) {
-//                                System.out.println("MOUSE 8!\n");
-//                                m8.mouse_eight.add(line);
-//                                System.out.println("GETTING = " + m8.mouse_eight.get(0));
-//                            }//end else if
-//                        }//end for
                     }
                     mice.print();
                 }
