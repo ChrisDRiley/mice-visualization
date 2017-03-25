@@ -1,56 +1,66 @@
 package micevisualization;
 
+import javafx.fxml.FXML;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.net.URISyntaxException;
+import java.net.URL;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
-import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
-import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import javafx.scene.text.Text;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ListView;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import static java.lang.System.out;
-import java.util.ArrayList;
-import java.util.Arrays;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ListView;
-import javafx.scene.layout.AnchorPane;
-
-
+import javafx.concurrent.Task;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -63,6 +73,8 @@ public class AppStageController {
     @FXML private AnchorPane visualizationOptionsAnchorPane;
     @FXML private AnchorPane sessionsAnchorPane;
     @FXML private ChoiceBox visualizationTypeChoiceBox;
+    @FXML private CustomMenuItem saveMenuItem;
+    @FXML private CustomMenuItem exportMenuItem;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -90,6 +102,8 @@ public class AppStageController {
      */
     @FXML
     private void initialize() throws URISyntaxException {
+        //fileMenuOption.setAccelerator(new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN));
+        
         refreshListOfSessions();
         
         visualizationTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
@@ -119,10 +133,41 @@ public class AppStageController {
         visualizationTypeChoiceBox.getSelectionModel().select(s.visualizationType);
     }
     
+    /**
+     * 
+     * @author: parker
+     * 
+     * locks the visualization options anchor pane and disables relevant menu options
+     * 
+     */
+    public void lockVisualizationOptions() {
+        visualizationOptionsAnchorPane.setDisable(true);
+        saveMenuItem.setDisable(true);
+        exportMenuItem.setDisable(true);
+    }
+    
+    /**
+     * 
+     * @author: parker
+     * 
+     * unlocks the visualization options anchor pane and disables relevant menu options
+     * 
+     */
+    public void unlockVisualizationOptions() {
+        visualizationOptionsAnchorPane.setDisable(false);
+        saveMenuItem.setDisable(false);
+        exportMenuItem.setDisable(false);
+    }
+    
+    /**
+     * @author: parker
+     * 
+     * resets the session variable and GUI to default.
+     */
     public void resetToDefaultState() {
         session = new Session();
         visualizationTypeChoiceBox.getSelectionModel().clearSelection();
-        visualizationOptionsAnchorPane.setDisable(true);
+        lockVisualizationOptions();
     }
     
     /**
@@ -183,7 +228,7 @@ public class AppStageController {
             if (extension.equals("csv")) {
                 if (openFile(fileToOpen)) {
                     session.dataSetFileLoaded(fileToOpen.getPath()); // update the program's state via the session variable
-                    visualizationOptionsAnchorPane.setDisable(false);
+                    unlockVisualizationOptions();
                     if (session.isNewSession) { // Check if the current session is new
                         promptUserToCreateNewSessionFile(session); // prompt the user to create a new session file
                     }
@@ -248,7 +293,19 @@ public class AppStageController {
         }
     }
     
-    @FXML protected void loadSessionFromManagerAction(ActionEvent event) throws URISyntaxException {
+    /**
+     * 
+     * @author: parker
+     * 
+     * load a session file from the list of files available in the session manager list.
+     * Search for the file in the sessions directory by filename, then attempt to 
+     * load its contents by calling loadSessionFile(sessionFile).
+     * 
+     * @param event
+     * @throws URISyntaxException
+     * @throws FileNotFoundException 
+     */
+    @FXML protected void loadSessionFromManagerAction(ActionEvent event) throws URISyntaxException, FileNotFoundException {
         if (sessionsListView.getSelectionModel().getSelectedItem() != null) { // if there was a session name selected
             String selectedSession = sessionsListView.getSelectionModel().getSelectedItem().toString(); // get the selected name from the Recent sessions listView
             int i = selectedSession.lastIndexOf('.'); // we need to trim the extension off the filename, so get the index of the last period
@@ -260,6 +317,28 @@ public class AppStageController {
             }
         } else {
             simpleAlert("Please select a session filename from the list of sessions.", null);
+        }
+    }
+    
+    /**
+     * 
+     * author: parker
+     * 
+     * save the current session's state to file. If a file representing the current session does not exist,
+     * prompt the user to create one.
+     * 
+     * @param event
+     * @throws FileNotFoundException
+     * @throws URISyntaxException
+     * @throws IOException 
+     */
+    public void saveFileAction(ActionEvent event) throws FileNotFoundException, URISyntaxException, IOException {
+        if (session.isNewSession) { // Check if the current session is new
+            promptUserToCreateNewSessionFile(session); // prompt the user to create a new session file
+        }
+        else {
+            session.saveState();
+            simpleAlert("File saved!", "The session data was saved to disk.");
         }
     }
    
@@ -276,7 +355,7 @@ public class AppStageController {
     @FXML
     public void exitApplication(ActionEvent event) throws FileNotFoundException {
        System.out.println("Platform is closing");
-       if (!session.isNewSession) {
+       if (session.isNewSession == false) {
            session.saveState();
        }
        Platform.exit();
@@ -354,7 +433,7 @@ public class AppStageController {
      * @param sessionFile the session file to load
      * @return true if session file was loaded, false if otherwise
      */
-    public Boolean loadSessionFile(File sessionFile) {
+    public Boolean loadSessionFile(File sessionFile) throws FileNotFoundException {
         if (openFile(sessionFile)) {
             // if the selected session file contains a different session filename than the one listed in the 
             // currentSessionFilePath property of the session object, update the session object:
@@ -363,7 +442,10 @@ public class AppStageController {
             }
             File dataFile = new File(session.currentDataSetFilePath);
             if (openFile(dataFile)) {
-                visualizationOptionsAnchorPane.setDisable(false);
+                session.sessionLoaded(sessionFile.getPath().toString()); // update the program's state via the session variable
+                session.saveState(); // write the session state to file
+                unlockVisualizationOptions();
+                
                 restoreState(session);
                 return true;
             } 
@@ -586,7 +668,8 @@ public class AppStageController {
 
                 String sessionFileCreated = createSessionFile(sessionName); // attempt to create the session file within the session directory
                 if (sessionFileCreated == "true") { // if the session file was created successfully
-                    session.sessionLoaded(constructSessionFilePath(sessionName).toString()); // update the program's state via the session variable
+                    String name = constructSessionFilePath(sessionName).toString();
+                    session.sessionLoaded(name); // update the program's state via the session variable
                     session.saveState(); // write the session state to file
                     refreshListOfSessions();
                     break; // save new session operation is complete; break out of the !userCanceled while loop 
@@ -636,9 +719,6 @@ public class AppStageController {
     private Boolean openFile(File file) {
         try {
             leftStatus.setText("Opening " + file.getName() + " ...");
-            /* Parker (3-15-17):
-            * FileInputStream implementation below from 
-            * http://www.baeldung.com/java-read-lines-large-file */
             FileInputStream inputStream = null;
             Scanner sc = null;
             int linesProcessed = 0;
@@ -671,25 +751,25 @@ public class AppStageController {
                         representing each column of data. Since there are only five columns of
                         data within the data set that are relevant (DateTime,IdRFID,IdLabel,unitLabel,eventDuration), 
                         only consider those columns. Next, check if the mice object contains a
-                        mouse with the current 
-                        
+                        mouse with the current row's IdRFID. If not, create a new mouse object,
+                        add the current row's location and timestamp data to the object,
+                        and add the mouse to the mice object. If the mouse is already in the
+                        mice object, retreive the matching mouse from mice based on the current IdRFID
+                        and add the current's rows's location and timestamp data.
                         */
                         
                         if (linesProcessed == 1) continue; // skip the header line
                         
-                        // loop through the tokenized row of data, stop at the fifth column (end of relevant info):
-                        for (int i = 0; i < items.size() && i < 5; ++i) {
-                            // extract the location and timestamp data for the current row:
-                            MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
-                            // check if the mice object contains a mouse with the current row's IdRFID:
-                            if (mice.hasMouse(items.get(ID_RFID)) == false) {
-                                Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
-                                m.addLocTime(mlt);
-                                mice.add(m);
-                            }
-                            else {
-                                mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
-                            }
+                        // extract the location and timestamp data for the current row:
+                        MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
+                        // check if the mice object contains a mouse with the current row's IdRFID:
+                        if (mice.hasMouse(items.get(ID_RFID)) == false) {
+                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
+                            m.addLocTime(mlt);
+                            mice.add(m);
+                        }
+                        else {
+                            mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
                         }
                     }
                     mice.print();

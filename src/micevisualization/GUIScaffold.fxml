@@ -10,33 +10,41 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.collections.FXCollections?>
 <?import java.lang.String?>
+<?import javafx.scene.input.KeyCode?>
+<?import javafx.scene.input.KeyCodeCombination?>
 
 <VBox fx:controller="micevisualization.AppStageController" 
       xmlns:fx="http://javafx.com/fxml/1">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
-        <Menu mnemonicParsing="false" text="File">
+        <Menu mnemonicParsing="false" text="_File">
           <items>
             <CustomMenuItem mnemonicParsing="false" onAction="#openFileAction">
                 <content>
                     <Label text="Open...">
                         <tooltip >
-                          <Tooltip text="Open a data set file to read from."/>
+                          <Tooltip text="Open a data set file to read from (Ctrl-O, Cmd-O)"/>
                       </tooltip>
                     </Label>
                 </content>
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="o" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
             </CustomMenuItem>
-            <CustomMenuItem mnemonicParsing="false">
+            <CustomMenuItem fx:id="saveMenuItem" mnemonicParsing="false" onAction="#saveFileAction" disable="true">
                 <content>
                     <Label text="Save">
                         <tooltip >
-                          <Tooltip text="Save the current session's data."/>
+                          <Tooltip text="Save the current session's data (Ctrl-S, Cmd-S)"/>
                       </tooltip>
                     </Label>
                 </content>
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="s" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
             </CustomMenuItem>
-          <CustomMenuItem mnemonicParsing="false">
+<!--          <CustomMenuItem mnemonicParsing="false">
                 <content>
                     <Label text="Save As...">
                         <tooltip >
@@ -44,15 +52,18 @@
                       </tooltip>
                     </Label>
                 </content>
-            </CustomMenuItem>
-            <CustomMenuItem mnemonicParsing="false">
+            </CustomMenuItem>-->
+            <CustomMenuItem fx:id="exportMenuItem" mnemonicParsing="false" disable="true">
                 <content>
                     <Label text="Export Image...">
                         <tooltip >
-                          <Tooltip text="Export the current visualization as an image file."/>
+                          <Tooltip text="Export the current visualization as an image file (Ctrl-E, Cmd-E)"/>
                       </tooltip>
                     </Label>
                 </content>
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="e" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
             </CustomMenuItem>
             <SeparatorMenuItem mnemonicParsing="false" />
             <CustomMenuItem mnemonicParsing="false" onAction="#exitApplication">
@@ -66,11 +77,14 @@
             </CustomMenuItem>
           </items>
         </Menu>
-        <Menu mnemonicParsing="false" text="Help" >
+        <Menu mnemonicParsing="false" text="_Help" >
             <items>
                 <MenuItem mnemonicParsing="false" text="Tutorial"/>
                 <MenuItem mnemonicParsing="false" text="About"/>
             </items>
+            <accelerator>
+               <KeyCodeCombination alt="UP" code="h" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
         </Menu>
       </menus>
     </MenuBar>
@@ -78,7 +92,8 @@
                focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" 
                VBox.vgrow="ALWAYS" id="mainSplitPane">
       <items>
-        <AnchorPane fx:id="sessionsAnchorPane" disable="true" prefWidth="200.0" maxWidth="300.0">
+        <ScrollPane fitToWidth="true" maxWidth="250.0">
+        <AnchorPane fx:id="sessionsAnchorPane" disable="true" prefWidth="250.0" maxWidth="250.0">
           <children>
             <Label alignment="CENTER" layoutX="21.0" layoutY="14.0" 
                    minWidth="60.0" prefHeight="27.0" prefWidth="157.0" 
@@ -104,21 +119,13 @@
                   </Button>
           </children>
         </AnchorPane>
-        <ScrollPane prefWidth="586.0">
-          <content>
-            <AnchorPane id="Content" minHeight="-1.0" minWidth="-1.0" prefHeight="545.0" prefWidth="430.0">
-              <children>
-                <Label alignment="CENTER" 
-                       layoutX="14.0" layoutY="14.0" text="Viewer" 
-                       textAlignment="CENTER" wrapText="false" styleClass="headerLabel"/>
-                        <Pane layoutX="41.0" layoutY="56.0" 
-                              prefHeight="450.0" prefWidth="490.0" 
-                              id="viewerImage" />
-              </children>
-            </AnchorPane>
-          </content>
         </ScrollPane>
-        <AnchorPane fx:id="visualizationOptionsAnchorPane" disable="true" prefHeight="551.0" prefWidth="250.0" maxWidth="250.0">
+        <HBox alignment="CENTER" id="viewerHBox">
+            <children>
+            </children>
+        </HBox>
+        <ScrollPane fitToWidth="true" maxWidth="250.0">
+        <AnchorPane fx:id="visualizationOptionsAnchorPane" disable="true" prefWidth="250.0" maxWidth="250.0">
           <children>
             <Label alignment="CENTER" layoutX="3.0" layoutY="14.0" 
                    minWidth="60.0" prefHeight="27.0" prefWidth="173.0" 
@@ -186,6 +193,7 @@
                   </HBox>
           </children>
         </AnchorPane>
+          </ScrollPane>
       </items>
     </SplitPane>
     <GridPane>

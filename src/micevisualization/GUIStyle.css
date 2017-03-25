@@ -6,3 +6,7 @@
     -fx-fill: black;
     -fx-font-size: 18px;
 }
+
+#viewerHBox {
+    -fx-background-color: gray;
+}
