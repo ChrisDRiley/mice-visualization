@@ -5,11 +5,39 @@
  */
 package micevisualization;
 
+import java.util.ArrayList;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+
 /**
  *
  * @author parker
  */
 public class Grid {
-    public double maxWidth;
-    public double maxHeight;
+    ArrayList<GridSector> sectors;
+    
+    Grid() {
+        this.sectors = new ArrayList<GridSector>();
+    }
+    
+    Boolean addSector(GridSector gs) {
+        return this.sectors.add(gs);
+    }
+    
+    void drawSectorsBackground(Canvas c) {
+        for (int i = 0; i < this.sectors.size(); ++i) {
+            GraphicsContext gc = c.getGraphicsContext2D();
+            gc.setFill(Color.WHITE);
+            gc.fillRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
+        }
+    }
+    
+    void drawSectorsGridlines(Canvas c) {
+        for (int i = 0; i < this.sectors.size(); ++i) {
+            GraphicsContext gc = c.getGraphicsContext2D();
+            gc.setFill(Color.BLACK);
+            gc.strokeRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
+        }
+    }
 }

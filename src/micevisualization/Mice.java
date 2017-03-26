@@ -5,6 +5,8 @@
  */
 package micevisualization;
 import java.util.ArrayList;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -39,5 +41,14 @@ public class Mice {
             if (mice.get(i).IdRFID.equals(IdRFID)) return mice.get(i);
         }
         return null;       
+    }
+    
+    public ObservableList<String> getMouseIdsLabelsObservableList() {
+        ObservableList<String> miceIds = FXCollections.observableArrayList();
+        for (int i = 0; i < this.mice.size(); ++i) {
+            String info = mice.get(i).IdRFID + " (" + mice.get(i).IdLabel + ")";
+            miceIds.add(info);
+        }
+        return miceIds;
     }
 }

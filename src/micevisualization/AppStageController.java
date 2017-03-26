@@ -52,15 +52,25 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import static java.lang.System.out;
+import java.util.Timer;
+import java.util.TimerTask;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextArea;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -75,6 +85,12 @@ public class AppStageController {
     @FXML private ChoiceBox visualizationTypeChoiceBox;
     @FXML private CustomMenuItem saveMenuItem;
     @FXML private CustomMenuItem exportMenuItem;
+    @FXML private Canvas canvasBasePane;
+    @FXML private StackPane viewerPane;
+    @FXML private SplitPane mainSplitPane;
+    @FXML private ListView selectedMiceListView;
+    @FXML private TextArea startDataRangeTextArea;
+    @FXML private TextArea stopDataRangeTextArea;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -87,6 +103,8 @@ public class AppStageController {
     // Parker (3/22/17)
     // Create a mice variable to store the mice read in from the data file:
     Mice mice = new Mice();
+    
+    ObservableList<Date> experimentDates = FXCollections.observableArrayList();
     
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
@@ -106,6 +124,30 @@ public class AppStageController {
         
         refreshListOfSessions();
         
+        // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects
+        viewerPane.widthProperty().addListener(new ChangeListener<Number>() {
+           @Override
+           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue)
+           {
+               if (session.isNewSession == false) {
+                   drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+               }
+           }           
+        });
+        
+        // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects
+        viewerPane.heightProperty().addListener(new ChangeListener<Number>() {
+           @Override
+           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue)
+           {
+               if (session.isNewSession == false) {
+                   drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+               }
+           }           
+        });
+        
+        // (Parker 3/26/17): When the user changes their selection in the visualization type choice box,
+        // respond to that change
         visualizationTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -117,6 +159,79 @@ public class AppStageController {
                 }
             }
         });
+    }
+    
+    /**
+     * 
+     * @author: Parker
+     * 
+     * draw several Canvas objects to create the visualization 2D grid. 
+     * 
+     * @param width intended for use with the parent node's width
+     * @param height intended for use with the parent node's height
+     */
+    public void drawCanvas(double width, double height) {
+        // (Parker 3/25/17): if there is already a canvas element in the viewerPane, clear it
+        if (!viewerPane.getChildren().isEmpty()) {
+            viewerPane.getChildren().clear();
+        }
+        // (Parker 3/25/17): calculate values to create a margin around the canvas:
+        width = width - 30;
+        height = height - 30;
+        
+        // (Parker 3/25/17): maintain a 7:4 aspect ratio in the canvas dimensions:
+        if (width > height) {
+            width = height;
+        }
+        else if (width < height) {
+            height = width;
+        }
+        
+        height = (height/7)*4;
+        
+        // (Parker 3/26/17): create a new Grid object, representing the grid and its sectors
+        Grid grid = new Grid();
+        
+        int ROWS = 4;
+        // 6 columns containing 4 sectors each, plus one column containing the feeding station sector
+        int COLS = 7;
+        
+        double currentY = 0.0;
+        double currentX = 0.0;
+        
+        // (Parker 3/25/17): create a 7x4 grid representing the experiment enclosure;
+        // grid sectors in the first 6x4 spaces are regular sectors, while column 7x4
+        // contains one grid sector, offset from the others, that represents the feeding station:
+        for (int i = 0; i < ROWS; ++i) {
+            currentY = (height / ROWS) * i;
+            for (int j = 0; j < COLS; ++j) {
+                currentX = (width / COLS) * j;
+                GridSector gs = null;
+                // check if the x coordinate is positioned at the feeding station or not:
+                if (j != COLS - 1) {
+                    gs = new GridSector(currentX, currentY, width/COLS, height/ROWS);                 
+                }
+                else {
+                    gs = new GridSector(currentX, height/2 - ((height/ROWS)/2), width/COLS, height/ROWS);  
+                }
+                grid.addSector(gs);
+            }
+        }
+        
+        // (Parker 3/25/17): setup the visualization with several layers of canvas objects:
+        // layer 0: background
+        // layer 1, 2, 3 ... : drawing
+        // layer n: gridlines overlay
+        Canvas backgroundCanvas = new Canvas(width, height);
+        GraphicsContext backgroundCanvasContext = backgroundCanvas.getGraphicsContext2D();
+        grid.drawSectorsBackground(backgroundCanvas);
+        
+        Canvas gridlinesCanvas = new Canvas(width, height);
+        GraphicsContext gridlinesCanvasContext = gridlinesCanvas.getGraphicsContext2D();
+        grid.drawSectorsGridlines(gridlinesCanvas);
+        
+        viewerPane.getChildren().add(backgroundCanvas);
+        viewerPane.getChildren().add(gridlinesCanvas);
     }
     
     /**
@@ -144,6 +259,10 @@ public class AppStageController {
         visualizationOptionsAnchorPane.setDisable(true);
         saveMenuItem.setDisable(true);
         exportMenuItem.setDisable(true);
+        viewerPane.getChildren().clear();
+        selectedMiceListView.getItems().clear();
+        startDataRangeTextArea.clear();
+        stopDataRangeTextArea.clear();
     }
     
     /**
@@ -157,6 +276,8 @@ public class AppStageController {
         visualizationOptionsAnchorPane.setDisable(false);
         saveMenuItem.setDisable(false);
         exportMenuItem.setDisable(false);
+        drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+        
     }
     
     /**
@@ -183,7 +304,7 @@ public class AppStageController {
      */
     public void refreshListOfSessions() throws URISyntaxException {
         if (checkIfSessionsFolderExists()) {
-            ObservableList<String> sessionFiles =FXCollections.observableArrayList();
+            ObservableList<String> sessionFiles = FXCollections.observableArrayList();
             File[] files = getSessionsFolderPath().listFiles();
             if (files != null) {
                 for (File file : files) {
@@ -445,7 +566,7 @@ public class AppStageController {
                 session.sessionLoaded(sessionFile.getPath().toString()); // update the program's state via the session variable
                 session.saveState(); // write the session state to file
                 unlockVisualizationOptions();
-                
+                drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
                 restoreState(session);
                 return true;
             } 
@@ -772,6 +893,14 @@ public class AppStageController {
                             mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
                         }
                     }
+                    // (Parker 3/26/17): Prepopulate the start and stop visualization options 
+                    // with the first and last data row indices:
+                    if (linesProcessed > 1) {
+                        startDataRangeTextArea.setText(String.valueOf(1));
+                        stopDataRangeTextArea.setText(String.valueOf(linesProcessed));
+                    }
+                    // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
+                    selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
                     mice.print();
                 }
                 else if (extension.equals("json")) { // process .json session files:
