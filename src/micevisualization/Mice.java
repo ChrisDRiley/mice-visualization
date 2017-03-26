@@ -51,4 +51,21 @@ public class Mice {
         }
         return miceIds;
     }
+    
+    public ArrayList<Mouse> getMicebyIdsLabels(ObservableList<String> ids) {
+        ArrayList<Mouse> returnMice = new ArrayList<Mouse>();
+        for (int i = 0; i < ids.size(); ++i) {
+            int cutoff = ids.get(i).lastIndexOf(' ');
+            String rfid = ids.get(i).substring(0, cutoff);
+            if (getMouseByIdRFID(rfid) != null) {
+                returnMice.add(getMouseByIdRFID(rfid));
+            }
+        }
+        if (!returnMice.isEmpty()) {
+            return returnMice;
+        }
+        else {
+            return null;
+        }
+    }
 }

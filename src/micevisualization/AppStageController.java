@@ -62,6 +62,7 @@ import javafx.scene.shape.ArcType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import static java.lang.System.out;
+import java.text.ParseException;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.beans.value.ChangeListener;
@@ -69,6 +70,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 
@@ -91,6 +94,10 @@ public class AppStageController {
     @FXML private ListView selectedMiceListView;
     @FXML private TextArea startDataRangeTextArea;
     @FXML private TextArea stopDataRangeTextArea;
+    @FXML private ChoiceBox mapTypeChoiceBox;
+    @FXML private CheckBox showGridLinesCheckBox;
+    @FXML private CheckBox showGridNumbersCheckBox;
+    @FXML private Button generateButton;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -103,8 +110,9 @@ public class AppStageController {
     // Parker (3/22/17)
     // Create a mice variable to store the mice read in from the data file:
     Mice mice = new Mice();
-    
-    ObservableList<Date> experimentDates = FXCollections.observableArrayList();
+
+    // (Parker 3/26/17): create a new Grid object, representing the grid and its sectors
+    Grid grid = new Grid();
     
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
@@ -159,6 +167,20 @@ public class AppStageController {
                 }
             }
         });
+        
+        showGridLinesCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            public void changed(ObservableValue<? extends Boolean> ov,
+                Boolean old_val, Boolean new_val) {
+                    grid.toggleGridLines(viewerPane);
+            }
+        });
+        
+        showGridNumbersCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            public void changed(ObservableValue<? extends Boolean> ov,
+                Boolean old_val, Boolean new_val) {
+                    grid.toggleGridNumbers(viewerPane);
+            }
+        });
     }
     
     /**
@@ -171,67 +193,7 @@ public class AppStageController {
      * @param height intended for use with the parent node's height
      */
     public void drawCanvas(double width, double height) {
-        // (Parker 3/25/17): if there is already a canvas element in the viewerPane, clear it
-        if (!viewerPane.getChildren().isEmpty()) {
-            viewerPane.getChildren().clear();
-        }
-        // (Parker 3/25/17): calculate values to create a margin around the canvas:
-        width = width - 30;
-        height = height - 30;
-        
-        // (Parker 3/25/17): maintain a 7:4 aspect ratio in the canvas dimensions:
-        if (width > height) {
-            width = height;
-        }
-        else if (width < height) {
-            height = width;
-        }
-        
-        height = (height/7)*4;
-        
-        // (Parker 3/26/17): create a new Grid object, representing the grid and its sectors
-        Grid grid = new Grid();
-        
-        int ROWS = 4;
-        // 6 columns containing 4 sectors each, plus one column containing the feeding station sector
-        int COLS = 7;
-        
-        double currentY = 0.0;
-        double currentX = 0.0;
-        
-        // (Parker 3/25/17): create a 7x4 grid representing the experiment enclosure;
-        // grid sectors in the first 6x4 spaces are regular sectors, while column 7x4
-        // contains one grid sector, offset from the others, that represents the feeding station:
-        for (int i = 0; i < ROWS; ++i) {
-            currentY = (height / ROWS) * i;
-            for (int j = 0; j < COLS; ++j) {
-                currentX = (width / COLS) * j;
-                GridSector gs = null;
-                // check if the x coordinate is positioned at the feeding station or not:
-                if (j != COLS - 1) {
-                    gs = new GridSector(currentX, currentY, width/COLS, height/ROWS);                 
-                }
-                else {
-                    gs = new GridSector(currentX, height/2 - ((height/ROWS)/2), width/COLS, height/ROWS);  
-                }
-                grid.addSector(gs);
-            }
-        }
-        
-        // (Parker 3/25/17): setup the visualization with several layers of canvas objects:
-        // layer 0: background
-        // layer 1, 2, 3 ... : drawing
-        // layer n: gridlines overlay
-        Canvas backgroundCanvas = new Canvas(width, height);
-        GraphicsContext backgroundCanvasContext = backgroundCanvas.getGraphicsContext2D();
-        grid.drawSectorsBackground(backgroundCanvas);
-        
-        Canvas gridlinesCanvas = new Canvas(width, height);
-        GraphicsContext gridlinesCanvasContext = gridlinesCanvas.getGraphicsContext2D();
-        grid.drawSectorsGridlines(gridlinesCanvas);
-        
-        viewerPane.getChildren().add(backgroundCanvas);
-        viewerPane.getChildren().add(gridlinesCanvas);
+        grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
     }
     
     /**
@@ -438,6 +400,58 @@ public class AppStageController {
             }
         } else {
             simpleAlert("Please select a session filename from the list of sessions.", null);
+        }
+    }
+    
+    @FXML protected void generateButtonAction(ActionEvent event) {
+        Date startIndex;
+        Date stopIndex;
+//        try {
+//            startIndex = Integer.parseInt(startDataRangeTextArea.getText());
+//            stopIndex = Integer.parseInt(startDataRangeTextArea.getText());
+//        }
+//        catch (Exception e) {
+//            simpleAlert("Invalid start and/or stop indices", "Please ensure the values entered into the Start and Stop fields (under Visualization Options) are integer values");
+//            return;
+//        }
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+            startIndex = formatter.parse(startDataRangeTextArea.getText());
+        }
+        catch (ParseException pe) {
+            simpleAlert("Invalid starting index", "Please ensure the value entered into the Start field is a Date in the format: MM/dd/yyyy HH:mm:ss.SSS");
+            return;
+        }
+        
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+            stopIndex = formatter.parse(stopDataRangeTextArea.getText());
+        }
+        catch (ParseException pe) {
+            simpleAlert("Invalid stopping index", "Please ensure the value entered into the Stop field is a Date in the format: MM/dd/yyyy HH:mm:ss.SSS");
+            return;
+        }
+        
+        if (startIndex.compareTo(stopIndex) > 0) {
+            simpleAlert("Out-of-bounds starting index", "The starting index in the Start field must be less than or equal to the stopping index in the Stop field.");
+            return;
+        }
+        else if (stopIndex.compareTo(startIndex) < 0) {
+            simpleAlert("Out-of-bounds stopping index", "The stopping index in the Stop field must be greater than or equal to the starting index in the Start field.");
+            return;            
+        }
+        
+        ObservableList<String> selectedMiceIds = selectedMiceListView.getSelectionModel().getSelectedItems();
+        ArrayList<Mouse> selectedMice = mice.getMicebyIdsLabels(selectedMiceIds);
+        if (selectedMice == null) {
+            simpleAlert("No mice selected!", "Please select at least one mouse to visualize.");
+            return;
+        }
+        if (visualizationTypeChoiceBox.getValue() == "Static") {
+            if (mapTypeChoiceBox.getValue() == "Heat Map") {
+                grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
+                grid.staticHeatMap(selectedMice, startIndex, stopIndex);
+            }
         }
     }
     
@@ -901,6 +915,7 @@ public class AppStageController {
                     }
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
+                    selectedMiceListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
                     mice.print();
                 }
                 else if (extension.equals("json")) { // process .json session files:

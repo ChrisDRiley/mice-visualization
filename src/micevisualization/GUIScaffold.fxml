@@ -128,70 +128,133 @@
         <ScrollPane fitToWidth="true" maxWidth="250.0" minWidth="250.0">
             <AnchorPane fx:id="visualizationOptionsAnchorPane" disable="true" prefWidth="250.0" maxWidth="250.0">
               <children>
-                <Label alignment="CENTER" layoutX="3.0" layoutY="14.0" 
-                       minWidth="60.0" prefHeight="27.0" prefWidth="173.0" 
-                       text="Visualization Options" textAlignment="CENTER" wrapText="true" 
-                       AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" 
-                       styleClass="headerLabel"/>
-                       <ChoiceBox fx:id="visualizationTypeChoiceBox" layoutX="20.0" layoutY="89.0" prefWidth="150.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="89.0">
+                  <VBox prefHeight="562.0" prefWidth="235.0">
+                     <children>
+                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Visualization Options" styleClass="headerLabel">
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" top="15.0" />
+                           </VBox.margin>
+                        </Label>
+                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Map Type:" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="10.0" top="10.0" />
+                           </padding>
+                        </Label>
+                        <ChoiceBox fx:id="mapTypeChoiceBox" prefHeight="25.0" prefWidth="253.0">
+                           <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:id="heatMapOption" fx:value="Heat Map" />
+                                    <String fx:id="vectorMapOption" fx:value="Vector Map" />
+                                    <String fx:id="overlayMapOption" fx:value="Overlay Map" />
+                                </FXCollections>
+                            </items>
+                            <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                       </ChoiceBox>
+                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Visualization Type:" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="10.0" top="10.0" />
+                           </padding>
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ChoiceBox fx:id="visualizationTypeChoiceBox" prefHeight="25.0" prefWidth="253.0">
                            <items>
                                 <FXCollections fx:factory="observableArrayList">
                                     <String fx:id="staticMapOption" fx:value="Static" />
                                     <String fx:id="animatedMapOption" fx:value="Animated" />
-                                    <String fx:id="overlayMapOption" fx:value="Overlay" />
                                 </FXCollections>
                             </items>
+                            <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
                        </ChoiceBox>
-                      <ListView fx:id="selectedMiceListView" layoutX="20.0" layoutY="152.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
-                      <Label alignment="CENTER" layoutX="20.0" layoutY="125.0" text="Selected Mice" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
-                         <padding>
-                            <Insets bottom="5.0" top="5.0" />
-                         </padding>
-                      </Label>
-                      <Slider layoutX="20.0" layoutY="398.0" prefHeight="14.0" prefWidth="200.0" showTickLabels="true" showTickMarks="true" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
-                      <Label alignment="CENTER" layoutX="20.0" layoutY="361.0" text="Animation Speed" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
-                         <padding>
-                            <Insets bottom="10.0" top="10.0" />
-                         </padding>
-                      </Label>
-                      <Label alignment="CENTER" layoutX="20.0" layoutY="62.0" text="Visualization Type" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
-                         <padding>
-                            <Insets bottom="5.0" top="5.0" />
-                         </padding>
-                      </Label>
-                      <Button layoutX="20.0" layoutY="512.0" mnemonicParsing="false" text="Generate" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
-                      <HBox alignment="CENTER" layoutX="10.0" layoutY="437.0" prefHeight="68.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
-                         <children>
-                            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="150.0">
-                               <children>
-                                  <Label alignment="CENTER" prefHeight="27.0" prefWidth="93.0" text="Start" textAlignment="CENTER">
-                                     <padding>
-                                        <Insets bottom="5.0" top="5.0" />
-                                     </padding>
-                                  </Label>
-                                  <TextArea fx:id="startDataRangeTextArea" prefHeight="37.0" prefWidth="69.0">
-                                     <VBox.margin>
-                                        <Insets right="10.0" />
-                                     </VBox.margin>
-                                  </TextArea>
-                               </children>
-                            </VBox>
-                            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="150.0">
-                               <children>
-                                  <Label alignment="CENTER" prefHeight="27.0" prefWidth="97.0" text="Stop" textAlignment="CENTER">
-                                     <padding>
-                                        <Insets bottom="5.0" top="5.0" />
-                                     </padding>
-                                  </Label>
-                                  <TextArea fx:id="stopDataRangeTextArea" prefHeight="37.0" prefWidth="69.0">
-                                     <VBox.margin>
-                                        <Insets left="10.0" />
-                                     </VBox.margin>
-                                  </TextArea>
-                               </children>
-                            </VBox>
-                         </children>
-                      </HBox>
+                        <CheckBox fx:id="showGridLinesCheckBox" text="Show gridlines">
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" bottom="10.0" top="20.0" />
+                           </VBox.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="showGridNumbersCheckBox" text="Show grid sector numbers">
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" bottom="10.0" top="10.0" />
+                           </VBox.margin>
+                        </CheckBox>
+                      <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="10.0" top="10.0" />
+                           </padding>
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ListView fx:id="selectedMiceListView" prefHeight="200.0" prefWidth="200.0" minHeight="200.0">
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </ListView>
+                        <Label alignment="CENTER" prefHeight="37.0" prefWidth="254.0" text="Animation Speed" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="10.0" top="10.0" />
+                           </padding>
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </Label>
+                        <Slider prefHeight="14.0" prefWidth="200.0" showTickLabels="true" showTickMarks="true">
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </Slider>
+                        <HBox alignment="CENTER" prefWidth="235.0">
+                           <children>
+                              <VBox alignment="CENTER" prefWidth="150.0">
+                                 <children>
+                                    <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
+                                        <padding>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </padding>
+                                       <VBox.margin>
+                                          <Insets left="20.0" right="10.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <TextArea fx:id="startDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
+                                        <VBox.margin>
+                                          <Insets left="20.0" right="10.0" />
+                                       </VBox.margin>
+                                    </TextArea>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER"  prefWidth="150.0">
+                                 <children>
+                                    <Label alignment="CENTER" prefWidth="97.0" text="Stop" textAlignment="CENTER">
+                                        <padding>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </padding>
+                                       <VBox.margin>
+                                          <Insets left="10.0" right="20.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <TextArea fx:id="stopDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
+                                        <VBox.margin>
+                                          <Insets left="10.0" right="20.0" />
+                                       </VBox.margin>
+                                    </TextArea>
+                                 </children>
+                              </VBox>
+                           </children>
+                           <VBox.margin>
+                              <Insets bottom="10.0" />
+                           </VBox.margin>
+                        </HBox>
+                        <Button fx:id="generateButton" onAction="#generateButtonAction" mnemonicParsing="false" prefHeight="25.0" prefWidth="239.0" text="Generate">
+                           <VBox.margin>
+                              <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+                           </VBox.margin>
+                        </Button>
+                     </children>
+                  </VBox>
               </children>
             </AnchorPane>
           </ScrollPane>
