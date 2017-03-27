@@ -5,6 +5,7 @@
  */
 package micevisualization;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import javafx.scene.canvas.Canvas;
@@ -241,7 +242,7 @@ public class Grid {
      * @param stop an ending index from the range of data in the dataset
      */
     void staticHeatMap(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
-        Date currentDate = start;
+        Date mouseDate = start;
         // (Parker 3/26/17): store the cumulative event durations of the most active
         // grid sector, for the purposes of calibrating the heat map colors:
         double maxDuration = 0;
@@ -249,9 +250,10 @@ public class Grid {
         // timestamp, event duration, and grid sector data. Ensure that only data within
         // the range between the start and stop Date parameters are processed. 
         for (int i = 0; i < mice.size(); ++i) {
-            for (int j = 0; j < mice.get(i).locTimeData.size() && currentDate.compareTo(stop) <= 0; ++j) {
-                Date mouseDate = mice.get(i).locTimeData.get(j).timestamp;
-                if (mouseDate.compareTo(currentDate) >= 0) {
+            for (int j = 0; j < mice.get(i).locTimeData.size() && mice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
+                System.out.println("currentDate.compareTo(stop) <= 0 ?: " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(mouseDate) + " compareTo " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(stop) + " = " + String.valueOf(mouseDate.compareTo(stop)));
+                mouseDate = mice.get(i).locTimeData.get(j).timestamp;
+                if (mouseDate.compareTo(start) >= 0) {
                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                     int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
                     //System.out.println("Raw unitLabel " + mice.get(i).locTimeData.get(j).unitLabel);
@@ -267,8 +269,11 @@ public class Grid {
                     }
                 }
             }
+            System.out.println("");
         }
-        
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
         // generate the heat map based on the data collected above:
         
         // calculate width and height of the Canvas object:
@@ -298,8 +303,21 @@ public class Grid {
         }
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
         this.datalayers.add(data);
+        
         for (int j = 0; j < this.datalayers.size(); ++j) {
             viewerPane.getChildren().add(this.datalayers.get(j));
+        }
+        
+        // (Parker 3/27/17): Get the child gridnumbers and gridlines Canvas layers that have been added to the viewerPane object as children:
+        Canvas viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
+        Canvas viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
+        
+        // (Parker 3/27/17): if they exist (meaning if the user has chosen to display them), shift the layers to the front on top of the datalayers:
+        if (viewerPaneGridNumbers != null) {
+            viewerPaneGridNumbers.toFront();
+        }
+        if (viewerPaneGridLines != null) {
+            viewerPaneGridLines.toFront();
         }
     }
 }
