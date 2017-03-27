@@ -55,7 +55,7 @@
                     </Label>
                 </content>
             </CustomMenuItem>-->
-            <CustomMenuItem fx:id="exportMenuItem" mnemonicParsing="false" disable="true">
+            <CustomMenuItem fx:id="exportMenuItem" mnemonicParsing="false" onAction="#exportImage" disable="true">
                 <content>
                     <Label text="Export Image...">
                         <tooltip >
