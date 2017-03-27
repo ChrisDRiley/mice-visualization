@@ -43,6 +43,15 @@ public class Mice {
         return null;       
     }
     
+    /**
+     * 
+     * @author: parker
+     * 
+     * create an observableList of mice IdRFIDs + IdLabel for use in the listView
+     * GUI control.
+     * 
+     * @return the string representation of the mouse objects in mice
+     */
     public ObservableList<String> getMouseIdsLabelsObservableList() {
         ObservableList<String> miceIds = FXCollections.observableArrayList();
         for (int i = 0; i < this.mice.size(); ++i) {
@@ -52,12 +61,25 @@ public class Mice {
         return miceIds;
     }
     
+    /**
+     * 
+     * @author: parker
+     * 
+     * search for Mouse objects within Mice by an ObservableList of Strings from 
+     * the listView GUI control. Return an ArrayList of the actual Mouse objects that match the 
+     * ids within the ObservableList.
+     * 
+     * @param ids
+     * @return 
+     */
     public ArrayList<Mouse> getMicebyIdsLabels(ObservableList<String> ids) {
         ArrayList<Mouse> returnMice = new ArrayList<Mouse>();
         for (int i = 0; i < ids.size(); ++i) {
+            // perform string manipulation to grab only the IdRFID portion of the string:
             int cutoff = ids.get(i).indexOf(' ');
             String rfid = ids.get(i).substring(0, cutoff);
             System.out.println("getMicebyIdsLables: " + rfid);
+            // check if the array of Mouse objects contains a mouse with the IdRFID:
             if (getMouseByIdRFID(rfid) != null) {
                 returnMice.add(getMouseByIdRFID(rfid));
             }

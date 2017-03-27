@@ -10,12 +10,12 @@ package micevisualization;
  * @author parker
  */
 public class GridSector {
-    double x;
-    double y;
-    double w;
-    double h;
-    int gridIndex;
-    int totalDuration;
+    double x; // x coordinate
+    double y; // y coordinate
+    double w; // width
+    double h; // height
+    int gridIndex; // index in the physical representation of the grid
+    int totalDuration; // the cumulative total event duration, taken from the dataset rows
     
     GridSector(double x_p, double y_p, double w_p, double h_p, int gi) {
         this.x = x_p;
