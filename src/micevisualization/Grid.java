@@ -76,7 +76,7 @@ public class Grid {
         GraphicsContext gc = c.getGraphicsContext2D();
         gc.setStroke(Color.GRAY);
         for (int i = 0; i < this.sectors.size(); ++i) {
-            gc.strokeText(String.valueOf(this.sectors.get(i).gridIndex + 1), this.sectors.get(i).x + this.sectors.get(i).w*0.5, this.sectors.get(i).y + this.sectors.get(i).h*0.9);
+            gc.strokeText(String.valueOf(this.sectors.get(i).gridIndex), this.sectors.get(i).x + this.sectors.get(i).w*0.5, this.sectors.get(i).y + this.sectors.get(i).h*0.9);
         }
     }
     
