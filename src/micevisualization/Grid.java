@@ -20,15 +20,26 @@ import javafx.scene.text.Text;
 public class Grid {
     ArrayList<GridSector> sectors;
     Canvas background;
+    ArrayList<Canvas> datalayers;
     Canvas gridlines;
     Canvas gridnumbers;
     
     Grid() {
         this.sectors = new ArrayList<GridSector>();
+        this.datalayers = new ArrayList<Canvas>();
     }
     
     Boolean addSector(GridSector gs) {
         return this.sectors.add(gs);
+    }
+    
+    GridSector getSectorByGridIndex(int index) {
+        for (int i = 0; i < this.sectors.size(); ++i) {
+            if (this.sectors.get(i).gridIndex == index) {
+                return this.sectors.get(i);
+            }
+        }
+        return null;
     }
     
     void drawSectorsBackground(Canvas c) {
@@ -122,6 +133,7 @@ public class Grid {
         viewerPane.getChildren().clear();
         this.sectors.clear();
         this.background = null;
+        this.datalayers.clear();
         this.gridlines = null;
         this.gridnumbers = null;
         
@@ -160,10 +172,6 @@ public class Grid {
         this.drawSectorsBackground(this.background);
         viewerPane.getChildren().add(this.background);
         
-        if (isGenerated) {
-            // render the computationally intensive portion of the visualization here
-        }
-        
         if (showGridNumbers) {
             makeGridNumbersCanvas(viewerPane, width, height);
         }   
@@ -173,12 +181,48 @@ public class Grid {
         }   
     }
     
-    void staticHeatMap(ArrayList<Mouse> mice, Date start, Date stop) {
+    void staticHeatMap(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
         Date currentDate = start;
-//        while (currentDate.compareTo(stop) <= 0) {
-//            for (int j = 0; j < mice.size(); ++j) {
-//                
-//            }
-//        }
+        // (Parker 3/26/17): store the cumulative event durations of the most active
+        // grid sector, for the purposes of calibrating the heat map colors:
+        double maxDuration = 0;
+        // (Parker 3/26/17): loop through the selected mice and process their 
+        // timestamp, event duration, and grid sector data. Ensure that only data within
+        // the range between the start and stop Date parameters are processed. 
+        for (int i = 0; i < mice.size(); ++i) {
+            for (int j = 0; j < mice.get(i).locTimeData.size() && currentDate.compareTo(stop) <= 0; ++j) {
+                Date mouseDate = mice.get(i).locTimeData.get(j).timestamp;
+                if (mouseDate.compareTo(currentDate) >= 0) {
+                    int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
+                    System.out.println("Mouse: " + mice.get(i).IdRFID + ", gridSector: " + String.valueOf(gridSectorIndex));
+                    GridSector gs = getSectorByGridIndex(gridSectorIndex);
+                    gs.totalDuration += mice.get(i).locTimeData.get(j).eventDuration;
+                    if (gs.totalDuration > maxDuration) {
+                        maxDuration = gs.totalDuration;
+                    }
+                }
+            }
+        }
+        
+        // generate the heat map:
+        double width = calculateDimensions(viewerPane).w;
+        double height = calculateDimensions(viewerPane).h;
+        Canvas data = new Canvas(width, height);
+        GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
+        for (int i = 0; i < this.sectors.size(); ++i) {
+            double opacity = 0.0000000;
+            if (this.sectors.get(i).totalDuration != 0) {
+                opacity = this.sectors.get(i).totalDuration / maxDuration;
+                System.out.println(String.valueOf(this.sectors.get(i).totalDuration) + "/" + String.valueOf(maxDuration) + " = " + String.valueOf(this.sectors.get(i).totalDuration / maxDuration));
+            }
+            System.out.println("Opacity: " + String.valueOf(opacity));
+            dataCanvasContext.setFill(Color.rgb(0, 0, 255, opacity));
+            dataCanvasContext.fillRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
+            sectors.get(i).totalDuration = 0;
+        }
+        this.datalayers.add(data);
+        for (int j = 0; j < this.datalayers.size(); ++j) {
+            viewerPane.getChildren().add(this.datalayers.get(j));
+        }
     }
 }

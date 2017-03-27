@@ -15,6 +15,7 @@ public class GridSector {
     double w;
     double h;
     int gridIndex;
+    int totalDuration;
     
     GridSector(double x_p, double y_p, double w_p, double h_p, int gi) {
         this.x = x_p;

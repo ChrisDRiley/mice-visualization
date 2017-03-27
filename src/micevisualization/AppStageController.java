@@ -447,11 +447,28 @@ public class AppStageController {
             simpleAlert("No mice selected!", "Please select at least one mouse to visualize.");
             return;
         }
-        if (visualizationTypeChoiceBox.getValue() == "Static") {
-            if (mapTypeChoiceBox.getValue() == "Heat Map") {
+        if (visualizationTypeChoiceBox.getValue().toString().equals("Static")) {
+            if (mapTypeChoiceBox.getValue().toString().equals("Heat Map")) {
                 grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
-                grid.staticHeatMap(selectedMice, startIndex, stopIndex);
+                grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
             }
+            else if (mapTypeChoiceBox.getValue().toString().equals("Vector Map")) {
+                
+            }
+            else if (mapTypeChoiceBox.getValue().toString().equals("Overlay Map")) {
+                
+            }
+            else {
+                simpleAlert("No map type selected!", "Please select a map type from the dropdown.");
+                return;
+            }
+        }
+        else if (visualizationTypeChoiceBox.getValue().toString().equals("Animated")) {
+            
+        }
+        else {
+            simpleAlert("No visualization type selected!", "Please select a visualization type from the dropdown.");
+            return;           
         }
     }
     
@@ -874,6 +891,8 @@ public class AppStageController {
                     int UNIT_LABEL = 3;
                     int EVENT_DURATION = 4;
                     
+                    Date dateRange = null;
+                    
                     while (sc.hasNextLine()) {
                         linesProcessed++;
                         String line = sc.nextLine(); //pulls next line of input
@@ -897,6 +916,15 @@ public class AppStageController {
                         
                         // extract the location and timestamp data for the current row:
                         MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
+                        
+                        // update the dateRange variable:
+                        dateRange = mlt.timestamp;
+                        // the 2nd line processed should be the first row of data,
+                        // so prepopulate the Start field with this date
+                        if (linesProcessed == 2) {
+                            startDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
+                        }
+                        
                         // check if the mice object contains a mouse with the current row's IdRFID:
                         if (mice.hasMouse(items.get(ID_RFID)) == false) {
                             Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
@@ -907,12 +935,10 @@ public class AppStageController {
                             mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
                         }
                     }
-                    // (Parker 3/26/17): Prepopulate the start and stop visualization options 
-                    // with the first and last data row indices:
-                    if (linesProcessed > 1) {
-                        startDataRangeTextArea.setText(String.valueOf(1));
-                        stopDataRangeTextArea.setText(String.valueOf(linesProcessed));
-                    }
+                    // (Parker 3/26/17): Prepopulate the stop visualization option 
+                    // with the timestamp from the last row processed:
+                    stopDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
+
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
                     selectedMiceListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

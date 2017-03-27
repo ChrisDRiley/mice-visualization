@@ -55,8 +55,9 @@ public class Mice {
     public ArrayList<Mouse> getMicebyIdsLabels(ObservableList<String> ids) {
         ArrayList<Mouse> returnMice = new ArrayList<Mouse>();
         for (int i = 0; i < ids.size(); ++i) {
-            int cutoff = ids.get(i).lastIndexOf(' ');
+            int cutoff = ids.get(i).indexOf(' ');
             String rfid = ids.get(i).substring(0, cutoff);
+            System.out.println("getMicebyIdsLables: " + rfid);
             if (getMouseByIdRFID(rfid) != null) {
                 returnMice.add(getMouseByIdRFID(rfid));
             }

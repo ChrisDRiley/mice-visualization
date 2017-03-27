@@ -207,47 +207,40 @@
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
                         </Slider>
-                        <HBox alignment="CENTER" prefWidth="235.0">
+                        <VBox alignment="CENTER" prefWidth="150.0">
                            <children>
-                              <VBox alignment="CENTER" prefWidth="150.0">
-                                 <children>
-                                    <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
-                                        <padding>
-                                          <Insets bottom="5.0" top="5.0" />
-                                       </padding>
-                                       <VBox.margin>
-                                          <Insets left="20.0" right="10.0" />
-                                       </VBox.margin>
-                                    </Label>
-                                    <TextArea fx:id="startDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
-                                        <VBox.margin>
-                                          <Insets left="20.0" right="10.0" />
-                                       </VBox.margin>
-                                    </TextArea>
-                                 </children>
-                              </VBox>
-                              <VBox alignment="CENTER"  prefWidth="150.0">
-                                 <children>
-                                    <Label alignment="CENTER" prefWidth="97.0" text="Stop" textAlignment="CENTER">
-                                        <padding>
-                                          <Insets bottom="5.0" top="5.0" />
-                                       </padding>
-                                       <VBox.margin>
-                                          <Insets left="10.0" right="20.0" />
-                                       </VBox.margin>
-                                    </Label>
-                                    <TextArea fx:id="stopDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
-                                        <VBox.margin>
-                                          <Insets left="10.0" right="20.0" />
-                                       </VBox.margin>
-                                    </TextArea>
-                                 </children>
-                              </VBox>
+                              <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
+                                  <padding>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </padding>
+                                 <VBox.margin>
+                                    <Insets left="20.0" right="20.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <TextArea fx:id="startDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
+                                  <VBox.margin>
+                                    <Insets left="20.0" right="20.0" />
+                                 </VBox.margin>
+                              </TextArea>
                            </children>
-                           <VBox.margin>
-                              <Insets bottom="10.0" />
-                           </VBox.margin>
-                        </HBox>
+                        </VBox>
+                        <VBox alignment="CENTER"  prefWidth="150.0">
+                           <children>
+                              <Label alignment="CENTER" prefWidth="97.0" text="Stop" textAlignment="CENTER">
+                                  <padding>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </padding>
+                                 <VBox.margin>
+                                    <Insets left="20.0" right="20.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <TextArea fx:id="stopDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
+                                  <VBox.margin>
+                                    <Insets left="20.0" right="20.0" />
+                                 </VBox.margin>
+                              </TextArea>
+                           </children>
+                        </VBox>
                         <Button fx:id="generateButton" onAction="#generateButtonAction" mnemonicParsing="false" prefHeight="25.0" prefWidth="239.0" text="Generate">
                            <VBox.margin>
                               <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
