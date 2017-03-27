@@ -406,14 +406,6 @@ public class AppStageController {
     @FXML protected void generateButtonAction(ActionEvent event) {
         Date startIndex;
         Date stopIndex;
-//        try {
-//            startIndex = Integer.parseInt(startDataRangeTextArea.getText());
-//            stopIndex = Integer.parseInt(startDataRangeTextArea.getText());
-//        }
-//        catch (Exception e) {
-//            simpleAlert("Invalid start and/or stop indices", "Please ensure the values entered into the Start and Stop fields (under Visualization Options) are integer values");
-//            return;
-//        }
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
             startIndex = formatter.parse(startDataRangeTextArea.getText());
@@ -447,24 +439,31 @@ public class AppStageController {
             simpleAlert("No mice selected!", "Please select at least one mouse to visualize.");
             return;
         }
-        if (visualizationTypeChoiceBox.getValue().toString().equals("Static")) {
-            if (mapTypeChoiceBox.getValue().toString().equals("Heat Map")) {
-                grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
-                grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+        
+        // (Parker 3/27/17): Check to ensure the value of the visualizationTypeChoiceBox is not null:
+        if (visualizationTypeChoiceBox.getValue() != null) {
+            if (visualizationTypeChoiceBox.getValue().toString().equals("Static")) {
+                // (Parker 3/27/17): Check to ensure the value of the mapTypeChoiceBox is not null:
+                if (mapTypeChoiceBox.getValue() != null) {
+                    if (mapTypeChoiceBox.getValue().toString().equals("Heat Map")) {
+                        grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
+                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+                    }
+                    else if (mapTypeChoiceBox.getValue().toString().equals("Vector Map")) {
+
+                    }
+                    else if (mapTypeChoiceBox.getValue().toString().equals("Overlay Map")) {
+
+                    }
+                }
+                else {
+                    simpleAlert("No map type selected!", "Please select a map type from the dropdown.");
+                    return;
+                }
             }
-            else if (mapTypeChoiceBox.getValue().toString().equals("Vector Map")) {
-                
-            }
-            else if (mapTypeChoiceBox.getValue().toString().equals("Overlay Map")) {
-                
-            }
-            else {
-                simpleAlert("No map type selected!", "Please select a map type from the dropdown.");
-                return;
-            }
-        }
-        else if (visualizationTypeChoiceBox.getValue().toString().equals("Animated")) {
-            
+            else if (visualizationTypeChoiceBox.getValue().toString().equals("Animated")) {
+
+            }            
         }
         else {
             simpleAlert("No visualization type selected!", "Please select a visualization type from the dropdown.");

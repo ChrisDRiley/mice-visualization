@@ -200,12 +200,12 @@ public class Grid {
             currentY = (height / ROWS) * i;
             for (int j = 0; j < COLS-1; ++j) { // handle the first 24 grid sectors (#s 0 - 23)
                 currentX = (width / COLS) * j;
-                GridSector gs = new GridSector(currentX, currentY, width/COLS, height/ROWS, j*4 + i);
+                GridSector gs = new GridSector(currentX, currentY, width/COLS, height/ROWS, (j*4 + i) + 1); // unitLabel (the gridSector id# from the data set) ranges from 1 - 25, hence (j*4 + i) + 1
                 this.addSector(gs);
             }
         }
         // handle the last grid sector, the feeding station (# 24):
-        GridSector gs = new GridSector((width / COLS) * 6, height/2 - ((height/ROWS)/2), width/COLS, height/ROWS, 24);  
+        GridSector gs = new GridSector((width / COLS) * 6, height/2 - ((height/ROWS)/2), width/COLS, height/ROWS, 25);  
         this.addSector(gs);
         
         // (Parker 3/25/17): setup the visualization with several layers of canvas objects:
@@ -252,14 +252,16 @@ public class Grid {
             for (int j = 0; j < mice.get(i).locTimeData.size() && currentDate.compareTo(stop) <= 0; ++j) {
                 Date mouseDate = mice.get(i).locTimeData.get(j).timestamp;
                 if (mouseDate.compareTo(currentDate) >= 0) {
-                    // perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter:
+                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                     int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
-                    System.out.println("Mouse: " + mice.get(i).IdRFID + ", gridSector: " + String.valueOf(gridSectorIndex));
-                    // use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array:
+                    //System.out.println("Raw unitLabel " + mice.get(i).locTimeData.get(j).unitLabel);
+                    //System.out.println("Mouse: " + mice.get(i).IdRFID + ", gridSector: " + String.valueOf(gridSectorIndex));
+                    /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                     GridSector gs = getSectorByGridIndex(gridSectorIndex);
-                    // add the current record's event duration to the selected GridSector's totalDuration parameter
+                    /* add the current record's event duration to the selected GridSector's totalDuration parameter */
+                    //System.out.println("Mouse: " + mice.get(i).IdRFID + ", grid sector == null? " + String.valueOf(gs == null));
                     gs.totalDuration += mice.get(i).locTimeData.get(j).eventDuration;
-                    // calculate the largest gridSector totalDuration, for the purpose of calibrating the heatmap colors:
+                    /* calculate the largest gridSector totalDuration, for the purpose of calibrating the heatmap colors: */
                     if (gs.totalDuration > maxDuration) {
                         maxDuration = gs.totalDuration;
                     }
@@ -279,16 +281,16 @@ public class Grid {
         // loop through the grid sectors and draw its totalDuration as a shade of color: 
         for (int i = 0; i < this.sectors.size(); ++i) {
             double opacity = 0.0000000;
-            // calculate the opacity of the gridSector's color:
+            /* calculate the opacity of the gridSector's color: */
             if (this.sectors.get(i).totalDuration != 0) {
-                // the gridSector with the maxDuration will have the darkest shade, so 
-                // gridSectors with less activity will have lighter shades:
+                /* the gridSector with the maxDuration will have the darkest shade, so 
+                gridSectors with less activity will have lighter shades: */
                 opacity = this.sectors.get(i).totalDuration / maxDuration;
-                System.out.println(String.valueOf(this.sectors.get(i).totalDuration) + "/" + String.valueOf(maxDuration) + " = " + String.valueOf(this.sectors.get(i).totalDuration / maxDuration));
+                //System.out.println(String.valueOf(this.sectors.get(i).totalDuration) + "/" + String.valueOf(maxDuration) + " = " + String.valueOf(this.sectors.get(i).totalDuration / maxDuration));
             }
-            System.out.println("Opacity: " + String.valueOf(opacity));
+            //System.out.println("Opacity: " + String.valueOf(opacity));
             
-            // perform the drawing of the shade onto the Canvas for this gridSector
+            /* perform the drawing of the shade onto the Canvas for this gridSector */
             dataCanvasContext.setFill(Color.rgb(0, 0, 255, opacity));
             dataCanvasContext.fillRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
             // IMPORTANT: reset the totalDuration to 0, since we are done rendering this sector:
