@@ -61,6 +61,7 @@ import javafx.scene.shape.ArcType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.awt.image.RenderedImage;
 import static java.lang.System.out;
 import java.text.ParseException;
 import java.util.Timer;
@@ -70,10 +71,14 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.WritableImage;
+import javax.imageio.ImageIO;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -116,6 +121,60 @@ public class AppStageController {
     
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
+    
+        /*
+    Alex (3/27/17):
+    This function uses the save button option in the GUI to export the current image
+    to your computer as a .png or .jpeg file. [[Currently does everything except capturing image]]
+    */
+    @FXML protected void exportImage(ActionEvent event) {
+        
+        // Creates file options
+        FileChooser fc = new FileChooser();
+        
+        //Set extension filters for PNG and JPEG
+        fc.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg"),
+            new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"));
+        
+        //Show save file dialog
+        File file = fc.showSaveDialog(stage);
+        
+        try {
+            //Retrieves current canvas size
+            double width = grid.calculateDimensions(viewerPane).w;
+            double height = grid.calculateDimensions(viewerPane).h;
+
+            //Captures image on GUI [[Currently the broken part]]
+            final Canvas canvas = new Canvas(width, height);
+            SnapshotParameters para = new SnapshotParameters();
+
+            //Creates the writeable image to save
+            WritableImage image = new WritableImage((int) width, (int) height);
+            
+            //This is where it is supposed to capture the image, but all I get is blackness [WIP]
+            WritableImage snapshot = canvas.snapshot(para, image);
+
+            //Renders canvas snapshot
+            RenderedImage render = SwingFXUtils.fromFXImage(snapshot, null);
+            
+            //Pulls file extension selected
+            String extension = getFileExtension(file.toString());
+            
+            //Writes to the file
+            ImageIO.write(render, extension, file);
+        } 
+        catch (IOException ex) {
+            //nothing for now
+        }
+//        
+        //Future error checking, just ignore for now
+//        Alert alert = new Alert(AlertType.WARNING);
+//        alert.setTitle("Program Notification");
+//        alert.setHeaderText("Feature coming soon!");
+//        alert.showAndWait();
+    }
+    
     
     /**
      * 
