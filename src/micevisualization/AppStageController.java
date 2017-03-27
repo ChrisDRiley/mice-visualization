@@ -938,6 +938,7 @@ public class AppStageController {
                     // (Parker 3/26/17): Prepopulate the stop visualization option 
                     // with the timestamp from the last row processed:
                     stopDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
+                    int test = 0;
 
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
