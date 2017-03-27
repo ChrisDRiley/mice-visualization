@@ -868,12 +868,13 @@ public class AppStageController {
      * @param file the file selected by the user from the file system
      * @return whether or not the file was able to be read from completely
      */
-    private Boolean openFile(File file) {
+        private Boolean openFile(File file) {
         try {
             leftStatus.setText("Opening " + file.getName() + " ...");
             FileInputStream inputStream = null;
             Scanner sc = null;
             int linesProcessed = 0;
+            int linesSkipped = 0; //used to keep track of lines skipped due to bad input (Alex)
             try {
                 inputStream = new FileInputStream(file.getPath());
                 sc = new Scanner(inputStream, "UTF-8");
@@ -891,12 +892,10 @@ public class AppStageController {
                     int UNIT_LABEL = 3;
                     int EVENT_DURATION = 4;
                     
-                    Date dateRange = null;
-                    
                     while (sc.hasNextLine()) {
                         linesProcessed++;
                         String line = sc.nextLine(); //pulls next line of input
-                        //System.out.println(line); //testing purposes, prints out line
+                        System.out.println(line); //testing purposes, prints out line
                         List<String> items = Arrays.asList(line.split(",")); //splits up line using commas
                         
                         /*
@@ -914,35 +913,65 @@ public class AppStageController {
                         
                         if (linesProcessed == 1) continue; // skip the header line
                         
-                        // extract the location and timestamp data for the current row:
-                        MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
+                        /*
+                        Alex (3/26/17):
+                        Testing the validity of test file. Since the timestamp is the first column, I will be checking if
+                        there is a colon in that column for 1) proper format and 2) to make sure it's the timestamp and not a
+                        different column, as I found it to be a unique character I can test in order to prevent a bad parse-read.
+                        */
+                        boolean flag = true;
+                        String stamp = items.get(TIMESTAMP);
+                        for(int i = 0; i < stamp.length(); i++) {
+                            char ch = stamp.charAt(i);
+                            //System.out.println("CHAR = " + ch + "\n"); //testing purposes
+                            
+                            // Checks if there is a colon in the timestamp like there should be. If so, disable flag
+                            // so it can be added to the grid.
+                            if (ch == ':') {
+                                flag = false;
+                                //System.out.println("MATCH!\n"); //testing purposes
+                            }//end if
+                            else {
+                                //System.out.println("NO MATCH!\n"); //testing purposes
+                            }//end else
+                        }//end for
                         
-                        // update the dateRange variable:
-                        dateRange = mlt.timestamp;
-                        // the 2nd line processed should be the first row of data,
-                        // so prepopulate the Start field with this date
-                        if (linesProcessed == 2) {
-                            startDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
-                        }
-                        
-                        // check if the mice object contains a mouse with the current row's IdRFID:
-                        if (mice.hasMouse(items.get(ID_RFID)) == false) {
-                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
-                            m.addLocTime(mlt);
-                            mice.add(m);
-                        }
+                        /*
+                        Alex (3/26/17):
+                        Edited this section to include the flag varible. Used to determine whether to add the entry
+                        to the mouse class or not.
+                        */
+                        if(!flag) {
+                            // extract the location and timestamp data for the current row:
+                            MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
+                            
+                            // check if the mice object contains a mouse with the current row's IdRFID:
+                            if (mice.hasMouse(items.get(ID_RFID)) == false) {
+                                Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
+                                m.addLocTime(mlt);
+                                mice.add(m);
+                            }//end if
+                            else {
+                                mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
+                            }//end else
+                        }//end if
                         else {
-                            mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
-                        }
+                            System.out.println("NULL TIME, SKIPPED ROW!\n");
+                            linesSkipped++; //+1 since the line was skipped
+                            linesProcessed--; //-1 since we did not process this line
+                        }//end else
+                    }//end while
+                    
+                    // (Parker 3/26/17): Prepopulate the start and stop visualization options 
+                    // with the first and last data row indices:
+                    if (linesProcessed > 1) {
+                        startDataRangeTextArea.setText(String.valueOf(1));
+                        stopDataRangeTextArea.setText(String.valueOf(linesProcessed));
                     }
-                    // (Parker 3/26/17): Prepopulate the stop visualization option 
-                    // with the timestamp from the last row processed:
-                    stopDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
-
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
                     selectedMiceListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-                    mice.print();
+                    //mice.print();
                 }
                 else if (extension.equals("json")) { // process .json session files:
                     String jsonData = "";
@@ -963,6 +992,7 @@ public class AppStageController {
                 long elapsed = end - start;
                 System.out.println("done reading file! It took " + elapsed + " milliseconds");
                 System.out.println("Lines Processed = " + linesProcessed);
+                System.out.println("Lines Skipped = " + linesSkipped);
                 
                 // note that Scanner suppresses exceptions
                 if (sc.ioException() != null) {
