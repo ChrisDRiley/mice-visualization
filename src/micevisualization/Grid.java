@@ -31,7 +31,9 @@ public class Grid {
     ArrayList<Canvas> datalayers; // the layers for representing computationally intensive data
     Canvas gridlines; // the grid lines layer (black lines)
     Canvas gridnumbers; // the grid sector numbers (gray numbers)
-    Canvas data;
+    Canvas data; //the data on the map
+    Canvas viewerPaneGridNumbers; //checks if user has gridnumbers active
+    Canvas viewerPaneGridLines; //checks if user has gridlines active
     
     // (Parker 3/26/17): allocate the arrays during grid object construction:
     Grid() {
@@ -313,8 +315,8 @@ public class Grid {
         }
         
         // (Parker 3/27/17): Get the child gridnumbers and gridlines Canvas layers that have been added to the viewerPane object as children:
-        Canvas viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
-        Canvas viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
+        viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
+        viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
         
         // (Parker 3/27/17): if they exist (meaning if the user has chosen to display them), shift the layers to the front on top of the datalayers:
         if (viewerPaneGridNumbers != null) {
@@ -372,24 +374,24 @@ public class Grid {
     
         GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
         
-        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
-            dataCanvasContext.setLineWidth(5);
-            for (int i =1; i< entry.getValue().size(); i++){
-                if ((i % 2) == 0){
-                    dataCanvasContext.setFill(Color.rgb(i*15, 0, 40));
-                }else{
-                    dataCanvasContext.setFill(Color.rgb(0, i*15, 40));
-                }
-                
-                
-                dataCanvasContext.strokeLine(
-                    getSectorByGridIndex(entry.getValue().get(i-1)).center_x,
-                    getSectorByGridIndex(entry.getValue().get(i-1)).center_y,
-                    getSectorByGridIndex(entry.getValue().get(i)).center_x,
-                    getSectorByGridIndex(entry.getValue().get(i)).center_y);
-                //Draws the line segments connecting all the sectors that the a mouse traveled
-            }
-        }
+//        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+//            dataCanvasContext.setLineWidth(5);
+//            for (int i =1; i< entry.getValue().size(); i++){
+//                if ((i % 2) == 0){
+//                    dataCanvasContext.setFill(Color.rgb(i*15, 0, 40));
+//                }else{
+//                    dataCanvasContext.setFill(Color.rgb(0, i*15, 40));
+//                }
+//                
+//                
+//                dataCanvasContext.strokeLine(
+//                    getSectorByGridIndex(entry.getValue().get(i-1)).center_x,
+//                    getSectorByGridIndex(entry.getValue().get(i-1)).center_y,
+//                    getSectorByGridIndex(entry.getValue().get(i)).center_x,
+//                    getSectorByGridIndex(entry.getValue().get(i)).center_y);
+//                //Draws the line segments connecting all the sectors that the a mouse traveled
+//            }
+//        }
         
         
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
