@@ -372,24 +372,24 @@ public class Grid {
     
         GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
         
-        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
-            dataCanvasContext.setLineWidth(5);
-            for (int i =1; i< entry.getValue().size(); i++){
-                if ((i % 2) == 0){
-                    dataCanvasContext.setFill(Color.rgb(i*15, 0, 40));
-                }else{
-                    dataCanvasContext.setFill(Color.rgb(0, i*15, 40));
-                }
-                
-                
-                dataCanvasContext.strokeLine(
-                    getSectorByGridIndex(entry.getValue().get(i-1)).center_x,
-                    getSectorByGridIndex(entry.getValue().get(i-1)).center_y,
-                    getSectorByGridIndex(entry.getValue().get(i)).center_x,
-                    getSectorByGridIndex(entry.getValue().get(i)).center_y);
-                //Draws the line segments connecting all the sectors that the a mouse traveled
-            }
-        }
+//        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+//            dataCanvasContext.setLineWidth(5);
+//            for (int i =1; i< entry.getValue().size(); i++){
+//                if ((i % 2) == 0){
+//                    dataCanvasContext.setFill(Color.rgb(i*15, 0, 40));
+//                }else{
+//                    dataCanvasContext.setFill(Color.rgb(0, i*15, 40));
+//                }
+//                
+//                
+//                dataCanvasContext.strokeLine(
+//                    getSectorByGridIndex(entry.getValue().get(i-1)).center_x,
+//                    getSectorByGridIndex(entry.getValue().get(i-1)).center_y,
+//                    getSectorByGridIndex(entry.getValue().get(i)).center_x,
+//                    getSectorByGridIndex(entry.getValue().get(i)).center_y);
+//                //Draws the line segments connecting all the sectors that the a mouse traveled
+//            }
+//        }
         
         
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
