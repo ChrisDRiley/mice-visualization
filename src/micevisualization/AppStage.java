@@ -12,7 +12,7 @@ public class AppStage extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("GUIScaffold.fxml"));
         
-        Scene scene = new Scene(root, 1000, 610);
+        Scene scene = new Scene(root, 1000, 760);
         
         stage.setTitle("FXML Welcome");
         stage.setScene(scene);
