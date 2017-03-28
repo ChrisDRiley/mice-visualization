@@ -61,6 +61,11 @@ import javafx.scene.shape.ArcType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.awt.AlphaComposite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import static java.lang.System.out;
 import java.text.ParseException;
@@ -72,11 +77,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.image.WritableImage;
 import javax.imageio.ImageIO;
 
@@ -127,11 +135,7 @@ public class AppStageController {
     This function uses the save button option in the GUI to export the current image
     to your computer as a .png or .jpeg file. [[Currently does everything except capturing image]]
     */
-    @FXML protected void exportImage(ActionEvent event) {
-        
-        //Image dimensions (fits map perfectly -> can be 455/260 but cuts off a tiny bit of map)
-        final int IMG_W = 457;
-        final int IMG_H = 262;
+    @FXML protected void exportImage(ActionEvent event) throws IOException {
 
         // Creates file options
         FileChooser fc = new FileChooser();
@@ -146,33 +150,41 @@ public class AppStageController {
         File file = fc.showSaveDialog(stage);
         
         //Creates image file to computer
-        if (file != null) {
-            try {
+        if (file != null) {   
+            //Known Bugs*******************: 
+            //  1) JPEG is orange colored...as far as I know it's a bug in JavaFX.
+            //     I have seen some workarounds but, so far, have not put much effort into experimenting with it.
+            //  2) Error when you try to export without generating data (currently fixed but need to throw error message instead)
+
+            // Creates a group to store all the layers in
+            Group group = new Group();
+
+            // Adds grid data image to group
+            if (grid.data != null) //prevents error if you try to export image before ever generating (will properly fix later)
+                group.getChildren().add(grid.data);
+
+            // Adds grid line image to group if it's been selected
+            if (grid.viewerPaneGridLines != null)
+                group.getChildren().add(grid.gridlines);
+
+            // Adds grid numbers image to group if it's been selected
+            if (grid.viewerPaneGridNumbers != null)
+                group.getChildren().add(grid.gridnumbers);
+            
+            try {                
+                // Create an image and snapshot the group to that image
+                WritableImage image = new WritableImage(455, 260);
+                group.snapshot(null,image);
                 
-                //Writes the image
-                WritableImage image = new WritableImage(IMG_W, IMG_H);
+                // Pull file extension (either png or jpeg)
+                String ext = getFileExtension(file.toString());
                 
-                //Snapshot of what you're saving [[currently wrong]]
-                //can save each layer by itself as image, just need to combine them!
-                //Pick one to save to your computer, comment others (otherwise it overwrites above)
-                
-                grid.data.snapshot(null, image); //saves the data to file
-                //grid.gridlines.snapshot(null, image); //saves gridlines to file
-                //grid.gridnumbers.snapshot(null, image); //saves gridnumbers to file
-                
-                //NEED TO COMBINE INTO ONE -> only 1 can be active else it gets overwritten
-  
-                //Renders image using swingFX
-                RenderedImage renderedImage = SwingFXUtils.fromFXImage(image, null);
-                
-                //Picks extension chosen to save as
-                String extension = getFileExtension(file.toString());
-                
-                //Writes file to your specified location
-                ImageIO.write(renderedImage, extension, file);
-            } catch (IOException ex) {
-                //empty for now
-            }//end catch
+                // write the image to users computer
+                ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
+//                
+                } catch (IOException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }//end catch
         }//end if
 //        
         //Future error checking, just ignore for now
@@ -180,7 +192,7 @@ public class AppStageController {
 //        alert.setTitle("Program Notification");
 //        alert.setHeaderText("Feature coming soon!");
 //        alert.showAndWait();
-    }
+    }//end exportImage
     
     
     /**
