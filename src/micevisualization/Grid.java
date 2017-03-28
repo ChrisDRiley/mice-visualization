@@ -28,6 +28,7 @@ public class Grid {
     ArrayList<Canvas> datalayers; // the layers for representing computationally intensive data
     Canvas gridlines; // the grid lines layer (black lines)
     Canvas gridnumbers; // the grid sector numbers (gray numbers)
+    Canvas data;
     
     // (Parker 3/26/17): allocate the arrays during grid object construction:
     Grid() {
@@ -279,7 +280,7 @@ public class Grid {
         // calculate width and height of the Canvas object:
         double width = calculateDimensions(viewerPane).w;
         double height = calculateDimensions(viewerPane).h;
-        Canvas data = new Canvas(width, height);
+        data = new Canvas(width, height);
         
         GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
         
