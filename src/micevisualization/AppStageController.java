@@ -129,44 +129,51 @@ public class AppStageController {
     */
     @FXML protected void exportImage(ActionEvent event) {
         
+        //Image dimensions (fits map perfectly -> can be 455/260 but cuts off a tiny bit of map)
+        final int IMG_W = 457;
+        final int IMG_H = 262;
+
         // Creates file options
         FileChooser fc = new FileChooser();
         
         //Set extension filters for PNG and JPEG
         fc.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg"),
-            new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"));
+            new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"),
+            new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg")
+            );
         
         //Show save file dialog
         File file = fc.showSaveDialog(stage);
         
-        try {
-            //Retrieves current canvas size
-            double width = grid.calculateDimensions(viewerPane).w;
-            double height = grid.calculateDimensions(viewerPane).h;
-
-            //Captures image on GUI [[Currently the broken part]]
-            final Canvas canvas = new Canvas(width, height);
-            SnapshotParameters para = new SnapshotParameters();
-
-            //Creates the writeable image to save
-            WritableImage image = new WritableImage((int) width, (int) height);
-            
-            //This is where it is supposed to capture the image, but all I get is blackness [WIP]
-            WritableImage snapshot = canvas.snapshot(para, image);
-
-            //Renders canvas snapshot
-            RenderedImage render = SwingFXUtils.fromFXImage(snapshot, null);
-            
-            //Pulls file extension selected
-            String extension = getFileExtension(file.toString());
-            
-            //Writes to the file
-            ImageIO.write(render, extension, file);
-        } 
-        catch (IOException ex) {
-            //nothing for now
-        }
+        //Creates image file to computer
+        if (file != null) {
+            try {
+                
+                //Writes the image
+                WritableImage image = new WritableImage(IMG_W, IMG_H);
+                
+                //Snapshot of what you're saving [[currently wrong]]
+                //can save each layer by itself as image, just need to combine them!
+                //Pick one to save to your computer, comment others (otherwise it overwrites above)
+                
+                grid.data.snapshot(null, image); //saves the data to file
+                //grid.gridlines.snapshot(null, image); //saves gridlines to file
+                //grid.gridnumbers.snapshot(null, image); //saves gridnumbers to file
+                
+                //NEED TO COMBINE INTO ONE -> only 1 can be active else it gets overwritten
+  
+                //Renders image using swingFX
+                RenderedImage renderedImage = SwingFXUtils.fromFXImage(image, null);
+                
+                //Picks extension chosen to save as
+                String extension = getFileExtension(file.toString());
+                
+                //Writes file to your specified location
+                ImageIO.write(renderedImage, extension, file);
+            } catch (IOException ex) {
+                //empty for now
+            }//end catch
+        }//end if
 //        
         //Future error checking, just ignore for now
 //        Alert alert = new Alert(AlertType.WARNING);
