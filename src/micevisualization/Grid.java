@@ -7,11 +7,14 @@ package micevisualization;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Date;
+import java.util.Map;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
 import javafx.scene.text.Text;
 
 /**
@@ -302,6 +305,93 @@ public class Grid {
             // IMPORTANT: reset the totalDuration to 0, since we are done rendering this sector:
             sectors.get(i).totalDuration = 0;
         }
+        // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
+        this.datalayers.add(data);
+        
+        for (int j = 0; j < this.datalayers.size(); ++j) {
+            viewerPane.getChildren().add(this.datalayers.get(j));
+        }
+        
+        // (Parker 3/27/17): Get the child gridnumbers and gridlines Canvas layers that have been added to the viewerPane object as children:
+        Canvas viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
+        Canvas viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
+        
+        // (Parker 3/27/17): if they exist (meaning if the user has chosen to display them), shift the layers to the front on top of the datalayers:
+        if (viewerPaneGridNumbers != null) {
+            viewerPaneGridNumbers.toFront();
+        }
+        if (viewerPaneGridLines != null) {
+            viewerPaneGridLines.toFront();
+        }
+    }
+    
+    /**
+     * @author Joshua
+     * 
+     * Creates a vector map based on the selected mice and the indicated starting and stopping times
+     * 
+     * @param viewerPane the parent object that will contain the Canvas objects as its children
+     * @param mice the mice to visualize
+     * @param start a starting index from the range of data in the dataset
+     * @param stop an ending index from the range of data in the dataset 
+     */
+    
+    void staticVectorMap(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
+        Date mouseDate = start;
+        HashMap<String, ArrayList<Integer>> Mouse_positions = new HashMap<String, ArrayList<Integer>>(); 
+        /*Creates a hashmap that stores mouse labels with that paticular mouse's grid positions stored as the value */
+        
+        for (int i = 0; i < mice.size(); ++i) {
+            ArrayList<Integer> UnitLabels = new ArrayList<Integer>();
+            //creates an arraylist to store all the mouse postions for a particulars mouse 
+            
+            for (int j = 0; j < mice.get(i).locTimeData.size() && mice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
+                //System.out.println("currentDate.compareTo(stop) <= 0 ?: " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(mouseDate) + " compareTo " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(stop) + " = " + String.valueOf(mouseDate.compareTo(stop)));
+                mouseDate = mice.get(i).locTimeData.get(j).timestamp;
+                if (mouseDate.compareTo(start) >= 0) {
+                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                    int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
+                    UnitLabels.add(gridSectorIndex);
+                    }
+                }
+            Mouse_positions.put(mice.get(i).IdLabel, UnitLabels);
+        }
+        
+        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+            for (int i =0; i< entry.getValue().size(); i++){
+                System.out.println(entry.getKey()+ " postion " + entry.getValue().get(i).toString());
+            }
+            System.out.println("");
+        }
+        
+        // calculate width and height of the Canvas object:
+        double width = calculateDimensions(viewerPane).w;
+        double height = calculateDimensions(viewerPane).h;
+        this.data = new Canvas(width, height);
+            
+    
+        GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
+        
+        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+            dataCanvasContext.setLineWidth(5);
+            for (int i =1; i< entry.getValue().size(); i++){
+                if ((i % 2) == 0){
+                    dataCanvasContext.setFill(Color.rgb(i*15, 0, 40));
+                }else{
+                    dataCanvasContext.setFill(Color.rgb(0, i*15, 40));
+                }
+                
+                
+                dataCanvasContext.strokeLine(
+                    getSectorByGridIndex(entry.getValue().get(i-1)).center_x,
+                    getSectorByGridIndex(entry.getValue().get(i-1)).center_y,
+                    getSectorByGridIndex(entry.getValue().get(i)).center_x,
+                    getSectorByGridIndex(entry.getValue().get(i)).center_y);
+                //Draws the line segments connecting all the sectors that the a mouse traveled
+            }
+        }
+        
+        
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
         this.datalayers.add(data);
         
