@@ -251,7 +251,7 @@ public class Grid {
         // the range between the start and stop Date parameters are processed. 
         for (int i = 0; i < mice.size(); ++i) {
             for (int j = 0; j < mice.get(i).locTimeData.size() && mice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
-                System.out.println("currentDate.compareTo(stop) <= 0 ?: " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(mouseDate) + " compareTo " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(stop) + " = " + String.valueOf(mouseDate.compareTo(stop)));
+                //System.out.println("currentDate.compareTo(stop) <= 0 ?: " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(mouseDate) + " compareTo " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(stop) + " = " + String.valueOf(mouseDate.compareTo(stop)));
                 mouseDate = mice.get(i).locTimeData.get(j).timestamp;
                 if (mouseDate.compareTo(start) >= 0) {
                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
@@ -269,11 +269,11 @@ public class Grid {
                     }
                 }
             }
-            System.out.println("");
+            //System.out.println("");
         }
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
+        //System.out.println("");
+        //System.out.println("");
+        //System.out.println("");
         // generate the heat map based on the data collected above:
         
         // calculate width and height of the Canvas object:

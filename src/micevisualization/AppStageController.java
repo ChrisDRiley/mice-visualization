@@ -84,7 +84,7 @@ public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
     @FXML private Stage stage;
     @FXML private Label leftStatus;
-    @FXML private ProgressBar progressBar;
+    // @FXML private ProgressBar progressBar;
     @FXML private ListView sessionsListView;
     @FXML private Button sessionsLoadButton;
     @FXML private Button sessionsDeleteButton;
@@ -227,17 +227,75 @@ public class AppStageController {
             }
         });
         
+         // (Parker 3/27/17): When the user changes their selection in the map type choice box,
+        // respond to that change       
+        mapTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                try {
+                    session.mapType = newValue;
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+
+         // (Parker 3/27/17): When the user changes their selection in the Start data range text field,
+        // respond to that change          
+        startDataRangeTextArea.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                try {
+                    session.startingIndex = newValue;
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        
+        // (Parker 3/27/17): When the user changes their selection in the Stop data range text field,
+        // respond to that change       
+        stopDataRangeTextArea.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                try {
+                    session.stoppingIndex = newValue;
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        
+        // (Parker 3/27/17): When the user changes their selection in the toggle grid lines check box,
+        // respond to that change  
         showGridLinesCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue<? extends Boolean> ov,
                 Boolean old_val, Boolean new_val) {
                     grid.toggleGridLines(viewerPane);
+                    session.showGridLines = new_val;
+                try {
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
         
+        // (Parker 3/27/17): When the user changes their selection in the toggle grid sector numbers checkbox,
+        // respond to that change  
         showGridNumbersCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue<? extends Boolean> ov,
                 Boolean old_val, Boolean new_val) {
                     grid.toggleGridNumbers(viewerPane);
+                    session.showGridNumbers = new_val;
+                try {
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -267,6 +325,15 @@ public class AppStageController {
      */
     public void restoreState(Session s) {
         visualizationTypeChoiceBox.getSelectionModel().select(s.visualizationType);
+        mapTypeChoiceBox.getSelectionModel().select(s.mapType);
+        
+        //selectedMiceListView
+        
+        showGridLinesCheckBox.selectedProperty().set(s.showGridLines);
+        showGridNumbersCheckBox.selectedProperty().set(s.showGridNumbers);
+        
+        startDataRangeTextArea.setText(s.startingIndex);
+        stopDataRangeTextArea.setText(s.stoppingIndex);
     }
     
     /**
@@ -421,6 +488,7 @@ public class AppStageController {
                         simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
                     }
                     else {
+                        leftStatus.setText("Session file successfully deleted.");
                         resetToDefaultState(); // create a new Session object and reset the GUI
                     }
                 }
@@ -430,6 +498,7 @@ public class AppStageController {
                 if (!deleteFile.delete()) {
                     simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
                 }
+                else leftStatus.setText("Session file successfully deleted.");
             }
             refreshListOfSessions();
         }
@@ -506,7 +575,15 @@ public class AppStageController {
                 if (mapTypeChoiceBox.getValue() != null) {
                     if (mapTypeChoiceBox.getValue().toString().equals("Heat Map")) {
                         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
-                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+                        
+                        long start = System.currentTimeMillis(); // begin a timer to record the amount of time the generation takes
+                        
+                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex); // generate the static heat map
+                        
+                        long end = System.currentTimeMillis(); // stop the timer
+                        long elapsed = end - start; // get the elapsed time of the generation duration
+                        String describeMice = (selectedMice.size() > 1) ? "mice" : "mouse";
+                        leftStatus.setText("Finished generating a static heat map of " + selectedMice.size() + " " + describeMice + " in " + elapsed + " milliseconds.");
                     }
                     else if (mapTypeChoiceBox.getValue().toString().equals("Vector Map")) {
 
@@ -657,9 +734,11 @@ public class AppStageController {
                 unlockVisualizationOptions();
                 drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
                 restoreState(session);
+                leftStatus.setText("Session file loaded.");
                 return true;
             } 
         }
+        leftStatus.setText("Error: The session file could not be loaded.");
         return false;
     }
     
@@ -878,6 +957,7 @@ public class AppStageController {
 
                 String sessionFileCreated = createSessionFile(sessionName); // attempt to create the session file within the session directory
                 if (sessionFileCreated == "true") { // if the session file was created successfully
+                    leftStatus.setText("New session file '" + sessionName.get() + "' was created.");
                     String name = constructSessionFilePath(sessionName).toString();
                     session.sessionLoaded(name); // update the program's state via the session variable
                     session.saveState(); // write the session state to file
@@ -1021,9 +1101,11 @@ public class AppStageController {
                 long elapsed = end - start;
                 System.out.println("done reading file! It took " + elapsed + " milliseconds");
                 System.out.println("Lines Processed = " + linesProcessed);
+                leftStatus.setText("Finished opening " + file.getName() + " in " + elapsed + " milliseconds.");
                 
                 // note that Scanner suppresses exceptions
                 if (sc.ioException() != null) {
+                    leftStatus.setText("An ioException from the Scanner object was thrown.");
                     throw sc.ioException();
                 }
             } 

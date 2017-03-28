@@ -24,6 +24,12 @@ public class Session {
     Boolean isNewSession = true;
     
     String visualizationType = "";
+    String mapType = "";
+    String selectedMiceIndices = "";
+    Boolean showGridLines = false;
+    Boolean showGridNumbers = false;
+    String startingIndex = "";
+    String stoppingIndex = "";
     
     /**
      * @author: parker
@@ -60,11 +66,14 @@ public class Session {
      * @throws FileNotFoundException 
      */
     public void saveState() throws FileNotFoundException {
-        Gson gson = new Gson();
-        String json = gson.toJson(this); 
-        PrintStream ps = new PrintStream(currentSessionFilePath);
-        ps.println(json);
-        ps.close();
+        if (this.isNewSession == false) {
+            Gson gson = new Gson();
+            String json = gson.toJson(this); 
+            PrintStream ps = new PrintStream(currentSessionFilePath);
+            ps.println(json);
+            ps.close();
+        }
+
     }
 
 }

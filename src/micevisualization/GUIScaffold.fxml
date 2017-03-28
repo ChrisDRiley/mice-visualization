@@ -151,6 +151,9 @@
                             <VBox.margin>
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
+                            <tooltip >
+                                <Tooltip text="Selects the type of map to visualize."/>
+                            </tooltip>
                        </ChoiceBox>
                         <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Visualization Type:" textAlignment="CENTER">
                            <padding>
@@ -170,16 +173,25 @@
                             <VBox.margin>
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
+                            <tooltip >
+                                <Tooltip text="Selects the speed of the visualization, immediate (Static) or over time (Animated)."/>
+                            </tooltip>
                        </ChoiceBox>
                         <CheckBox fx:id="showGridLinesCheckBox" text="Show gridlines">
                            <VBox.margin>
                               <Insets left="20.0" right="20.0" bottom="10.0" top="20.0" />
                            </VBox.margin>
+                           <tooltip >
+                                <Tooltip text="Toggles the visibility of the grid lines in the visualization on and off."/>
+                            </tooltip>
                         </CheckBox>
                         <CheckBox fx:id="showGridNumbersCheckBox" text="Show grid sector numbers">
                            <VBox.margin>
                               <Insets left="20.0" right="20.0" bottom="10.0" top="10.0" />
                            </VBox.margin>
+                           <tooltip >
+                                <Tooltip text="Toggles the visibility of the grid sector numbers in the visualization on and off."/>
+                            </tooltip>
                         </CheckBox>
                       <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
                            <padding>
@@ -193,6 +205,9 @@
                            <VBox.margin>
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
+                           <tooltip >
+                                <Tooltip text="Selects which mice to visualize. Can Shift-Click and/or Ctrl-Click (Cmd-Click) to select multiple mice."/>
+                            </tooltip>
                         </ListView>
                         <Label alignment="CENTER" prefHeight="37.0" prefWidth="254.0" text="Animation Speed" textAlignment="CENTER">
                            <padding>
@@ -206,6 +221,9 @@
                            <VBox.margin>
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
+                           <tooltip >
+                                <Tooltip text="Selects the speed of the animated visualization."/>
+                            </tooltip>
                         </Slider>
                         <VBox alignment="CENTER" prefWidth="150.0">
                            <children>
@@ -221,6 +239,9 @@
                                   <VBox.margin>
                                     <Insets left="20.0" right="20.0" />
                                  </VBox.margin>
+                                 <tooltip >
+                                    <Tooltip text="Specifies the starting data entry to begin the visualization at. Must be in MM/dd/yyyy HH:mm:ss.SSS format."/>
+                                </tooltip>
                               </TextArea>
                            </children>
                         </VBox>
@@ -238,6 +259,9 @@
                                   <VBox.margin>
                                     <Insets left="20.0" right="20.0" />
                                  </VBox.margin>
+                                 <tooltip >
+                                    <Tooltip text="Specifies the ending data entry to stop the visualization at. Must be in MM/dd/yyyy HH:mm:ss.SSS format."/>
+                                </tooltip>
                               </TextArea>
                            </children>
                         </VBox>
@@ -245,6 +269,9 @@
                            <VBox.margin>
                               <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
                            </VBox.margin>
+                            <tooltip >
+                                <Tooltip text="Generates a visualization based on the current options."/>
+                            </tooltip>
                         </Button>
                      </children>
                   </VBox>
@@ -253,7 +280,13 @@
           </ScrollPane>
       </items>
     </SplitPane>
-    <GridPane>
+        <HBox alignment="CENTER_LEFT">
+            <Label fx:id="leftStatus" text="Left Status"/>
+            <padding>
+                <Insets right="5.0" left="5.0" />
+            </padding>
+        </HBox>
+<!--    <GridPane>
         <children>
             <HBox alignment="CENTER_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="0">
                 <Label fx:id="leftStatus" text="Left Status"/>
@@ -276,7 +309,7 @@
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="25.0" prefWidth="100.0" />
         </columnConstraints>
-    </GridPane>
+    </GridPane>-->
   </children>
   
   <stylesheets>
