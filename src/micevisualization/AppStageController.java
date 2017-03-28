@@ -605,7 +605,16 @@ public class AppStageController {
                         leftStatus.setText("Finished generating a static heat map of " + selectedMice.size() + " " + describeMice + " in " + elapsed + " milliseconds.");
                     }
                     else if (mapTypeChoiceBox.getValue().toString().equals("Vector Map")) {
-
+                        grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
+                        
+                        long start = System.currentTimeMillis(); // begin a timer to record the amount of time the generation takes
+                        
+                        grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+                                
+                        long end = System.currentTimeMillis(); // stop the timer
+                        long elapsed = end - start; // get the elapsed time of the generation duration
+                        String describeMice = (selectedMice.size() > 1) ? "mice" : "mouse";
+                        leftStatus.setText("Finished generating a static vector map of " + selectedMice.size() + " " + describeMice + " in " + elapsed + " milliseconds.");
                     }
                     else if (mapTypeChoiceBox.getValue().toString().equals("Overlay Map")) {
 

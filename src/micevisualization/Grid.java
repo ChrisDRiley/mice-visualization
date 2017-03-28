@@ -359,12 +359,12 @@ public class Grid {
             Mouse_positions.put(mice.get(i).IdLabel, UnitLabels);
         }
         
-        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
-            for (int i =0; i< entry.getValue().size(); i++){
-                System.out.println(entry.getKey()+ " postion " + entry.getValue().get(i).toString());
-            }
-            System.out.println("");
-        }
+//        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+//            for (int i =0; i< entry.getValue().size(); i++){
+//                System.out.println(entry.getKey()+ " postion " + entry.getValue().get(i).toString());
+//            }
+//            System.out.println("");
+//        }
         
         // calculate width and height of the Canvas object:
         double width = calculateDimensions(viewerPane).w;
@@ -374,24 +374,30 @@ public class Grid {
     
         GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
         
-//        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
-//            dataCanvasContext.setLineWidth(5);
-//            for (int i =1; i< entry.getValue().size(); i++){
-//                if ((i % 2) == 0){
-//                    dataCanvasContext.setFill(Color.rgb(i*15, 0, 40));
-//                }else{
-//                    dataCanvasContext.setFill(Color.rgb(0, i*15, 40));
-//                }
-//                
-//                
-//                dataCanvasContext.strokeLine(
-//                    getSectorByGridIndex(entry.getValue().get(i-1)).center_x,
-//                    getSectorByGridIndex(entry.getValue().get(i-1)).center_y,
-//                    getSectorByGridIndex(entry.getValue().get(i)).center_x,
-//                    getSectorByGridIndex(entry.getValue().get(i)).center_y);
-//                //Draws the line segments connecting all the sectors that the a mouse traveled
-//            }
-//        }
+        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+            dataCanvasContext.setLineWidth(5);
+            for (int i =1; i< entry.getValue().size(); i++){
+                if ((i % 2) == 0){
+                    int red = i*15;
+                    if (red > 255) red = 255;
+                    dataCanvasContext.setStroke(Color.rgb(red, 0, 40));
+                }else{
+                    int green = i*15;
+                    if (green > 255) green = 255;
+                    dataCanvasContext.setStroke(Color.rgb(0, green, 40));
+                    
+                }
+                
+                GridSector GS1 = getSectorByGridIndex(entry.getValue().get(i-1));
+                GridSector GS2 = getSectorByGridIndex(entry.getValue().get(i));
+                dataCanvasContext.strokeLine(
+                    GS1.x + GS1.w/2,
+                    GS1.y + GS1.h/2,
+                    GS2.x + GS1.w/2,
+                    GS2.y + GS1.h/2);
+                //Draws the line segments connecting all the sectors that the a mouse traveled
+            }
+        }
         
         
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
