@@ -152,22 +152,20 @@ public class AppStageController {
         //Creates image file to computer
         if (file != null) {  
             
-            /*Known Bugs******************************** 
-                1) JPEG is orange colored...as far as I know it's a bug in JavaFX.
-                 I have seen some workarounds but, so far, have not put much effort into experimenting with it.
+            /****************************Known Bugs******************************** 
+                1) Error when you try to export without generating data 
+                    (currently fixed but need to throw error message instead) [Line 167]
                 
-                2) Error when you try to export without generating data 
-                 (currently fixed but need to throw error message instead)
-                
-                3) After exporting, data disappears. Fixed it where gridlines/numbers don't reset but need to explore not losing data instead.
+                2) After exporting, canvas disappears. Fixed grid lines/grid numbers 
+                    from disappearing; working on restoring the data to screen.
             */
             
-
             // Creates a group to store all the layers in
             Group group = new Group();
 
             // Adds grid data image to group
-            if (grid.data != null) //prevents error if you try to export image before ever generating (will properly fix later)
+            //[[1]] prevents error if you try to export image before ever generating (will properly fix later)
+            if (grid.data != null)
                 group.getChildren().add(grid.data);
 
             // Adds grid line image to group if it's been selected
@@ -178,20 +176,43 @@ public class AppStageController {
             if (grid.viewerPaneGridNumbers != null)
                 group.getChildren().add(grid.gridnumbers);
             
+            // Image Dimensions
+            int IMG_W = 455;
+            int IMG_H = 260;
+            
             try {                
                 // Create an image and snapshot the group to that image
-                WritableImage image = new WritableImage(455, 260);
-                group.snapshot(null,image);
+                WritableImage image = new WritableImage(IMG_W, IMG_H);
+                
+                // For Jpeg image
+                BufferedImage bi;
                 
                 // Pull file extension (either png or jpeg)
                 String ext = getFileExtension(file.toString());
                 
-                // write the image to users computer
-                ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
+                // Captures GUI image to export
+                group.snapshot(null,image);
                 
-                // Fix bug with clearing data after exporting image here
+                // If user wants jpeg extension, need to fix jpeg background
+                if(ext.equals("jpeg")) {
+                    
+                    // Using bufferedImage prevents background from being a distorted orange color.
+                    bi = SwingFXUtils.fromFXImage(image, null);
+                    BufferedImage jpeg = new BufferedImage(IMG_W, IMG_H, BufferedImage.TYPE_INT_RGB);
+                    jpeg.getGraphics().drawImage(bi, 0, 0, null);
+                    
+                    // write the image to users computer
+                    ImageIO.write(jpeg, ext, file);
+                }//end if
+                else
+                     // write the image to users computer
+                    ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
                 
-                } catch (IOException ex) {
+                // Prevents grid lines/numbers from disappearing. See bug #2 above for additional info (line 155).
+                drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+
+                }//end try
+                catch (IOException ex) {
                     Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
                 }//end catch
         }//end if
