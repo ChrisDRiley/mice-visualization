@@ -401,17 +401,14 @@ public class Grid {
         }
         
         //Checks grid line/numbers if they are active or not
-        //lookup(viewerPane);
+        lookup(viewerPane);
     }
     
     /*
     Alex (3/29/17):
         This is parkers code, I just put it in a function since it was repeated in both static and vector functions.
-        BUT -> I disabled it because when exporting image, this would erase the lines/numbers from visualization
-            but the checkboxes on the right side were still checked, so the buttons were 'reversed'. Not allowing this code
-            to execute prevents this from ever happening, although a better fix is stopping the data from disappearing but need to look into that
-        
-        For now, left this code here since I basically did a work-around, not a full fix for now. (lines 320 & 404)
+            Current problem with exporting -> it'll erase the screen after exporting, but won't reset checkboxes
+                for grid lines and numbers, so unchecking them enables them instead. Need to fix that.
     */
     void lookup(StackPane viewerPane) {
         
