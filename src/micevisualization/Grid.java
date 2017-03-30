@@ -115,11 +115,13 @@ public class Grid {
     void toggleGridLines(StackPane viewerPane) {
         String id = "#gridlines";
         if ((Canvas)viewerPane.lookup(id) == null) {
+            System.out.println("toggling grid lines on");
             double width = calculateDimensions(viewerPane).w;
             double height = calculateDimensions(viewerPane).h;
             makeGridLinesCanvas(viewerPane, width, height);
         }
         else {
+            System.out.println("toggling grid lines off");
             viewerPane.getChildren().remove(viewerPane.lookup(id));
         }
     }
@@ -314,17 +316,8 @@ public class Grid {
             viewerPane.getChildren().add(this.datalayers.get(j));
         }
         
-        // (Parker 3/27/17): Get the child gridnumbers and gridlines Canvas layers that have been added to the viewerPane object as children:
-        viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
-        viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
-        
-        // (Parker 3/27/17): if they exist (meaning if the user has chosen to display them), shift the layers to the front on top of the datalayers:
-        if (viewerPaneGridNumbers != null) {
-            viewerPaneGridNumbers.toFront();
-        }
-        if (viewerPaneGridLines != null) {
-            viewerPaneGridLines.toFront();
-        }
+        //Checks grid line/numbers if they are active or not
+        lookup(viewerPane);
     }
     
     /**
@@ -407,16 +400,30 @@ public class Grid {
             viewerPane.getChildren().add(this.datalayers.get(j));
         }
         
+        //Checks grid line/numbers if they are active or not
+        //lookup(viewerPane);
+    }
+    
+    /*
+    Alex (3/29/17):
+        This is parkers code, I just put it in a function since it was repeated in both static and vector functions.
+        BUT -> I disabled it because when exporting image, this would erase the lines/numbers from visualization
+            but the checkboxes on the right side were still checked, so the buttons were 'reversed'. Not allowing this code
+            to execute prevents this from ever happening, although a better fix is stopping the data from disappearing but need to look into that
+        
+        For now, left this code here since I basically did a work-around, not a full fix for now. (lines 320 & 404)
+    */
+    void lookup(StackPane viewerPane) {
+        
         // (Parker 3/27/17): Get the child gridnumbers and gridlines Canvas layers that have been added to the viewerPane object as children:
-        Canvas viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
-        Canvas viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
+        viewerPaneGridNumbers = (Canvas)viewerPane.lookup("#gridnumbers");
+        viewerPaneGridLines = (Canvas)viewerPane.lookup("#gridlines");
         
         // (Parker 3/27/17): if they exist (meaning if the user has chosen to display them), shift the layers to the front on top of the datalayers:
-        if (viewerPaneGridNumbers != null) {
+        if (viewerPaneGridNumbers != null)
             viewerPaneGridNumbers.toFront();
-        }
-        if (viewerPaneGridLines != null) {
+        
+        if (viewerPaneGridLines != null)
             viewerPaneGridLines.toFront();
-        }
     }
 }
