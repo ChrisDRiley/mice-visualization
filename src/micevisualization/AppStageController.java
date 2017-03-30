@@ -150,11 +150,18 @@ public class AppStageController {
         File file = fc.showSaveDialog(stage);
         
         //Creates image file to computer
-        if (file != null) {   
-            //Known Bugs*******************: 
-            //  1) JPEG is orange colored...as far as I know it's a bug in JavaFX.
-            //     I have seen some workarounds but, so far, have not put much effort into experimenting with it.
-            //  2) Error when you try to export without generating data (currently fixed but need to throw error message instead)
+        if (file != null) {  
+            
+            /*Known Bugs******************************** 
+                1) JPEG is orange colored...as far as I know it's a bug in JavaFX.
+                 I have seen some workarounds but, so far, have not put much effort into experimenting with it.
+                
+                2) Error when you try to export without generating data 
+                 (currently fixed but need to throw error message instead)
+                
+                3) After exporting, data disappears. Fixed it where gridlines/numbers don't reset but need to explore not losing data instead.
+            */
+            
 
             // Creates a group to store all the layers in
             Group group = new Group();
@@ -181,12 +188,14 @@ public class AppStageController {
                 
                 // write the image to users computer
                 ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
-//                
+                
+                // Fix bug with clearing data after exporting image here
+                
                 } catch (IOException ex) {
                     Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
                 }//end catch
         }//end if
-//        
+       
         //Future error checking, just ignore for now
 //        Alert alert = new Alert(AlertType.WARNING);
 //        alert.setTitle("Program Notification");
