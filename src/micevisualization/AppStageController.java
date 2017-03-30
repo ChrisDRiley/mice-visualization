@@ -164,7 +164,7 @@ public class AppStageController {
             Group group = new Group();
 
             // Adds grid data image to group
-            //[[1]] prevents error if you try to export image before ever generating (will properly fix later)
+            //***[[1]] prevents error if you try to export image before ever generating (will properly fix later)
             if (grid.data != null)
                 group.getChildren().add(grid.data);
 
@@ -208,21 +208,26 @@ public class AppStageController {
                      // write the image to users computer
                     ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
                 
-                // Prevents grid lines/numbers from disappearing. See bug #2 above for additional info (line 155).
+                //***[[2]] Prevents grid lines/numbers from disappearing. See bug #2 above for additional info (line 155).
                 drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+                
+                //Gets filepath of image saved
+                String path = file.getAbsolutePath();
+       
+                //Prints out alert message saying it was successful.
+                //AlertTypes -> CONFIRMATION    ERROR   INFORMATION   WARNING
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Program Notification");
+                alert.setHeaderText("Image saved to " + path);
+                alert.showAndWait();
 
                 }//end try
                 catch (IOException ex) {
                     Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
                 }//end catch
         }//end if
-       
-        //Future error checking, just ignore for now
-//        Alert alert = new Alert(AlertType.WARNING);
-//        alert.setTitle("Program Notification");
-//        alert.setHeaderText("Feature coming soon!");
-//        alert.showAndWait();
     }//end exportImage
+    
     
     
     /**
