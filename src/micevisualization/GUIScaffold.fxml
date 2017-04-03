@@ -14,9 +14,11 @@
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.canvas.GraphicsContext?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
 <VBox fx:controller="micevisualization.AppStageController" 
-      xmlns:fx="http://javafx.com/fxml/1">
+      xmlns:fx="http://javafx.com/fxml/1" fx:id="rootVbox">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -46,15 +48,6 @@
                     <KeyCodeCombination alt="UP" code="s" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                 </accelerator>
             </CustomMenuItem>
-<!--          <CustomMenuItem mnemonicParsing="false">
-                <content>
-                    <Label text="Save As...">
-                        <tooltip >
-                          <Tooltip text="Save the current session, creating a new session file."/>
-                      </tooltip>
-                    </Label>
-                </content>
-            </CustomMenuItem>-->
             <CustomMenuItem fx:id="exportMenuItem" mnemonicParsing="false" onAction="#exportImage" disable="true">
                 <content>
                     <Label text="Export Image...">
@@ -125,7 +118,7 @@
         
         <StackPane alignment="CENTER" id="viewerPane" fx:id="viewerPane"/>
         
-        <ScrollPane fitToWidth="true" maxWidth="250.0" minWidth="250.0">
+        <ScrollPane fx:id="visualizationOptionsScrollPane" fitToWidth="true" maxWidth="250.0" minWidth="250.0">
             <AnchorPane fx:id="visualizationOptionsAnchorPane" disable="true" prefWidth="250.0" maxWidth="250.0">
               <children>
                   <VBox prefHeight="562.0" prefWidth="235.0">
@@ -135,64 +128,69 @@
                               <Insets left="20.0" right="20.0" top="15.0" />
                            </VBox.margin>
                         </Label>
-                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Map Type:" textAlignment="CENTER">
-                           <padding>
-                              <Insets bottom="10.0" top="10.0" />
-                           </padding>
-                        </Label>
-                        <ChoiceBox fx:id="mapTypeChoiceBox" prefHeight="25.0" prefWidth="253.0">
-                           <items>
-                                <FXCollections fx:factory="observableArrayList">
-                                    <String fx:id="heatMapOption" fx:value="Heat Map" />
-                                    <String fx:id="vectorMapOption" fx:value="Vector Map" />
-                                    <String fx:id="overlayMapOption" fx:value="Overlay Map" />
-                                </FXCollections>
-                            </items>
-                            <VBox.margin>
-                              <Insets left="20.0" right="20.0" />
-                           </VBox.margin>
-                            <tooltip >
-                                <Tooltip text="Selects the type of map to visualize."/>
-                            </tooltip>
-                       </ChoiceBox>
-                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Visualization Type:" textAlignment="CENTER">
-                           <padding>
-                              <Insets bottom="10.0" top="10.0" />
-                           </padding>
-                           <VBox.margin>
-                              <Insets left="20.0" right="20.0" />
-                           </VBox.margin>
-                        </Label>
-                        <ChoiceBox fx:id="visualizationTypeChoiceBox" prefHeight="25.0" prefWidth="253.0">
-                           <items>
-                                <FXCollections fx:factory="observableArrayList">
-                                    <String fx:id="staticMapOption" fx:value="Static" />
-                                    <String fx:id="animatedMapOption" fx:value="Animated" />
-                                </FXCollections>
-                            </items>
-                            <VBox.margin>
-                              <Insets left="20.0" right="20.0" />
-                           </VBox.margin>
-                            <tooltip >
-                                <Tooltip text="Selects the speed of the visualization, immediate (Static) or over time (Animated)."/>
-                            </tooltip>
-                       </ChoiceBox>
-                        <CheckBox fx:id="showGridLinesCheckBox" text="Show gridlines">
-                           <VBox.margin>
-                              <Insets left="20.0" right="20.0" bottom="10.0" top="20.0" />
-                           </VBox.margin>
-                           <tooltip >
-                                <Tooltip text="Toggles the visibility of the grid lines in the visualization on and off."/>
-                            </tooltip>
-                        </CheckBox>
-                        <CheckBox fx:id="showGridNumbersCheckBox" text="Show grid sector numbers">
-                           <VBox.margin>
-                              <Insets left="20.0" right="20.0" bottom="10.0" top="10.0" />
-                           </VBox.margin>
-                           <tooltip >
-                                <Tooltip text="Toggles the visibility of the grid sector numbers in the visualization on and off."/>
-                            </tooltip>
-                        </CheckBox>
+                        <HBox>
+                            <VBox>
+                                <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Visualization Type:" textAlignment="CENTER">
+                                   <padding>
+                                      <Insets bottom="5.0" top="10.0" />
+                                   </padding>
+                                </Label>
+                                <ChoiceBox fx:id="visualizationTypeChoiceBox" prefHeight="25.0" prefWidth="253.0">
+                                   <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:id="staticMapOption" fx:value="Static" />
+                                            <String fx:id="animatedMapOption" fx:value="Animated" />
+                                        </FXCollections>
+                                    </items>
+                                    <VBox.margin>
+                                      <Insets left="20.0" right="20.0" />
+                                   </VBox.margin>
+                                    <tooltip >
+                                        <Tooltip text="Selects the speed of the visualization, immediate (Static) or over time (Animated)."/>
+                                    </tooltip>
+                               </ChoiceBox>
+                            </VBox>
+                            <VBox>
+                                <Label alignment="CENTER" prefHeight="27.0" prefWidth="263.0" text="Map Type:" textAlignment="CENTER">
+                                   <padding>
+                                      <Insets bottom="5.0" top="10.0" />
+                                   </padding>
+                                </Label>
+                                <ChoiceBox fx:id="mapTypeChoiceBox" prefHeight="25.0" prefWidth="253.0">
+                                   <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:id="heatMapOption" fx:value="Heat" />
+                                            <String fx:id="vectorMapOption" fx:value="Vector" />
+                                            <String fx:id="overlayMapOption" fx:value="Overlay" />
+                                        </FXCollections>
+                                    </items>
+                                    <VBox.margin>
+                                      <Insets left="20.0" right="10.0" />
+                                   </VBox.margin>
+                                    <tooltip >
+                                        <Tooltip text="Selects the type of map to visualize."/>
+                                    </tooltip>
+                               </ChoiceBox>
+                            </VBox>
+                        </HBox>
+                        <HBox>
+                            <CheckBox fx:id="showGridLinesCheckBox" text="grid lines">
+                               <HBox.margin>
+                                  <Insets left="20.0" right="20.0" bottom="0.0" top="10.0" />
+                               </HBox.margin>
+                               <tooltip >
+                                    <Tooltip text="Toggles the visibility of the grid lines in the visualization on and off."/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="showGridNumbersCheckBox" text="grid numbers">
+                               <HBox.margin>
+                                  <Insets left="20.0" right="0.0" bottom="0.0" top="10.0" />
+                               </HBox.margin>
+                               <tooltip >
+                                    <Tooltip text="Toggles the visibility of the grid sector numbers in the visualization on and off."/>
+                                </tooltip>
+                            </CheckBox>
+                        </HBox>
                       <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
                            <padding>
                               <Insets bottom="10.0" top="10.0" />
@@ -201,7 +199,7 @@
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
                         </Label>
-                        <ListView fx:id="selectedMiceListView" prefHeight="200.0" prefWidth="200.0" minHeight="200.0">
+                        <ListView fx:id="selectedMiceListView" prefHeight="170.0" prefWidth="200.0" minHeight="170.0">
                            <VBox.margin>
                               <Insets left="20.0" right="20.0" />
                            </VBox.margin>
@@ -209,22 +207,6 @@
                                 <Tooltip text="Selects which mice to visualize. Can Shift-Click and/or Ctrl-Click (Cmd-Click) to select multiple mice."/>
                             </tooltip>
                         </ListView>
-                        <Label alignment="CENTER" prefHeight="37.0" prefWidth="254.0" text="Animation Speed" textAlignment="CENTER">
-                           <padding>
-                              <Insets bottom="10.0" top="10.0" />
-                           </padding>
-                           <VBox.margin>
-                              <Insets left="20.0" right="20.0" />
-                           </VBox.margin>
-                        </Label>
-                        <Slider prefHeight="14.0" prefWidth="200.0" showTickLabels="true" showTickMarks="true">
-                           <VBox.margin>
-                              <Insets left="20.0" right="20.0" />
-                           </VBox.margin>
-                           <tooltip >
-                                <Tooltip text="Selects the speed of the animated visualization."/>
-                            </tooltip>
-                        </Slider>
                         <VBox alignment="CENTER" prefWidth="150.0">
                            <children>
                               <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
@@ -235,7 +217,7 @@
                                     <Insets left="20.0" right="20.0" />
                                  </VBox.margin>
                               </Label>
-                              <TextArea fx:id="startDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
+                              <TextArea fx:id="startDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
                                   <VBox.margin>
                                     <Insets left="20.0" right="20.0" />
                                  </VBox.margin>
@@ -255,7 +237,7 @@
                                     <Insets left="20.0" right="20.0" />
                                  </VBox.margin>
                               </Label>
-                              <TextArea fx:id="stopDataRangeTextArea" maxHeight="26.0" minHeight="26.0" prefHeight="26.0">
+                              <TextArea fx:id="stopDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0" >
                                   <VBox.margin>
                                     <Insets left="20.0" right="20.0" />
                                  </VBox.margin>
@@ -265,9 +247,67 @@
                               </TextArea>
                            </children>
                         </VBox>
-                        <Button fx:id="generateButton" onAction="#generateButtonAction" mnemonicParsing="false" prefHeight="25.0" prefWidth="239.0" text="Generate">
+                        <VBox fx:id="animationOptionsVBox" disable="true">
+                            <!-- (Parker) NOTE: The below commented out HBox may be used in the future. Do not delete until end of poject!!! -->
+<!--                            <HBox>
+                                <children>
+                                    <Button fx:id="generateAnimatedMapButton" text="Play" prefWidth="80.0" minWidth="80.0" onAction="#generateAnimatedMapAction">
+                                        <graphic>
+                                            <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                              <image>
+                                                <Image url="resources/play.png" />
+                                              </image>
+                                            </ImageView>
+                                        </graphic>
+                                      <padding>
+                                          <Insets bottom="5.0" top="5.0" left="5.0" right="5.0 "/>
+                                      </padding>
+                                      <HBox.margin>
+                                          <Insets top="10.0" bottom="10.0" left="20.0" right="20.0 "/>
+                                      </HBox.margin>
+                                    </Button>
+                                </children>
+                            </HBox>-->
+                            <VBox alignment="CENTER" prefWidth="150.0">
+                               <children>
+                                  <Label alignment="CENTER" prefWidth="136.0" text="Current Frame" textAlignment="CENTER">
+                                      <padding>
+                                        <Insets bottom="5.0" top="10.0" />
+                                     </padding>
+                                     <VBox.margin>
+                                        <Insets left="20.0" right="20.0" />
+                                     </VBox.margin>
+                                  </Label>
+                                  <TextArea fx:id="currentAnimationFrame" maxHeight="26.0" minHeight="26.0" prefHeight="26.0" editable="False">
+                                      <VBox.margin>
+                                        <Insets left="20.0" right="20.0" />
+                                     </VBox.margin>
+                                     <tooltip >
+                                        <Tooltip text="Displays the current data set row in the animation (read-only)."/>
+                                    </tooltip>
+                                  </TextArea>
+                               </children>
+                            </VBox>
+                            <Label alignment="CENTER" prefHeight="37.0" prefWidth="254.0" text="Frame Delay (ms between frames)" textAlignment="CENTER">
+                               <padding>
+                                  <Insets bottom="5.0" top="10.0" />
+                               </padding>
+                               <VBox.margin>
+                                  <Insets left="20.0" right="20.0" />
+                               </VBox.margin>
+                            </Label>
+                            <Slider fx:id="animationSpeedSlider" prefHeight="14.0" prefWidth="200.0" showTickLabels="true" showTickMarks="true" min="1" max="1000" value="100">
+                               <VBox.margin>
+                                  <Insets left="20.0" right="20.0" />
+                               </VBox.margin>
+                               <tooltip >
+                                    <Tooltip text="Selects the speed of the animated visualization in terms of delay in milliseconds between frames."/>
+                                </tooltip>
+                            </Slider>
+                        </VBox>
+                        <Button fx:id="generateButton" onAction="#generateMapAction" mnemonicParsing="false"  prefWidth="239.0" text="Generate Static Map">
                            <VBox.margin>
-                              <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+                              <Insets bottom="10.0" left="20.0" right="20.0" top="60.0" />
                            </VBox.margin>
                             <tooltip >
                                 <Tooltip text="Generates a visualization based on the current options."/>

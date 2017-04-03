@@ -11,3 +11,7 @@
     -fx-background-color: gray;
     -fx-border-width: 5px;
 }
+
+#playButton {
+    -fx-font-size: 18px;
+}

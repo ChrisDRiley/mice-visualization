@@ -14,7 +14,7 @@ import java.util.Date;
  * 
  * MouseLocTime stands for "Mouse Location and Timestamp" information.
  */
-public class MouseLocTime {
+public class MouseLocTime implements Comparable<MouseLocTime> {
     Date timestamp;
     String unitLabel;
     int eventDuration;
@@ -36,5 +36,9 @@ public class MouseLocTime {
         catch (Exception e) {
             this.eventDuration = 0;
         }
+    }
+    
+    public int compareTo(MouseLocTime other) {
+        return this.timestamp.compareTo(other.timestamp);
     }
 }

@@ -5,6 +5,7 @@
  */
 package micevisualization;
 import java.util.ArrayList;
+import java.util.Collections;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
