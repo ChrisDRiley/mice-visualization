@@ -324,8 +324,8 @@ public class Grid {
      * @param stop an ending index from the range of data in the dataset
      */
     void staticHeatMap(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
-        // (Parker 4/3/17): calculate the maximumDuration of mouse activity in any one GridSector,
-        // and write each GridSector's finalTotalDuration to the corresponding GridSector objects:
+        // (Parker 4/3/17): calculate the maximumDuration of mouse activity in the most active GridSector,
+        // and calculate each GridSector's finalTotalDuration:
         double maxDuration = calculateGridSectorHeatMapInfo(viewerPane, mice, start, stop);
         
         // calculate width and height of the Canvas object:
@@ -406,6 +406,8 @@ public class Grid {
      * @throws InterruptedException 
      */
     void animatedHeatMap(StackPane viewerPane, Button generateButton, TextArea currentAnimationFrame, Label leftStatus, ArrayList<Mouse> mice, Date start, Date stop, double speed) throws InterruptedException {
+        // (Parker 4/3/17): calculate the maximumDuration of mouse activity in the most active GridSector,
+        // and calculate each GridSector's finalTotalDuration:
         double maxDuration = calculateGridSectorHeatMapInfo(viewerPane, mice, start, stop);
         System.out.println("MAX DURATION: " + String.valueOf(maxDuration));
         
@@ -428,23 +430,37 @@ public class Grid {
                         
                         Date mouseDate = start;
                         
+                        /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from 
+                        the Mouse objects in the selected mice function parameter and store the collective MouseLocTime data in
+                        a new ArrayList. */
                         ArrayList<MouseLocTime> locTimeData = new ArrayList<MouseLocTime>();
                         for (int i = 0; i < mice.size(); ++i) {
                             for (int j = 0; j < mice.get(i).locTimeData.size(); ++j) {
                                 locTimeData.add(mice.get(i).locTimeData.get(j));
                             }
                         }
+                        // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
+                        // to latest Date timestamp:
                         Collections.sort(locTimeData);
                         
+                        // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
+                        // stops at the stopping index:
                         for (int j = 0; j < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
+                            // if the animation was cancelled (by setting the Grid class' animationCancelled property),
+                            // then cancel the animation thread:
                             if (animationCancelled == true) {
                                 this.cancel(true);
                             }
                            if (isCancelled()) {
                                 break;
                             }
+                           // since we need to reference the 'j' incrementor inside the Platform.runlater code, 
+                           // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
+                            // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
                             mouseDate = locTimeData.get(j).timestamp;
+                            // if the current data row is within the Start and Stop indicies, perform the
+                            // color shade calculations and update the GUI inside the Platform.runLater() function:
                             if (mouseDate.compareTo(start) >= 0) {
                                 
                                 // Create a Platform to run code in the background on the new thread;
@@ -508,7 +524,7 @@ public class Grid {
                         }
                         long endTs = System.currentTimeMillis(); // stop the timer
                         elapsedTs = endTs - startTs; // get the elapsed time of the generation duration
-                        return null;
+                        return null; // we aren't returning a specific value from the task, so return null
                     }
                     // if the animation was cancelled by the user, respond gracefully:
                     @Override protected void cancelled() {
@@ -518,13 +534,14 @@ public class Grid {
                     // if the animation succeeded, respond gracefully:
                     @Override protected void succeeded() {
                         stopAnimation(generateButton);
-                        // output a status update to the user containing the duration of the animation:
+                        // output a text status update to the user containing the duration of the animation:
                         String describeMice = (mice.size() > 1) ? "mice" : "mouse";
                         leftStatus.setText("Finished generating an animated heat map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds.");
                     }
                 };
             }
         };
+        // start the animation thread:
         service.start();
     }
     

@@ -303,7 +303,9 @@ public class AppStageController {
                 options whose state needs to change: */
                 if (newValue.equals("Static") || newValue.equals("Overlay")) {
                     // if the user changes a visualization option during an animation, cancel the animation:
-                    grid.stopAnimation(generateButton);
+                    if (grid.animationCancelled == false) {
+                        grid.stopAnimation(generateButton);
+                    }
                     
                     animationOptionsVBox.setDisable(true);
                     //generateButton.setDisable(false);
@@ -330,7 +332,9 @@ public class AppStageController {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 // if the user changes a visualization option during an animation, cancel the animation:
-                grid.stopAnimation(generateButton);
+                if (grid.animationCancelled == false) {
+                    grid.stopAnimation(generateButton);
+                }
                 try {
                     session.mapType = newValue;
                     session.saveState();
