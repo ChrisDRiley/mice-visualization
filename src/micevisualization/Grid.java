@@ -558,7 +558,7 @@ public class Grid {
     
     void staticVectorMap(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
         Date mouseDate = start;
-        HashMap<String, ArrayList<Integer>> Mouse_positions = new HashMap<String, ArrayList<Integer>>(); 
+        HashMap<Mouse, ArrayList<Integer>> Mouse_positions = new HashMap<Mouse, ArrayList<Integer>>(); 
         /*Creates a hashmap that stores mouse labels with that paticular mouse's grid positions stored as the value */
         
         for (int i = 0; i < mice.size(); ++i) {
@@ -574,17 +574,9 @@ public class Grid {
                     UnitLabels.add(gridSectorIndex);
                     }
                 }
-            Mouse_positions.put(mice.get(i).IdLabel, UnitLabels);
+            Mouse_positions.put(mice.get(i), UnitLabels);
         }
         
-//        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
-//            for (int i =0; i< entry.getValue().size(); i++){
-//                System.out.println(entry.getKey()+ " postion " + entry.getValue().get(i).toString());
-//            }
-//            System.out.println("");
-//        }
-        
-        // calculate width and height of the Canvas object:
         double width = calculateDimensions(viewerPane).w;
         double height = calculateDimensions(viewerPane).h;
         this.data = new Canvas(width, height);
@@ -592,19 +584,13 @@ public class Grid {
     
         GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
         
-        for(Map.Entry<String, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+        
+        for(Map.Entry<Mouse, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
             dataCanvasContext.setLineWidth(5);
+            dataCanvasContext.setStroke(entry.getKey().mouse_color);
+            
             for (int i =1; i< entry.getValue().size(); i++){
-                if ((i % 2) == 0){
-                    int red = i*15;
-                    if (red > 255) red = 255;
-                    dataCanvasContext.setStroke(Color.rgb(red, 0, 40));
-                }else{
-                    int green = i*15;
-                    if (green > 255) green = 255;
-                    dataCanvasContext.setStroke(Color.rgb(0, green, 40));
-                    
-                }
+                
                 
                 GridSector GS1 = getSectorByGridIndex(entry.getValue().get(i-1));
                 GridSector GS2 = getSectorByGridIndex(entry.getValue().get(i));
