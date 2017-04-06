@@ -14,6 +14,8 @@ public class GridSector {
     double y; // y coordinate
     double w; // width
     double h; // height
+    double center_x; // center region's x coordinate 
+    double center_y; // center region's y coordinate
     int gridIndex; // index in the physical representation of the grid
     
     int finalTotalDuration; // the cumulative total event duration, taken from the total Start to Stop range of dataset rows
@@ -24,6 +26,8 @@ public class GridSector {
         this.y = y_p;
         this.w = w_p;
         this.h = h_p;
+        this.center_x = this.x + (this.w * .5);
+        this.center_y = this.y + (this.h * .5);
         this.gridIndex = gi;
     }
 }
