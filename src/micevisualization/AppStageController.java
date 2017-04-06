@@ -846,7 +846,7 @@ public class AppStageController {
                             grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
                         }
                         else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
-
+                            grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
                         }
                         else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
 
