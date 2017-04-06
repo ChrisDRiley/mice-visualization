@@ -119,6 +119,9 @@ public class AppStageController {
     @FXML private Slider animationSpeedSlider;
     @FXML private Button generateAnimatedMapButton;
     @FXML private TextArea currentAnimationFrame;
+    @FXML private ChoiceBox stopDataRangeChoiceBox;
+    @FXML private ChoiceBox startDataRangeChoiceBox;
+    
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
     final FileChooser fileChooser = new FileChooser();
@@ -399,6 +402,24 @@ public class AppStageController {
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            }
+        });
+        
+        // (Parker): when the user selects a timestamp from the Start index dropdown, replace the content of the
+        // Start textArea with the user selection
+        startDataRangeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                startDataRangeTextArea.setText(newValue);
+            }
+        });
+        
+        // (Parker): when the user selects a timestamp from the Stop index dropdown, replace the content of the
+        // Stop textArea with the user selection
+        stopDataRangeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                stopDataRangeTextArea.setText(newValue);
             }
         });
         
@@ -849,7 +870,7 @@ public class AppStageController {
                             grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
                         }
                         else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
-
+                            grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
                         }
                     }
                 }
@@ -1315,7 +1336,7 @@ public class AppStageController {
                 String extension = getFileExtension(file.toString());
                 
                 // process .csv data files:
-                if (extension.equals("csv")) { 
+                if (extension.equals("csv")) {
                     
                     // (Parker) these represent the indices of specific columns of data in the data set file.
                     // Note: an enum also could have worked here, but this serves the same purpose:
@@ -1325,7 +1346,17 @@ public class AppStageController {
                     int UNIT_LABEL = 3;
                     int EVENT_DURATION = 4;
                     
+                    // (Parker): dateRange is used for storing the first and last timestamps from the data set:
                     Date dateRange = null;
+                    
+                    // (Parker): in order to obtain a set of timestamp presets for use in stopDataRangeChoiceBox
+                    // and startDataRangeChoiceBox, store all timestamps in the data set and later use the ArrayList
+                    // to select the timestamps that represent the 0/5, 1/5, 2/5, 3/5, 4/5, and 5/5 divisions of the 
+                    // data set:
+                    ArrayList<Date> dataTimestampsList = new ArrayList<Date>();
+                    
+                    // (Parker): define a string format for converting Dates to Strings:
+                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
                     
                     while (sc.hasNextLine()) {
                         linesProcessed++;
@@ -1353,6 +1384,8 @@ public class AppStageController {
                         // extract the location and timestamp data for the current row:
                         MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
                         
+                        dataTimestampsList.add(mlt.timestamp);
+                        
                         // update the dateRange variable:
                         dateRange = mlt.timestamp;
                         // the 2nd line processed should be the first row of data,
@@ -1361,7 +1394,7 @@ public class AppStageController {
                             // if there is no previous session value (if one does exist, it will be restored at a later point),
                             // proceed with prepopulating the Start TextArea:
                             if (session.stoppingIndex.equals("")) {
-                                startDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
+                                startDataRangeTextArea.setText(sdf.format(dateRange));
                             }
                         }
                         
@@ -1386,9 +1419,22 @@ public class AppStageController {
                     // if there is no previous session value (if one does exist, it will be restored at a later point),
                     // proceed with prepopulating the Stop TextArea:
                     if (session.stoppingIndex.equals("")) {
-                        stopDataRangeTextArea.setText(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS").format(dateRange));
+                        stopDataRangeTextArea.setText(sdf.format(dateRange));
                     }
                     
+                    /// (Parker): Create an observable list for the purpose of populating the stopDataRangeChoiceBox and
+                    // startDataRangeChoiceBox options. Add to the observable list 6 timestamps from the data, representing
+                    // ranges in the dataset.
+                    ObservableList<String> timestampsObservableList = FXCollections.observableArrayList();
+                    timestampsObservableList.add(sdf.format(dataTimestampsList.get(0)));
+                    timestampsObservableList.add(sdf.format(dataTimestampsList.get((int)dataTimestampsList.size()/5)));
+                    timestampsObservableList.add(sdf.format(dataTimestampsList.get(((int)dataTimestampsList.size()/5)*2)));
+                    timestampsObservableList.add(sdf.format(dataTimestampsList.get(((int)dataTimestampsList.size()/5)*3)));
+                    timestampsObservableList.add(sdf.format(dataTimestampsList.get(((int)dataTimestampsList.size()/5)*4)));
+                    timestampsObservableList.add(sdf.format(dataTimestampsList.get(dataTimestampsList.size()-1)));
+                    
+                    stopDataRangeChoiceBox.setItems(timestampsObservableList);
+                    startDataRangeChoiceBox.setItems(timestampsObservableList);
 
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());

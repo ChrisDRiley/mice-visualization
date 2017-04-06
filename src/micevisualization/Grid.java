@@ -418,6 +418,8 @@ public class Grid {
         Service<Void> service = new Service<Void>() {
             long elapsedTs = 0; // Create a timestamp based timer to measure the duration of the animation
             
+            long frameCount = 0; // Count how many frames the animation has rendered
+            
             @Override
             // create a new task that will comprise the new thread of the animation:
             protected Task<Void> createTask() {
@@ -465,7 +467,7 @@ public class Grid {
                                 
                                 // Create a Platform to run code in the background on the new thread;
                                 // this is where the data layer of the Grid's Canvas objects gets updated:
-                                Platform.runLater(new Runnable() {                          
+                                Platform.runLater(new Runnable() {                    
                                     @Override
                                     public void run() {
                                         /* PUT GUI UPDATE LOGIC HERE */
@@ -515,6 +517,9 @@ public class Grid {
                                         // fill the current GridSector with the calculated shade:
                                         dataCanvasContext.setFill(Color.rgb(0, 0, 255, currentOpacity));
                                         dataCanvasContext.fillRect(gs.x, gs.y, gs.w, gs.h);
+                                        
+                                         // increment the number of frames rendered in the animation:
+                                        frameCount++;
                                     }
                                 });
                                 // delay the animation thread by "speed" number of milliseconds;
@@ -536,7 +541,219 @@ public class Grid {
                         stopAnimation(generateButton);
                         // output a text status update to the user containing the duration of the animation:
                         String describeMice = (mice.size() > 1) ? "mice" : "mouse";
-                        leftStatus.setText("Finished generating an animated heat map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds.");
+                        leftStatus.setText("Finished generating an animated heat map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds. " + frameCount + " frames rendered.");
+                    }
+                };
+            }
+        };
+        // start the animation thread:
+        service.start();
+    }
+    
+       /**
+     * 
+     * @author Parker
+     * 
+     * Generate an animated Heat map. Use the coordination of several GUI controls
+     * in the Visualization options, the Grid class, and Mouse objects to achieve an
+     * animation. The drawing of the animation must occur in a separate thread in order
+     * to show constant progress updates in the GUI, so Service and Task objects are
+     * used to achieve concurrency. The speed of the animation is controlled by
+     * delay introduced between frames, ranging from 1 - 1000 milliseconds.
+     * 
+     * @param viewerPane
+     * @param generateButton
+     * @param currentAnimationFrame
+     * @param leftStatus
+     * @param mice
+     * @param start
+     * @param stop
+     * @param speed
+     * @throws InterruptedException 
+     */
+    void animatedOverlayMap(StackPane viewerPane, Button generateButton, TextArea currentAnimationFrame, Label leftStatus, ArrayList<Mouse> mice, Date start, Date stop, double speed) throws InterruptedException {
+        // (Parker 4/3/17): calculate the maximumDuration of mouse activity in the most active GridSector,
+        // and calculate each GridSector's finalTotalDuration:
+        double maxDuration = calculateGridSectorHeatMapInfo(viewerPane, mice, start, stop);
+        System.out.println("MAX DURATION: " + String.valueOf(maxDuration));
+        
+        //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
+        moveInfoLayersToFront(viewerPane);
+
+        // Establish a new service:
+        Service<Void> service = new Service<Void>() {
+            long elapsedTs = 0; // Create a timestamp based timer to measure the duration of the animation
+            
+            long frameCount = 0; // Count how many frames the animation has rendered
+            
+            @Override
+            // create a new task that will comprise the new thread of the animation:
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        /* PUT LOOPING LOGIC HERE */
+                        
+                        long startTs = System.currentTimeMillis(); // begin a timer to record the amount of time the generation takes
+                        
+                        Date mouseDate = start;
+                        
+                        /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from 
+                        the Mouse objects in the selected mice function parameter and store the collective MouseLocTime data in
+                        a new ArrayList. */
+                        HashMap<Date, Mouse> mouse_color = new HashMap<Date, Mouse>();
+                        ArrayList<MouseLocTime> locTimeData = new ArrayList<MouseLocTime>();
+                        for (int i = 0; i < mice.size(); ++i) {
+                            for (int j = 0; j < mice.get(i).locTimeData.size(); ++j) {
+                                locTimeData.add(mice.get(i).locTimeData.get(j));
+                                mouse_color.put(mice.get(i).locTimeData.get(j).timestamp,mice.get(i));
+                            }
+                        }
+                        // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
+                        // to latest Date timestamp:
+                        Collections.sort(locTimeData);
+                        
+                        // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
+                        // stops at the stopping index:
+                        for (int j = 0; j < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
+                            // if the animation was cancelled (by setting the Grid class' animationCancelled property),
+                            // then cancel the animation thread:
+                            if (animationCancelled == true) {
+                                this.cancel(true);
+                            }
+                           if (isCancelled()) {
+                                break;
+                            }
+                           // since we need to reference the 'j' incrementor inside the Platform.runlater code, 
+                           // we need to make a new final variable that is a copy of j's current value:
+                            final int finalJ = j;
+                            // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
+                            mouseDate = locTimeData.get(j).timestamp;
+                            // if the current data row is within the Start and Stop indicies, perform the
+                            // color shade calculations and update the GUI inside the Platform.runLater() function:
+                            if (mouseDate.compareTo(start) >= 0) {
+                                
+                                // Create a Platform to run code in the background on the new thread;
+                                // this is where the data layer of the Grid's Canvas objects gets updated:
+                                Platform.runLater(new Runnable() {                    
+                                    @Override
+                                    public void run() {
+                                        /* PUT GUI UPDATE LOGIC HERE */
+
+                                        /* (Parker 4/3/17): display to the user the current frame being rendered: */
+                                        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+                                        currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                        
+                                        /* GENERATE HEAT MAP: *************************************************** */
+
+                                        /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                        int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                        /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                        GridSector gs = getSectorByGridIndex(gridSectorIndex);
+
+                                        /* add the current record's event duration to the selected GridSector's currentTotalDuration parameter */
+                                        gs.currentTotalDuration += locTimeData.get(finalJ).eventDuration;
+
+                                        /* get the maximum opacity for this grid sector (AKA this GridSector's value in the static heat map) */
+                                        double baseOpacity = gs.finalTotalDuration / maxDuration;
+
+                                        /* now create a shade of the baseOpactiy by applying the ratio of the finalTotalDuration vs currentTotalDuration */
+                                        double currentOpacity = ((double)gs.currentTotalDuration / (double)gs.finalTotalDuration) * baseOpacity;
+                                        
+                                        /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                        if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                        String heatMapId = "heatmap";
+                                        Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
+                                        if (viewerPaneHeatMapLayer == null) {
+                                            // calculate width and height of the Canvas object:
+                                            double width = calculateDimensions(viewerPane).w;
+                                            double height = calculateDimensions(viewerPane).h;
+                                            data = new Canvas(width, height);
+                                            data.setId(heatMapId);
+                                            //this.datalayers.add(data);
+                                            viewerPane.getChildren().add(data);
+                                        }
+                                        
+                                        viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
+
+                                        // get the graphics context of the heat map data layer for the purpose of drawing:
+                                        GraphicsContext heatCanvasContext = viewerPaneHeatMapLayer.getGraphicsContext2D();
+
+                                        /* perform the drawing of the shade onto the Canvas for this gridSector: */
+                                        // clear out the current GridSector's old shade:
+                                        heatCanvasContext.clearRect(gs.x, gs.y, gs.w, gs.h);
+                                        // fill the current GridSector with the calculated shade:
+                                        heatCanvasContext.setFill(Color.rgb(0, 0, 255, currentOpacity));
+                                        heatCanvasContext.fillRect(gs.x, gs.y, gs.w, gs.h);
+                                        
+                                        /* GENERATE VECTOR MAP: *************************************************** */
+                                        
+                                        /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                        int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                        int nextIndex = finalJ+1;
+                                        // (Parker): prevent an index out of bounds error:
+                                        if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
+                                        int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
+                                        /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                        
+                                        GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
+                                        GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
+                                        
+                                        /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                        if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                        String vectorMapId = "vectormap";
+                                        Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                        if (viewerPaneVectorMapLayer == null) {
+                                            // calculate width and height of the Canvas object:
+                                            double width = calculateDimensions(viewerPane).w;
+                                            double height = calculateDimensions(viewerPane).h;
+                                            data = new Canvas(width, height);
+                                            data.setId(vectorMapId);
+                                            //this.datalayers.add(data);
+                                            viewerPane.getChildren().add(data);
+                                        }
+                                        
+                                        viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+
+                                        // get the graphics context of the heat map data layer for the purpose of drawing:
+                                        GraphicsContext vectorCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
+                                        
+                                        vectorCanvasContext.setLineWidth(5);
+                                        vectorCanvasContext.setStroke(mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color);      
+                                        
+                                        vectorCanvasContext.strokeLine(
+                                        previous_grid.center_x,
+                                        previous_grid.center_y,
+                                        current_grid.center_x,
+                                        current_grid.center_y);
+                                        
+                                        //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
+                                        moveInfoLayersToFront(viewerPane);
+                                        
+                                         // increment the number of frames rendered in the animation:
+                                        frameCount++;
+                                    }
+                                });
+                                // delay the animation thread by "speed" number of milliseconds;
+                                // this value should come directly from the Frame Delay GUI slider control:
+                                Thread.sleep((int)speed);
+                            }
+                        }
+                        long endTs = System.currentTimeMillis(); // stop the timer
+                        elapsedTs = endTs - startTs; // get the elapsed time of the generation duration
+                        return null; // we aren't returning a specific value from the task, so return null
+                    }
+                    // if the animation was cancelled by the user, respond gracefully:
+                    @Override protected void cancelled() {
+                        super.cancelled();
+                        updateMessage("Cancelled!");
+                    }
+                    // if the animation succeeded, respond gracefully:
+                    @Override protected void succeeded() {
+                        stopAnimation(generateButton);
+                        // output a text status update to the user containing the duration of the animation:
+                        String describeMice = (mice.size() > 1) ? "mice" : "mouse";
+                        leftStatus.setText("Finished generating an animated overlay map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds. " + frameCount + " frames rendered.");
                     }
                 };
             }
@@ -624,7 +841,7 @@ public class Grid {
      * 
      * @author Joshua
      * 
-     * Generate an animated Heat map. Use the coordination of several GUI controls
+     * Generate an animated vector map. Use the coordination of several GUI controls
      * in the Visualization options, the Grid class, and Mouse objects to achieve an
      * animation. The drawing of the animation must occur in a separate thread in order
      * to show constant progress updates in the GUI, so Service and Task objects are
@@ -650,6 +867,8 @@ public class Grid {
         // Establish a new service:
         Service<Void> service = new Service<Void>() {
             long elapsedTs = 0; // Create a timestamp based timer to measure the duration of the animation
+            
+            long frameCount = 0; // Count how many frames the animation has rendered
             
             @Override
             // create a new task that will comprise the new thread of the animation:
@@ -714,7 +933,10 @@ public class Grid {
 
                                         /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                                         int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
-                                        int gridSectorIndex_current = Integer.parseInt(locTimeData.get(finalJ+1).unitLabel.substring(4));
+                                        int nextIndex = finalJ+1;
+                                        // (Parker): prevent an index out of bounds error:
+                                        if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
+                                        int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
                                         /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                                         
                                         GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
@@ -749,6 +971,9 @@ public class Grid {
                                         previous_grid.center_y,
                                         current_grid.center_x,
                                         current_grid.center_y);
+                                        
+                                        // increment the number of frames rendered in the animation:
+                                        ++frameCount;
                                     }
                                 });
                                 // delay the animation thread by "speed" number of milliseconds;
@@ -771,7 +996,7 @@ public class Grid {
 
                         // output a text status update to the user containing the duration of the animation:
                         String describeMice = (mice.size() > 1) ? "mice" : "mouse";
-                        leftStatus.setText("Finished generating an animated heat map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds.");
+                        leftStatus.setText("Finished generating an animated vector map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds. " + frameCount + " frames rendered.");
                     }
                 };
             }
