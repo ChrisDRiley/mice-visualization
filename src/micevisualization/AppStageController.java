@@ -61,6 +61,11 @@ import javafx.scene.shape.ArcType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.javafx.scene.control.behavior.TextAreaBehavior;
+import com.sun.javafx.scene.control.skin.ButtonSkin;
+import com.sun.javafx.scene.control.skin.CheckBoxSkin;
+import com.sun.javafx.scene.control.skin.ChoiceBoxSkin;
+import com.sun.javafx.scene.control.skin.TextAreaSkin;
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -77,17 +82,21 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SkinBase;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javax.imageio.ImageIO;
 
@@ -121,6 +130,8 @@ public class AppStageController {
     @FXML private TextArea currentAnimationFrame;
     @FXML private ChoiceBox stopDataRangeChoiceBox;
     @FXML private ChoiceBox startDataRangeChoiceBox;
+    @FXML private HBox gridOptionsCheckBoxesHBox;
+    @FXML private VBox dataRangeControlVBox;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -245,53 +256,233 @@ public class AppStageController {
         }//end if
     }//end exportImage
     
-    
+    /**
+     * 
+     * @author Parker
+     * 
+     * This function adds an event handler to a specified ChoiceBox control. The event handler
+     * responds to when the user presses the Enter key while a particular ChoiceBox is focused.
+     * When the Enter key is pressed, the ChoiceBox options display will be toggled as show/hide.
+     * In order for the event handler to be added to the ChoiceBox, this function is called
+     * in the initialize() function with the ChoiceBox object passed as a parameter.
+     * 
+     * @param cb the ChoiceBox object to attach the event handler to
+     */
+    void addEnterKeyDisplayToChoiceBox(ChoiceBox cb) {
+        cb.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if (event.getCode() == KeyCode.ENTER) {
+                    ChoiceBoxSkin skin = (ChoiceBoxSkin) cb.getSkin();
+                    if (event.getSource() instanceof ChoiceBox) {
+                        if (cb.showingProperty().get()) {
+                            cb.hide();
+                        }
+                        else {
+                            cb.show();
+                        }
+                        event.consume();
+                    }
+                }
+            }
+        });
+    }
     
     /**
      * 
-     * @author: parker
+     * @author Parker
+     * 
+     * This function adds an event handler to a specified CheckBox control. The event handler
+     * responds to when the user presses the Enter key while a particular CheckBox is focused.
+     * When the Enter key is pressed, the CheckBox will be toggled as selected/unselected.
+     * In order for the event handler to be added to the CheckBox, this function is called
+     * in the initialize() function with the CheckBox object passed as a parameter.
+     * 
+     * @param cb the CheckBox object to attach the event handler to
+     */
+    void addEnterKeyToggleToCheckBox(CheckBox cb) {
+        cb.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if (event.getCode() == KeyCode.ENTER) {
+                    CheckBoxSkin skin = (CheckBoxSkin) cb.getSkin();
+                    if (event.getSource() instanceof CheckBox) {
+                        CheckBox currentCheckBox = (CheckBox) event.getSource();
+                        if (currentCheckBox.isSelected()) {
+                            currentCheckBox.setSelected(false);
+                        }
+                        else {
+                            currentCheckBox.setSelected(true);
+                        }
+                        event.consume();
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * 
+     * This function adds an event handler to a specified TextArea control. The event handler
+     * responds to when the user presses the Tab key while a particular TextArea is focused.
+     * When the Tab key is pressed, the GUI will navigate to the next (Tab) or previous (Shift-Tab) GUI control.
+     * In order for the event handler to be added to the TextArea, this function is called
+     * in the initialize() function with the TextArea object passed as a parameter.
+     * 
+     * @param cb the TextArea object to attach the event handler to
+     */
+    void addTabKeyNavigationToTextArea(TextArea ta) {
+        ta.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if (event.getCode() == KeyCode.TAB) {
+                    TextAreaSkin skin = (TextAreaSkin) ta.getSkin();
+                    if (skin.getBehavior() instanceof TextAreaBehavior) {
+                        TextAreaBehavior behavior = (TextAreaBehavior) skin.getBehavior();
+                        if (event.isShiftDown()) {
+                            behavior.callAction("TraversePrevious");
+                        } else {
+                            behavior.callAction("TraverseNext");
+                        }
+                        event.consume();
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * 
+     * @author Parker
+     * 
+     * This function adds an event handler to the parameter ChoiceBox object cb. Whenever a
+     * selection is made in cb, copy the selected item's value into the parameter TextArea object ta's 
+     * text property. This function is called in the initialize() function.
+     * 
+     * @param cb the ChoiceBox that will be the source of the TextArea's new content
+     * @param ta the TextArea that will have the ChoiceBox's selection written to its text property
+     */
+    void applyDataRangeChoiceBoxSelectionToTextArea(ChoiceBox cb, TextArea ta) {
+        cb.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                ta.setText(newValue);
+            }
+        });
+    }
+    
+    /**
+     * 
+     * @author Parker
+     * 
+     * Adds an event handler to the parameter CheckBox object cb.
+     * Whenever cb's value changes (selected / unselected), fire the appropriate grid function based on the targeted CheckBox's id,
+     * update the session's state, and try to save the current session.
+     * 
+     * @param cb the CheckBox object to assign the event handler to
+     */
+    void addToggleGridOptionActionToCheckBox(CheckBox cb) {
+        cb.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            public void changed(ObservableValue<? extends Boolean> ov,
+                Boolean old_val, Boolean new_val) {
+                if ((CheckBox)gridOptionsCheckBoxesHBox.lookup("#" + cb.getId()) != null) {
+                    if (cb.getId().equals("showGridLinesCheckBox")) {
+                        grid.toggleGridLines(viewerPane);
+                        session.showGridLines = new_val;
+                    }
+                    else if (cb.getId().equals("showGridNumbersCheckBox")) {
+                        grid.toggleGridNumbers(viewerPane);
+                        session.showGridNumbers = new_val;
+                    }
+                    try {
+                        session.saveState();
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * 
+     * @author Parker
+     * 
+     * This function adds an event handler to the parameter TextArea object ta.
+     * When the user enters a new value into ta, the system will use ta's id to execute
+     * particular system commands and update the session.
+     * The system will then attempt to save the session state.
+     * 
+     * @param ta the TextArea object to assign the event handler to
+     */
+    void updateSessionTextAreaContent(TextArea ta) {
+        ta.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if ((TextArea) dataRangeControlVBox.lookup("#" + ta.getId()) != null) {
+                    if (ta.getId().equals("startDataRangeTextArea")) {
+                        session.startingIndex = newValue;
+                    }
+                    else if (ta.getId().equals("stopDataRangeTextArea")) {
+                        session.stoppingIndex = newValue;
+                    }
+                    try {
+                        session.saveState();
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * 
+     * @author Parker
+     * 
+     * Trigger a redraw of the Canvas objects contained in the visualization. 
+     * This function is used inside the event handler that reacts to when the user
+     * resizes the program window.
+     * 
+     */
+    void redrawGridUponWindowResize() {
+         // if the session is not a new session, then there is data available to draw:
+        if (session.isNewSession == false) {
+            drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+        }
+        // if the user resizes the window during an animation, cancel the animation:
+        if (grid.animationCancelled == false) {
+            grid.stopAnimation(generateButton);
+        }
+    }
+    
+    /**
+     * 
+     * @author: Parker
      * 
      * this is called once after the controller is loaded. It's purpose is to perform
-     * any code at the very beginning of program execution, once the GUI is ready.
+     * any code at the very beginning of program execution once the GUI is ready.
+     * Most of the code contained within this function assigns event handlers to specific
+     * GUI control objects; a few lines deal with setting specific properties on certain objects
+     * that need to be set only once per system lifecycle.
      * 
      * @throws URISyntaxException 
      */
     @FXML
     private void initialize() throws URISyntaxException {
-        //fileMenuOption.setAccelerator(new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN));
-        
-        refreshListOfSessions();
-        
-        // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects
+        // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects in the visualization
         viewerPane.widthProperty().addListener(new ChangeListener<Number>() {
            @Override
-           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue)
-           {
-               // if the session is not a new session, then there is data available to draw:
-               if (session.isNewSession == false) {
-                   drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-               }
-               // if the user resizes the window during an animation, cancel the animation:
-               if (grid.animationCancelled == false) {
-                   grid.stopAnimation(generateButton);
-               }
-               
+           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
+                redrawGridUponWindowResize();
            }           
         });
         
-        // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects
+        // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects in the visualization
         viewerPane.heightProperty().addListener(new ChangeListener<Number>() {
            @Override
-           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue)
-           {
-               // if the session is not a new session, then there is data available to draw:
-               if (session.isNewSession == false) {
-                   drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-               }
-               // if the user resizes the window during an animation, cancel the animation:
-               if (grid.animationCancelled == false) {
-                   grid.stopAnimation(generateButton);
-               }
+           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
+                redrawGridUponWindowResize();
            }           
         });
         
@@ -311,14 +502,12 @@ public class AppStageController {
                     }
                     
                     animationOptionsVBox.setDisable(true);
-                    //generateButton.setDisable(false);
                     generateButton.setText("Generate Static Map");
                     generateButton.setGraphic(null);
                 }
                 else if (newValue.equals("Animated")) {
                     grid.stopAnimation(generateButton);
                     animationOptionsVBox.setDisable(false);
-                    //generateButton.setDisable(true);
                 }
                 try {
                     session.visualizationType = newValue;
@@ -330,7 +519,7 @@ public class AppStageController {
         });
         
          // (Parker 3/27/17): When the user changes their selection in the map type choice box,
-        // respond to that change       
+        // respond to that change by changing the state of the visualization options and saving the current session.  
         mapTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -346,82 +535,65 @@ public class AppStageController {
                 }
             }
         });
-
-         // (Parker 3/27/17): When the user changes their selection in the Start data range text field,
-        // respond to that change          
-        startDataRangeTextArea.textProperty().addListener(new ChangeListener<String>() {
+        
+        // (Parker 4/10/17): When the user has the Generate Map or Play/Stop Animation button
+        // selected, make it possible to trigger the button's associated onAction function via the
+        // Enter key:
+        generateButton.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                try {
-                    session.startingIndex = newValue;
-                    session.saveState();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+            public void handle(KeyEvent event) {
+                if (event.getCode() == KeyCode.ENTER) {
+                    ButtonSkin skin = (ButtonSkin) generateButton.getSkin();
+                    if (event.getSource() instanceof Button) {
+                        try {
+                            generateMapFunction();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        finally {
+                            event.consume();
+                        }
+                    }
                 }
             }
         });
         
-        // (Parker 3/27/17): When the user changes their selection in the Stop data range text field,
-        // respond to that change       
-        stopDataRangeTextArea.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                try {
-                    session.stoppingIndex = newValue;
-                    session.saveState();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+        // (Parker): Refresh the list of available session files that appear in the left hand
+        // sessions listView GUI control:
+        refreshListOfSessions();
         
-        // (Parker 3/27/17): When the user changes their selection in the toggle grid lines check box,
-        // respond to that change  
-        showGridLinesCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            public void changed(ObservableValue<? extends Boolean> ov,
-                Boolean old_val, Boolean new_val) {
-                    grid.toggleGridLines(viewerPane);
-                    session.showGridLines = new_val;
-                try {
-                    session.saveState();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+        // (Parker 4/11/17): when the user enters a new value into a TextArea, use that TextArea's id to
+        // execute particular functions, modify the state of the current session, and save the session.
+        updateSessionTextAreaContent(startDataRangeTextArea);
+        updateSessionTextAreaContent(stopDataRangeTextArea);
         
-        // (Parker 3/27/17): When the user changes their selection in the toggle grid sector numbers checkbox,
-        // respond to that change  
-        showGridNumbersCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            public void changed(ObservableValue<? extends Boolean> ov,
-                Boolean old_val, Boolean new_val) {
-                    grid.toggleGridNumbers(viewerPane);
-                    session.showGridNumbers = new_val;
-                try {
-                    session.saveState();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+        // (Parker 4/10/17): when the user selects/deselects a grid options Check Box in the visualization options (sector numbers,
+        // grid lines), respond to the new state of the Check Box by executing associated grid functions:
+        addToggleGridOptionActionToCheckBox(showGridLinesCheckBox);
+        addToggleGridOptionActionToCheckBox(showGridNumbersCheckBox);
         
-        // (Parker): when the user selects a timestamp from the Start index dropdown, replace the content of the
-        // Start textArea with the user selection
-        startDataRangeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                startDataRangeTextArea.setText(newValue);
-            }
-        });
+        // (Parker 4/10/17): when the user selects a timestamp from a Start/Stop ChoiceBox dropdown in the Visualization Options,
+        // replace the text property of the specified TextArea with the selected item in the ChoiceBox
+        applyDataRangeChoiceBoxSelectionToTextArea(startDataRangeChoiceBox, startDataRangeTextArea);
+        applyDataRangeChoiceBoxSelectionToTextArea(stopDataRangeChoiceBox, stopDataRangeTextArea);
         
-        // (Parker): when the user selects a timestamp from the Stop index dropdown, replace the content of the
-        // Stop textArea with the user selection
-        stopDataRangeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                stopDataRangeTextArea.setText(newValue);
-            }
-        });
+        // (Parker 4/10/17): Add Tab key navigation to the TextArea GUI controls so that when
+        // a particular TextArea is focused, the Tab key will cause the GUI to navigate to 
+        // the next (Tab) or previous (Shift-Tab) GUI control.
+        addTabKeyNavigationToTextArea(startDataRangeTextArea);
+        addTabKeyNavigationToTextArea(stopDataRangeTextArea);
+        
+        // (Parker 4/10/17): Make the CheckBoxes in the Visualization Options able to be
+        // toggled via the Enter key when focused:
+        addEnterKeyToggleToCheckBox(showGridLinesCheckBox);
+        addEnterKeyToggleToCheckBox(showGridNumbersCheckBox);
+        
+        // (Parker 4/10/17): While a ChoiceBox is focused in the visualization options, toggle the display of its drop-down options
+        // when the enter key is pressed
+        addEnterKeyDisplayToChoiceBox(stopDataRangeChoiceBox);
+        addEnterKeyDisplayToChoiceBox(startDataRangeChoiceBox);
+        addEnterKeyDisplayToChoiceBox(visualizationTypeChoiceBox);
+        addEnterKeyDisplayToChoiceBox(mapTypeChoiceBox);
         
         // (Parker 4/3/17): initialize certain GUI components with certain settings:
         visualizationOptionsScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -779,7 +951,7 @@ public class AppStageController {
      * 
      * @param event 
      */
-    @FXML protected void generateMapAction(ActionEvent event) throws InterruptedException {
+    void generateMapFunction() throws InterruptedException {
         Date startIndex = null;
         Date stopIndex = null;
         
@@ -884,6 +1056,21 @@ public class AppStageController {
             simpleAlert("No visualization type selected!", "Please select a visualization type from the dropdown.");
             return;           
         }
+    }
+    
+    /**
+     * 
+     * @author parker
+     * 
+     * Note: this function is simply a wrapper for the generateMapFunction; 
+     * generateMapAction is called when the user manually clicks on the generate
+     * visualization/ play animation button.
+     * 
+     * @param event
+     * @throws InterruptedException 
+     */
+    @FXML protected void generateMapAction(ActionEvent event) throws InterruptedException {
+        generateMapFunction();
     }
     
     /**

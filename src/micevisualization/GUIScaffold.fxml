@@ -173,8 +173,8 @@
                                </ChoiceBox>
                             </VBox>
                         </HBox>
-                        <HBox>
-                            <CheckBox fx:id="showGridLinesCheckBox" text="grid lines">
+                        <HBox fx:id="gridOptionsCheckBoxesHBox">
+                            <CheckBox id="showGridLinesCheckBox" fx:id="showGridLinesCheckBox" text="grid lines">
                                <HBox.margin>
                                   <Insets left="20.0" right="20.0" bottom="0.0" top="10.0" />
                                </HBox.margin>
@@ -182,7 +182,7 @@
                                     <Tooltip text="Toggles the visibility of the grid lines in the visualization on and off."/>
                                 </tooltip>
                             </CheckBox>
-                            <CheckBox fx:id="showGridNumbersCheckBox" text="grid numbers">
+                            <CheckBox id="showGridNumbersCheckBox" fx:id="showGridNumbersCheckBox" text="grid numbers">
                                <HBox.margin>
                                   <Insets left="20.0" right="0.0" bottom="0.0" top="10.0" />
                                </HBox.margin>
@@ -191,7 +191,7 @@
                                 </tooltip>
                             </CheckBox>
                         </HBox>
-                      <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
+                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
                            <padding>
                               <Insets bottom="10.0" top="10.0" />
                            </padding>
@@ -207,7 +207,7 @@
                                 <Tooltip text="Selects which mice to visualize. Can Shift-Click and/or Ctrl-Click (Cmd-Click) to select multiple mice."/>
                             </tooltip>
                         </ListView>
-                        <VBox alignment="CENTER" prefWidth="150.0">
+                        <VBox alignment="CENTER" prefWidth="150.0" fx:id="dataRangeControlVBox">
                            <children>
                                <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
                                     <padding>
@@ -218,7 +218,7 @@
                                    </VBox.margin>
                                 </Label>
                               <HBox>
-                                    <TextArea fx:id="startDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
+                                    <TextArea fx:id="startDataRangeTextArea" id="startDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
                                         <HBox.margin>
                                           <Insets left="20.0" right="10.0" />
                                        </HBox.margin>
@@ -248,7 +248,7 @@
                                    </VBox.margin>
                                 </Label>
                                <HBox>
-                                    <TextArea fx:id="stopDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0" >
+                                    <TextArea fx:id="stopDataRangeTextArea" id="stopDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0" >
                                         <HBox.margin>
                                           <Insets left="20.0" right="10.0" />
                                        </HBox.margin>
