@@ -173,8 +173,8 @@
                                </ChoiceBox>
                             </VBox>
                         </HBox>
-                        <HBox>
-                            <CheckBox fx:id="showGridLinesCheckBox" text="grid lines">
+                        <HBox fx:id="gridOptionsCheckBoxesHBox">
+                            <CheckBox id="showGridLinesCheckBox" fx:id="showGridLinesCheckBox" text="grid lines">
                                <HBox.margin>
                                   <Insets left="20.0" right="20.0" bottom="0.0" top="10.0" />
                                </HBox.margin>
@@ -182,7 +182,7 @@
                                     <Tooltip text="Toggles the visibility of the grid lines in the visualization on and off."/>
                                 </tooltip>
                             </CheckBox>
-                            <CheckBox fx:id="showGridNumbersCheckBox" text="grid numbers">
+                            <CheckBox id="showGridNumbersCheckBox" fx:id="showGridNumbersCheckBox" text="grid numbers">
                                <HBox.margin>
                                   <Insets left="20.0" right="0.0" bottom="0.0" top="10.0" />
                                </HBox.margin>
@@ -191,7 +191,7 @@
                                 </tooltip>
                             </CheckBox>
                         </HBox>
-                      <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
+                        <Label alignment="CENTER" prefHeight="27.0" prefWidth="244.0" text="Selected Mice:" textAlignment="CENTER">
                            <padding>
                               <Insets bottom="10.0" top="10.0" />
                            </padding>
@@ -207,44 +207,64 @@
                                 <Tooltip text="Selects which mice to visualize. Can Shift-Click and/or Ctrl-Click (Cmd-Click) to select multiple mice."/>
                             </tooltip>
                         </ListView>
-                        <VBox alignment="CENTER" prefWidth="150.0">
+                        <VBox alignment="CENTER" prefWidth="150.0" fx:id="dataRangeControlVBox">
                            <children>
-                              <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
-                                  <padding>
-                                    <Insets bottom="5.0" top="5.0" />
-                                 </padding>
-                                 <VBox.margin>
-                                    <Insets left="20.0" right="20.0" />
-                                 </VBox.margin>
-                              </Label>
-                              <TextArea fx:id="startDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
-                                  <VBox.margin>
-                                    <Insets left="20.0" right="20.0" />
-                                 </VBox.margin>
-                                 <tooltip >
-                                    <Tooltip text="Specifies the starting data entry to begin the visualization at. Must be in MM/dd/yyyy HH:mm:ss.SSS format."/>
-                                </tooltip>
-                              </TextArea>
+                               <Label alignment="CENTER" prefWidth="136.0" text="Start" textAlignment="CENTER">
+                                    <padding>
+                                      <Insets bottom="5.0" top="5.0" />
+                                   </padding>
+                                   <VBox.margin>
+                                      <Insets left="20.0" right="20.0" />
+                                   </VBox.margin>
+                                </Label>
+                              <HBox>
+                                    <TextArea fx:id="startDataRangeTextArea" id="startDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
+                                        <HBox.margin>
+                                          <Insets left="20.0" right="10.0" />
+                                       </HBox.margin>
+                                       <tooltip >
+                                          <Tooltip text="Specifies the starting data entry to begin the visualization at. Must be in MM/dd/yyyy HH:mm:ss.SSS format."/>
+                                      </tooltip>
+                                    </TextArea>
+                                    <ChoiceBox fx:id="startDataRangeChoiceBox" prefWidth="30" minWidth="30" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
+                                        <HBox.margin>
+                                            <Insets top="0.0" right="20.0" />
+                                        </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Specifies timestamps for the beginning of each fifth of the data set (ex. 0/5, 1/5, 2/5, 3/5, 4/5, 5/5)."/>
+                                        </tooltip>
+                                    </ChoiceBox>
+                               </HBox>
                            </children>
                         </VBox>
                         <VBox alignment="CENTER"  prefWidth="150.0">
                            <children>
-                              <Label alignment="CENTER" prefWidth="97.0" text="Stop" textAlignment="CENTER">
-                                  <padding>
-                                    <Insets bottom="5.0" top="5.0" />
-                                 </padding>
-                                 <VBox.margin>
-                                    <Insets left="20.0" right="20.0" />
-                                 </VBox.margin>
-                              </Label>
-                              <TextArea fx:id="stopDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0" >
-                                  <VBox.margin>
-                                    <Insets left="20.0" right="20.0" />
-                                 </VBox.margin>
-                                 <tooltip >
-                                    <Tooltip text="Specifies the ending data entry to stop the visualization at. Must be in MM/dd/yyyy HH:mm:ss.SSS format."/>
-                                </tooltip>
-                              </TextArea>
+                               <Label alignment="CENTER" prefWidth="136.0" text="Stop" textAlignment="CENTER">
+                                    <padding>
+                                      <Insets bottom="5.0" top="5.0" />
+                                   </padding>
+                                   <VBox.margin>
+                                      <Insets left="20.0" right="20.0" />
+                                   </VBox.margin>
+                                </Label>
+                               <HBox>
+                                    <TextArea fx:id="stopDataRangeTextArea" id="stopDataRangeTextArea" maxHeight="40.0" minHeight="40.0" prefHeight="40.0" >
+                                        <HBox.margin>
+                                          <Insets left="20.0" right="10.0" />
+                                       </HBox.margin>
+                                       <tooltip >
+                                          <Tooltip text="Specifies the ending data entry to stop the visualization at. Must be in MM/dd/yyyy HH:mm:ss.SSS format."/>
+                                      </tooltip>
+                                    </TextArea>
+                                    <ChoiceBox fx:id="stopDataRangeChoiceBox" prefWidth="30" minWidth="30" maxHeight="40.0" minHeight="40.0" prefHeight="40.0">
+                                        <HBox.margin>
+                                            <Insets top="0.0" right="20.0" />
+                                        </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Specifies timestamps for the beginning of each fifth of the data set (ex. 0/5, 1/5, 2/5, 3/5, 4/5, 5/5)."/>
+                                        </tooltip>
+                                    </ChoiceBox>
+                               </HBox>
                            </children>
                         </VBox>
                         <VBox fx:id="animationOptionsVBox" disable="true">
