@@ -81,6 +81,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
@@ -89,6 +90,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Callback;
 import javax.imageio.ImageIO;
 
 public class AppStageController {
@@ -1391,7 +1394,9 @@ public class AppStageController {
                     
 
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
+                    
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
+                    
                     selectedMiceListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
                     mice.print();
                 }
