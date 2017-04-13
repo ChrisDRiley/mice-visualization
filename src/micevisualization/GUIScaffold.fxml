@@ -60,6 +60,18 @@
                     <KeyCodeCombination alt="UP" code="e" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                 </accelerator>
             </CustomMenuItem>
+            <CustomMenuItem fx:id="exportAnimationItem" mnemonicParsing="false" onAction="#exportAnimation" disable="true">
+                <content>
+                    <Label text="Export Animation...">
+                        <tooltip >
+                          <Tooltip text="Export the current animation visualization in an image folder (Ctrl-A, Cmd-A)"/>
+                      </tooltip>
+                    </Label>
+                </content>
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="e" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </CustomMenuItem>
             <SeparatorMenuItem mnemonicParsing="false" />
             <CustomMenuItem mnemonicParsing="false" onAction="#exitApplication">
                 <content>
