@@ -74,7 +74,19 @@ public class Grid {
     Alex(4/14/17):
         Exporting function code moves here to make saving animation frames a lot easier to do.
     */
-    public void exporting(File file, String ext) {
+    public void exporting(Stage stage) {
+        
+        // Creates file options
+        FileChooser fc = new FileChooser();
+
+        //Set extension filters for PNG and JPEG
+        fc.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"),
+            new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg")
+        ); //end file extensions
+
+        //Show save file dialog
+        File file = fc.showSaveDialog(stage);
 
         // Creates a group to store all the layers in
         Group group = new Group();
@@ -101,7 +113,7 @@ public class Grid {
             IMG_H = (int) viewerPaneBackground.getHeight();
         }//end if
 
-        try {
+        try {            
             // Create an image and snapshot the group to that image
             WritableImage image = new WritableImage(IMG_W, IMG_H);
 
@@ -110,6 +122,10 @@ public class Grid {
 
             // Captures GUI image to export
             group.snapshot(null, image);
+            
+            // Pull file extension (either png or jpeg)
+            // Bug report #2 in exportImage function (AppStageController near top)
+            String ext = getFileExtension(file.toString());
 
             // If user wants jpeg extension, need to fix jpeg background
             if (ext.equals("jpeg")) {
@@ -123,14 +139,14 @@ public class Grid {
                 ImageIO.write(jpeg, ext, file);
             }//end if
             else // write the image to users computer
-            {
                 ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
-            }
 
         }//end try
-        catch (IOException ex) {
+        catch (IOException | NullPointerException ex) {
             Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-        }//end catch
+        }
+        //end catch
+        //end catch
     }//end exporting
     
     // (Parker 3/26/17): add a GridSector object to the sectors array
@@ -1161,4 +1177,15 @@ public class Grid {
         if (viewerPaneGridLines != null)
             viewerPaneGridLines.toFront();
     }
-}
+    
+    //Gets the file extension the user selected
+    public String getFileExtension(String name) {
+        int i = name.lastIndexOf('.');
+        String ext;
+        if (i > 0) {
+            ext = name.substring(i+1);
+            return ext;
+        }//end if
+        return null;
+    }//end getFileExtension
+}//end class Grid
