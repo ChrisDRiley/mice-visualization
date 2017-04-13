@@ -150,10 +150,6 @@ public class AppStageController {
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
     
-    public Stage getStage() {
-        return stage;
-    }
-    
     /*
     Alex (4/12/17):
     This function uses the export animation button option in the GUI to export all the animation frames
@@ -217,6 +213,10 @@ public class AppStageController {
                 from disappearing; Not sure how to get data back to the grid since
                 that's done through a function which is hard to call from here. Will
                 work on fixing it if there's enough time to get to it.
+            2) Null pointer exception found when you close the window without choosing png or jpeg.
+               So far, attempts to catch the error are in vain. Working on fixing.
+            3) Found out the overlay image is bugged since it skips heat map and displays vector only. Working
+               on fixing this.
         */
         
         //If nothing has been generated to the canvas screen, ERROR!
@@ -227,31 +227,13 @@ public class AppStageController {
             alert.setContentText("No Image Detected.");
             alert.showAndWait();
         }//end if
-        
-        //If something has been generated, run code
-        if(grid.data != null) {
-
-            // Creates file options
-            FileChooser fc = new FileChooser();
-
-            //Set extension filters for PNG and JPEG
-            fc.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"),
-                new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg")
-            ); //end file extensions
-
-            //Show save file dialog
-            File file = fc.showSaveDialog(stage);
-            
-            // Pull file extension (either png or jpeg)
-            String ext = getFileExtension(file.toString());
-
-            //Creates image file to computer
-            grid.exporting(file, ext);
-            
+        else {
+            //Calls exporting function
+            grid.exporting(stage);
+          
             //***[[1]] Prevents grid lines/numbers from disappearing. See above notes for more details.
             drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-        }//end if
+        }//end else
     }//end exportImage
     
     /**
@@ -756,7 +738,7 @@ public class AppStageController {
         // check if the user selected a file:
         if (fileToOpen != null) {
             // get the extension of the user's selected file:
-            String extension = getFileExtension(fileToOpen.toString()); 
+            String extension = grid.getFileExtension(fileToOpen.toString()); 
             // if the file selected has an extension of CSV, assume it is a data set file:
             if (extension.equals("csv")) { 
                 
@@ -1257,17 +1239,6 @@ public class AppStageController {
         return true;
     }
     
-    
-    public String getFileExtension(String name) {
-        int i = name.lastIndexOf('.');
-        String ext;
-        if (i > 0) {
-            ext = name.substring(i+1);
-            return ext;
-        }
-        return null;
-    }
-    
     /**
      * 
      * @author: parker
@@ -1534,7 +1505,7 @@ public class AppStageController {
                 // start timing the file processing action:
                 long start = System.currentTimeMillis(); 
                 
-                String extension = getFileExtension(file.toString());
+                String extension = grid.getFileExtension(file.toString());
                 
                 // process .csv data files:
                 if (extension.equals("csv")) {
