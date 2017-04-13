@@ -26,7 +26,7 @@
           <items>
             <CustomMenuItem mnemonicParsing="false" onAction="#openFileAction">
                 <content>
-                    <Label text="Open...">
+                    <Label text="Open...                    ">
                         <tooltip >
                           <Tooltip text="Open a data set file to read from (Ctrl-O, Cmd-O)"/>
                       </tooltip>
@@ -38,7 +38,7 @@
             </CustomMenuItem>
             <CustomMenuItem fx:id="saveMenuItem" mnemonicParsing="false" onAction="#saveFileAction" disable="true">
                 <content>
-                    <Label text="Save">
+                    <Label text="Save                       ">
                         <tooltip >
                           <Tooltip text="Save the current session's data (Ctrl-S, Cmd-S)"/>
                       </tooltip>
@@ -50,7 +50,7 @@
             </CustomMenuItem>
             <CustomMenuItem fx:id="exportMenuItem" mnemonicParsing="false" onAction="#exportImage" disable="true">
                 <content>
-                    <Label text="Export Image...">
+                    <Label text="Export Image...            ">
                         <tooltip >
                           <Tooltip text="Export the current visualization as an image file (Ctrl-E, Cmd-E)"/>
                       </tooltip>
@@ -62,7 +62,7 @@
             </CustomMenuItem>
             <CustomMenuItem fx:id="exportAnimationItem" mnemonicParsing="false" onAction="#exportAnimation" disable="true">
                 <content>
-                    <Label text="Export Animation...">
+                    <Label text="Export Animation...        ">
                         <tooltip >
                           <Tooltip text="Export the current animation visualization in an image folder (Ctrl-A, Cmd-A)"/>
                       </tooltip>
@@ -75,7 +75,7 @@
             <SeparatorMenuItem mnemonicParsing="false" />
             <CustomMenuItem mnemonicParsing="false" onAction="#exitApplication">
                 <content>
-                    <Label text="Exit">
+                    <Label text="Exit                       ">
                         <tooltip >
                           <Tooltip text="Exit the program."/>
                       </tooltip>
@@ -86,8 +86,23 @@
         </Menu>
         <Menu mnemonicParsing="false" text="_Help" >
             <items>
-                <MenuItem mnemonicParsing="false" text="Tutorial"/>
-                <MenuItem mnemonicParsing="false" text="About"/>
+                <CustomMenuItem mnemonicParsing="false" onAction="#Tutorial">
+                <content>
+                    <Label text="Tutorial                       ">
+                        <tooltip >
+                          <Tooltip text="Guide to using Software."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem><CustomMenuItem mnemonicParsing="false" onAction="#About">
+                <content>
+                    <Label text="About                      ">
+                        <tooltip >
+                          <Tooltip text="Exit the program."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
             </items>
             <accelerator>
                <KeyCodeCombination alt="UP" code="h" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
