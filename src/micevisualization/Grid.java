@@ -5,6 +5,10 @@
  */
 package micevisualization;
 
+import java.awt.AWTException;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +28,7 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -74,7 +79,27 @@ public class Grid {
     Alex(4/14/17):
         Exporting function code moves here to make saving animation frames a lot easier to do.
     */
-    public void exporting(Stage stage) {
+    public void exporting(Stage stage, StackPane viewerPane) throws AWTException, IOException {
+        
+        // Retrieves x and y coordinates of screen to capture.
+        Bounds bounds = viewerPane.getBoundsInLocal();
+        Bounds screenBoundaries = viewerPane.localToScreen(bounds);
+        int x = (int) screenBoundaries.getMinX();
+        int y = (int) screenBoundaries.getMinY();
+        
+        // Image Dimensions (default resolution)
+        int IMG_W = 455;
+        int IMG_H = 260;
+
+        //  Retrieves actual width and height for image
+        Canvas viewerPaneBackground = background;
+        if (viewerPaneBackground != null) {
+            IMG_W = (int) viewerPane.getWidth();
+            IMG_H = (int) viewerPane.getHeight();
+        }//end if
+        
+        // Capture screen to store as an image of users choosing
+        BufferedImage screencapture = new Robot().createScreenCapture(new Rectangle(x, y, IMG_W, IMG_H));
         
         // Creates file options
         FileChooser fc = new FileChooser();
@@ -88,65 +113,18 @@ public class Grid {
         //Show save file dialog
         File file = fc.showSaveDialog(stage);
 
-        // Creates a group to store all the layers in
-        Group group = new Group();
-
-        // Adds grid data image to group
-        group.getChildren().add(data);
-
-        // Adds grid line image to group if it's been selected
-        if (viewerPaneGridLines != null)
-            group.getChildren().add(gridlines);
-
-        // Adds grid numbers image to group if it's been selected
-        if (viewerPaneGridNumbers != null)
-            group.getChildren().add(gridnumbers);
-
-        // Image Dimensions (default resolution)
-        int IMG_W = 455;
-        int IMG_H = 260;
-
-        // (Parker 3/31/17 Attempt to get the dimensions of the visualization based on the background layer:
-        Canvas viewerPaneBackground = background;
-        if (viewerPaneBackground != null) {
-            IMG_W = (int) viewerPaneBackground.getWidth();
-            IMG_H = (int) viewerPaneBackground.getHeight();
-        }//end if
-
-        try {            
-            // Create an image and snapshot the group to that image
-            WritableImage image = new WritableImage(IMG_W, IMG_H);
-
-            // For Jpeg image
-            BufferedImage bi;
-
-            // Captures GUI image to export
-            group.snapshot(null, image);
+        try {     
             
-            // Pull file extension (either png or jpeg)
-            // Bug report #2 in exportImage function (AppStageController near top)
+            // Get file extention to save image as
             String ext = getFileExtension(file.toString());
-
-            // If user wants jpeg extension, need to fix jpeg background
-            if (ext.equals("jpeg")) {
-
-                // Using bufferedImage prevents background from being a distorted orange color.
-                bi = SwingFXUtils.fromFXImage(image, null);
-                BufferedImage jpeg = new BufferedImage(IMG_W, IMG_H, BufferedImage.TYPE_INT_RGB);
-                jpeg.getGraphics().drawImage(bi, 0, 0, null);
-
-                // write the image to users computer
-                ImageIO.write(jpeg, ext, file);
-            }//end if
-            else // write the image to users computer
-                ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
+            
+            // Write to file path selected
+            ImageIO.write(screencapture, ext, file);
 
         }//end try
         catch (IOException | NullPointerException ex) {
             Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //end catch
-        //end catch
+        }//end catch
     }//end exporting
     
     // (Parker 3/26/17): add a GridSector object to the sectors array
