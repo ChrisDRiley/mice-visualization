@@ -61,10 +61,13 @@ import com.sun.javafx.scene.control.skin.ButtonSkin;
 import com.sun.javafx.scene.control.skin.CheckBoxSkin;
 import com.sun.javafx.scene.control.skin.ChoiceBoxSkin;
 import com.sun.javafx.scene.control.skin.TextAreaSkin;
+import java.awt.AWTException;
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import static java.lang.System.out;
@@ -198,7 +201,9 @@ public class AppStageController {
         
         //Test. If OK is hit, will run normal export file. Otherwise does nothing!
         if(confirm.get() == ButtonType.OK)
-            exportImage(event);
+            System.out.println("OK WAS HIT\n");
+        else
+            System.out.println("OK WAS NOT HIT!!\n");
          
     }//end exportAnimation
     
@@ -207,7 +212,7 @@ public class AppStageController {
     This function uses the save button option in the GUI to export the current image
     to your computer as a .png or .jpeg file. [[Currently does everything except capturing image]]
     */
-    @FXML protected void exportImage(ActionEvent event) throws IOException {
+    @FXML protected void exportImage(ActionEvent event) throws IOException, AWTException {
         
         /****************************Known Bugs******************************** 
 
@@ -231,7 +236,7 @@ public class AppStageController {
         }//end if
         else {
             //Calls exporting function
-            grid.exporting(stage);
+            grid.exporting(stage, viewerPane);
           
             //***[[1]] Prevents grid lines/numbers from disappearing. See above notes for more details.
             drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
