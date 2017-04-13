@@ -1002,7 +1002,6 @@ public class Grid {
                                                 line_frames.get(position).first.center_y,
                                                 line_frames.get(position).second.center_x,
                                                 line_frames.get(position).second.center_y);
-                                                System.out.print(line_frames.get(position).get_animation_state());
                                                 
                                             }else if(line_frames.get(position).get_animation_state() == 2){
                                                 
