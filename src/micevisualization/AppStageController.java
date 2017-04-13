@@ -135,6 +135,7 @@ public class AppStageController {
     @FXML private ChoiceBox startDataRangeChoiceBox;
     @FXML private HBox gridOptionsCheckBoxesHBox;
     @FXML private VBox dataRangeControlVBox;
+    @FXML private CustomMenuItem exportAnimationItem;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -153,6 +154,56 @@ public class AppStageController {
     
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\miceVizSessions";
+    
+    /*
+    Alex (4/12/17):
+    This function uses the export animation button option in the GUI to export all the animation frames
+    selected from the start and end range until a .png folder.
+    */
+    @FXML protected void exportAnimation(ActionEvent event) throws IOException {
+        
+        /* This function is currently being worked on and tested. Currently NON-FUNCTIONAL
+            -Figured out checking file storage, but would probably be better to just create a folder inside
+                the one you created whenever program is ran. WAY less variables that way 
+            -Each picture (assuming all mice in image) are around 2.77KB each. 1 Mouse was around 1KB. Therefore,
+                shouldn't be a huge file size, just a lot of images.
+            -Helpful site used: http://code.makery.ch/blog/javafx-dialogs-official/
+        */
+        
+        //Prints out alert message saying it was successful.
+        //AlertTypes -> CONFIRMATION    ERROR   INFORMATION   WARNING
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setTitle("Program Notification");
+        alert.setHeaderText("WARNING");
+        alert.setContentText("Exporting start and stop animation frame range into an image folder!");
+        alert.showAndWait();
+        
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Text Input Dialog");
+        dialog.setHeaderText("Look, a Text Input Dialog");
+        dialog.setContentText("Please enter your name:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent())
+            System.out.println("Your name: " + result.get());
+        
+        File f = new File("C:\\");
+        System.out.println("Total Space Here:");
+        System.out.println(f.getTotalSpace()/1024 /1024 /1024 +" GB");
+        
+        Alert alert2 = new Alert(AlertType.CONFIRMATION);
+        alert2.setTitle("Program Notification");
+        alert2.setHeaderText("CONFIRM");
+        alert2.setContentText("You are about to export many images to your destination folder. Are you sure?");
+        Optional<ButtonType> confirm = alert2.showAndWait();
+        
+        System.out.println("Usable Space Here:");
+        System.out.println(f.getUsableSpace()/1024 /1024 /1024 +" GB");
+        
+        //Test. If OK is hit, will run normal export file. Otherwise does nothing!
+        if(confirm.get() == ButtonType.OK)
+            exportImage(event);
+         
+    }//end exportAnimation
     
         /*
     Alex (3/27/17):
@@ -507,10 +558,13 @@ public class AppStageController {
                     animationOptionsVBox.setDisable(true);
                     generateButton.setText("Generate Static Map");
                     generateButton.setGraphic(null);
+                    lockExportAnimationOption(); //locks out animation export since it's now static view
+                    
                 }
                 else if (newValue.equals("Animated")) {
                     grid.stopAnimation(generateButton);
                     animationOptionsVBox.setDisable(false);
+                    unlockExportAnimationOption(); //unlocks animation exporting option
                 }
                 try {
                     session.visualizationType = newValue;
@@ -668,6 +722,19 @@ public class AppStageController {
         exportMenuItem.setDisable(false);
         drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
         
+    }
+    
+    /*
+    Alex (4/12/17):
+    Lock and unlock animation export. Not in same functions above due to
+    being slightly different when exporting.
+    */
+    public void unlockExportAnimationOption() {
+        exportAnimationItem .setDisable(false);
+    }
+    
+    public void lockExportAnimationOption() {
+        exportAnimationItem .setDisable(true);
     }
     
     /**
