@@ -100,7 +100,7 @@ import javax.imageio.ImageIO;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
-    @FXML public Stage stage;
+    @FXML private Stage stage;
     @FXML private Label leftStatus;
     // @FXML private ProgressBar progressBar;
     @FXML private ListView sessionsListView;
@@ -131,6 +131,8 @@ public class AppStageController {
     @FXML private HBox gridOptionsCheckBoxesHBox;
     @FXML private VBox dataRangeControlVBox;
     @FXML private CustomMenuItem exportAnimationItem;
+    @FXML private CustomMenuItem Tutorial;
+    @FXML private CustomMenuItem About;
     
     // Parker (3/2/17): the fileChooser variable can be reused throughout the
     // system's event handlers, so we create a global within the controller.
@@ -221,7 +223,7 @@ public class AppStageController {
         
         //If nothing has been generated to the canvas screen, ERROR!
         if(grid.data == null) {
-            Alert alert = new Alert(AlertType.ERROR);
+            Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Program Notification");
             alert.setHeaderText("ERROR");
             alert.setContentText("No Image Detected.");
@@ -235,6 +237,31 @@ public class AppStageController {
             drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
         }//end else
     }//end exportImage
+    
+    /* 
+    Alex (4/13/17):
+    Simply adding prompts to tutorial and help menus since they are not operational for now
+    */
+    
+    @FXML protected void Tutorial(ActionEvent event) {
+        
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Program Notification");
+        alert.setHeaderText("ALERT");
+        alert.setContentText("COMING SOON");
+        alert.showAndWait(); 
+    }//end Tutorial
+    
+    @FXML protected void About(ActionEvent event) {
+        
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Program Notification");
+        alert.setHeaderText("ALERT");
+        alert.setContentText("COMING SOON");
+        alert.showAndWait(); 
+    }//end About
+    
+    
     
     /**
      * 
