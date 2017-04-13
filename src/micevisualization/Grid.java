@@ -5,18 +5,26 @@
  */
 package micevisualization;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Date;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.fxml.FXML;
+import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -24,12 +32,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
+import javax.imageio.ImageIO;
+import javafx.stage.Stage;
 
 /**
  *
@@ -57,6 +69,69 @@ public class Grid {
         this.datalayers = new ArrayList<Canvas>();
         this.animationCancelled = true;
     }
+    
+    /*
+    Alex(4/14/17):
+        Exporting function code moves here to make saving animation frames a lot easier to do.
+    */
+    public void exporting(File file, String ext) {
+
+        // Creates a group to store all the layers in
+        Group group = new Group();
+
+        // Adds grid data image to group
+        group.getChildren().add(data);
+
+        // Adds grid line image to group if it's been selected
+        if (viewerPaneGridLines != null)
+            group.getChildren().add(gridlines);
+
+        // Adds grid numbers image to group if it's been selected
+        if (viewerPaneGridNumbers != null)
+            group.getChildren().add(gridnumbers);
+
+        // Image Dimensions (default resolution)
+        int IMG_W = 455;
+        int IMG_H = 260;
+
+        // (Parker 3/31/17 Attempt to get the dimensions of the visualization based on the background layer:
+        Canvas viewerPaneBackground = background;
+        if (viewerPaneBackground != null) {
+            IMG_W = (int) viewerPaneBackground.getWidth();
+            IMG_H = (int) viewerPaneBackground.getHeight();
+        }//end if
+
+        try {
+            // Create an image and snapshot the group to that image
+            WritableImage image = new WritableImage(IMG_W, IMG_H);
+
+            // For Jpeg image
+            BufferedImage bi;
+
+            // Captures GUI image to export
+            group.snapshot(null, image);
+
+            // If user wants jpeg extension, need to fix jpeg background
+            if (ext.equals("jpeg")) {
+
+                // Using bufferedImage prevents background from being a distorted orange color.
+                bi = SwingFXUtils.fromFXImage(image, null);
+                BufferedImage jpeg = new BufferedImage(IMG_W, IMG_H, BufferedImage.TYPE_INT_RGB);
+                jpeg.getGraphics().drawImage(bi, 0, 0, null);
+
+                // write the image to users computer
+                ImageIO.write(jpeg, ext, file);
+            }//end if
+            else // write the image to users computer
+            {
+                ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
+            }
+
+        }//end try
+        catch (IOException ex) {
+            Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+        }//end catch
+    }//end exporting
     
     // (Parker 3/26/17): add a GridSector object to the sectors array
     Boolean addSector(GridSector gs) {
