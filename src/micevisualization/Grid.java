@@ -27,6 +27,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -648,7 +649,8 @@ public class Grid {
         moveInfoLayersToFront(viewerPane);
 
         // Establish a new service:
-        Service<Void> service = new Service<Void>() {
+        Service<Void> service;
+        service = new Service<Void>() {
             long elapsedTs = 0; // Create a timestamp based timer to measure the duration of the animation
             
             @Override
@@ -663,7 +665,7 @@ public class Grid {
                         
                         Date mouseDate = start;
                         
-                        /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from 
+                        /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from
                         the Mouse objects in the selected mice function parameter and store the collective MouseLocTime data in
                         a new ArrayList. */
                         
@@ -679,6 +681,9 @@ public class Grid {
                         // to latest Date timestamp:
                         Collections.sort(locTimeData);
                         
+                        //A list stores lines and the animatation frame state of each line
+                        ArrayList<VectorFrame> line_frames = new ArrayList<VectorFrame>();
+                        
                         // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
                         // stops at the stopping index:
                         for (int j = 0; j+1 < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
@@ -687,16 +692,23 @@ public class Grid {
                             if (animationCancelled == true) {
                                 this.cancel(true);
                             }
-                           if (isCancelled()) {
+                            if (isCancelled()) {
                                 break;
                             }
-                           // since we need to reference the 'j' incrementor inside the Platform.runlater code, 
-                           // we need to make a new final variable that is a copy of j's current value:
+                            // since we need to reference the 'j' incrementor inside the Platform.runlater code,
+                            // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
                             // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
                             mouseDate = locTimeData.get(j).timestamp;
                             // if the current data row is within the Start and Stop indicies, perform the
                             // color shade calculations and update the GUI inside the Platform.runLater() function:
+                            
+                            for (int position = 0; position < line_frames.size(); position ++){
+                                line_frames.get(position).increment();
+
+                            }
+                            
+                            
                             if (mouseDate.compareTo(start) >= 0) {
                                 
                                 // Create a Platform to run code in the background on the new thread;
@@ -704,9 +716,9 @@ public class Grid {
                                 Platform.runLater(new Runnable() {                          
                                     @Override
                                     public void run() {
-                                        /* PUT GUI UPDATE LOGIC HERE */                
-
-                                            //Draws the line segments connecting all the sectors that the a mouse traveled
+                                        /* PUT GUI UPDATE LOGIC HERE */
+                                        
+                                        //Draws the line segments connecting all the sectors that the a mouse traveled
 
                                         /* (Parker 4/3/17): display to the user the current frame being rendered: */
                                         SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
@@ -741,14 +753,57 @@ public class Grid {
                                         // get the graphics context of the heat map data layer for the purpose of drawing:
                                         GraphicsContext dataCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
                                         
-                                        dataCanvasContext.setLineWidth(5);
-                                        dataCanvasContext.setStroke(mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color);      
+                                        // Store the current transformation matrix
+                                        dataCanvasContext.save();
+
+                                        // Use the identity matrix while clearing the canvas
+                                        dataCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
+                                        dataCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
+
+                                        // Restore the transform
+                                        dataCanvasContext.restore();
                                         
-                                        dataCanvasContext.strokeLine(
-                                        previous_grid.center_x,
-                                        previous_grid.center_y,
-                                        current_grid.center_x,
-                                        current_grid.center_y);
+                                        dataCanvasContext.setLineWidth(5);
+                                                                                
+                                        int frame_number = 1;
+                                        VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                        line_frames.add(vectorFrame);
+                                        
+                                        for (int position = 0; position < line_frames.size(); position ++){
+                                            
+                                            if(line_frames.get(position).get_animation_state() == 1){
+                                            
+                                                dataCanvasContext.setStroke(line_frames.get(position).color);
+                                                 dataCanvasContext.setLineDashes(0d);
+                                                dataCanvasContext.strokeLine(
+                                                line_frames.get(position).first.center_x,
+                                                line_frames.get(position).first.center_y,
+                                                line_frames.get(position).second.center_x,
+                                                line_frames.get(position).second.center_y);
+                                                System.out.print(line_frames.get(position).get_animation_state());
+                                                
+                                            }else if(line_frames.get(position).get_animation_state() == 2){
+                                                
+                                                dataCanvasContext.setStroke(line_frames.get(position).color);
+                                                dataCanvasContext.setLineDashes(10d);
+                                                dataCanvasContext.strokeLine(
+                                                line_frames.get(position).first.center_x,
+                                                line_frames.get(position).first.center_y,
+                                                line_frames.get(position).second.center_x,
+                                                line_frames.get(position).second.center_y);
+                                                
+                                                
+                                            }else if(line_frames.get(position).get_animation_state() >= 3){ 
+                                                
+                                                dataCanvasContext.setStroke(Color.TRANSPARENT);
+                                                dataCanvasContext.setLineDashes(0d);
+                                                dataCanvasContext.strokeLine(
+                                                line_frames.get(position).first.center_x,
+                                                line_frames.get(position).first.center_y,
+                                                line_frames.get(position).second.center_x,
+                                                line_frames.get(position).second.center_y);
+                                            }
+                                        }
                                     }
                                 });
                                 // delay the animation thread by "speed" number of milliseconds;
