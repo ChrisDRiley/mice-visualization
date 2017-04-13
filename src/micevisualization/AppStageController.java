@@ -211,102 +211,106 @@ public class AppStageController {
     to your computer as a .png or .jpeg file. [[Currently does everything except capturing image]]
     */
     @FXML protected void exportImage(ActionEvent event) throws IOException {
-
-        // Creates file options
-        FileChooser fc = new FileChooser();
         
-        //Set extension filters for PNG and JPEG
-        fc.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"),
-            new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg")
-            );
+        //If nothing has been generated to the canvas screen, do nothing!
+        if(grid.data == null) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Program Notification");
+            alert.setHeaderText("ERROR");
+            alert.setContentText("No Image Detected.");
+            alert.showAndWait();
+        }
         
-        //Show save file dialog
-        File file = fc.showSaveDialog(stage);
-        
-        //Creates image file to computer
-        if (file != null) {  
-            
-            /****************************Known Bugs******************************** 
-                1) Error when you try to export without generating data 
-                    (currently fixed but need to throw error message instead)
-                
-                2) After exporting, canvas disappears. Fixed grid lines/grid numbers 
-                    from disappearing; working on restoring the data to screen.
-            */
-            
-            // Creates a group to store all the layers in
-            Group group = new Group();
+        //If something has been generated, run code
+        if(grid.data != null) {
+            System.out.println("NOT NULL!\n");
 
-            // Adds grid data image to group
-            //***[[1]] prevents error if you try to export image before ever generating (will properly fix later)
-            if (grid.data != null)
-                group.getChildren().add(grid.data);
+            // Creates file options
+            FileChooser fc = new FileChooser();
 
-            // Adds grid line image to group if it's been selected
-            if (grid.viewerPaneGridLines != null)
-                group.getChildren().add(grid.gridlines);
+            //Set extension filters for PNG and JPEG
+            fc.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"),
+                new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg")
+                );
 
-            // Adds grid numbers image to group if it's been selected
-            if (grid.viewerPaneGridNumbers != null)
-                group.getChildren().add(grid.gridnumbers);
-            
-            // Image Dimensions (default resolution)
-            int IMG_W = 455;
-            int IMG_H = 260;
-            
-            // (Parker 3/31/17 Attempt to get the dimensions of the visualization based on the background layer:
-            Canvas viewerPaneBackground = (Canvas)viewerPane.lookup("#background");
-            if (viewerPaneBackground != null) {
-                IMG_W = (int) viewerPaneBackground.getWidth();
-                IMG_H = (int) viewerPaneBackground.getHeight();
-            }
+            //Show save file dialog
+            File file = fc.showSaveDialog(stage);
 
-            try {                
-                // Create an image and snapshot the group to that image
-                WritableImage image = new WritableImage(IMG_W, IMG_H);
-                
-                // For Jpeg image
-                BufferedImage bi;
-                
-                // Pull file extension (either png or jpeg)
-                String ext = getFileExtension(file.toString());
-                
-                // Captures GUI image to export
-                group.snapshot(null,image);
-                
-                // If user wants jpeg extension, need to fix jpeg background
-                if(ext.equals("jpeg")) {
-                    
-                    // Using bufferedImage prevents background from being a distorted orange color.
-                    bi = SwingFXUtils.fromFXImage(image, null);
-                    BufferedImage jpeg = new BufferedImage(IMG_W, IMG_H, BufferedImage.TYPE_INT_RGB);
-                    jpeg.getGraphics().drawImage(bi, 0, 0, null);
-                    
-                    // write the image to users computer
-                    ImageIO.write(jpeg, ext, file);
+            //Creates image file to computer
+            if (file != null) {  
+
+                /****************************Known Bugs******************************** 
+                    1) Error when you try to export without generating data 
+                        (currently fixed but need to throw error message instead)
+
+                    2) After exporting, canvas disappears. Fixed grid lines/grid numbers 
+                        from disappearing; working on restoring the data to screen.
+                */
+
+                // Creates a group to store all the layers in
+                Group group = new Group();
+
+                // Adds grid data image to group
+                //***[[1]] prevents error if you try to export image before ever generating (will properly fix later)
+                if (grid.data != null)
+                    group.getChildren().add(grid.data);
+
+                // Adds grid line image to group if it's been selected
+                if (grid.viewerPaneGridLines != null)
+                    group.getChildren().add(grid.gridlines);
+
+                // Adds grid numbers image to group if it's been selected
+                if (grid.viewerPaneGridNumbers != null)
+                    group.getChildren().add(grid.gridnumbers);
+
+                // Image Dimensions (default resolution)
+                int IMG_W = 455;
+                int IMG_H = 260;
+
+                // (Parker 3/31/17 Attempt to get the dimensions of the visualization based on the background layer:
+                Canvas viewerPaneBackground = (Canvas)viewerPane.lookup("#background");
+                if (viewerPaneBackground != null) {
+                    IMG_W = (int) viewerPaneBackground.getWidth();
+                    IMG_H = (int) viewerPaneBackground.getHeight();
                 }//end if
-                else
-                     // write the image to users computer
-                    ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
-                
-                //***[[2]] Prevents grid lines/numbers from disappearing. See bug #2 above for additional info (line 155).
-                drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-                
-                //Gets filepath of image saved
-                String path = file.getAbsolutePath();
-       
-                //Prints out alert message saying it was successful.
-                //AlertTypes -> CONFIRMATION    ERROR   INFORMATION   WARNING
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("Program Notification");
-                alert.setHeaderText("Image saved to " + path);
-                alert.showAndWait();
 
-                }//end try
-                catch (IOException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }//end catch
+                try {                
+                    // Create an image and snapshot the group to that image
+                    WritableImage image = new WritableImage(IMG_W, IMG_H);
+
+                    // For Jpeg image
+                    BufferedImage bi;
+
+                    // Pull file extension (either png or jpeg)
+                    String ext = getFileExtension(file.toString());
+
+                    // Captures GUI image to export
+                    group.snapshot(null,image);
+
+                    // If user wants jpeg extension, need to fix jpeg background
+                    if(ext.equals("jpeg")) {
+
+                        // Using bufferedImage prevents background from being a distorted orange color.
+                        bi = SwingFXUtils.fromFXImage(image, null);
+                        BufferedImage jpeg = new BufferedImage(IMG_W, IMG_H, BufferedImage.TYPE_INT_RGB);
+                        jpeg.getGraphics().drawImage(bi, 0, 0, null);
+
+                        // write the image to users computer
+                        ImageIO.write(jpeg, ext, file);
+                    }//end if
+                    else
+                         // write the image to users computer
+                        ImageIO.write(SwingFXUtils.fromFXImage(image, null), ext, file);
+
+                    //***[[2]] Prevents grid lines/numbers from disappearing. See above notes for more details.
+                    drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+
+                    }//end try
+                    catch (IOException ex) {
+                        Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                    }//end catch
+            }//end if
         }//end if
     }//end exportImage
     
