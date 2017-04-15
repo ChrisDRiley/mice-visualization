@@ -6,6 +6,7 @@
 package micevisualization;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -91,5 +92,30 @@ public class Mice {
         else {
             return null;
         }
+    }
+    
+    /**
+     * 
+     * @author: Parker
+     * 
+     * This function returns a range of MouseLocTime data, within the bounds of the start and stop Dates, from an Array of Mouse objects.
+     * 
+     * @param selectedMice
+     * @param start
+     * @param stop
+     * @return 
+     */
+    public static ArrayList<MouseLocTime> getMiceDataRowsFromRange(ArrayList<Mouse> selectedMice, Date start, Date stop) {
+        ArrayList<MouseLocTime> locTimeData = new ArrayList<MouseLocTime>();
+        for (int i = 0; i < selectedMice.size(); ++i) {
+            for (int j = 0; j < selectedMice.get(i).locTimeData.size(); ++j) {
+                if (selectedMice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0) {
+                    if (selectedMice.get(i).locTimeData.get(j).timestamp.compareTo(start) >= 0) {
+                        locTimeData.add(selectedMice.get(i).locTimeData.get(j));
+                    }
+                }
+            }
+        }
+        return locTimeData;
     }
 }

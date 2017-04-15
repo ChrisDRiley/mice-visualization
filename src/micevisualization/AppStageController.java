@@ -81,6 +81,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
@@ -98,6 +99,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.DirectoryChooser;
 import javafx.util.Callback;
 import javax.imageio.ImageIO;
 
@@ -136,11 +138,7 @@ public class AppStageController {
     @FXML private CustomMenuItem exportAnimationItem;
     @FXML private CustomMenuItem Tutorial;
     @FXML private CustomMenuItem About;
-    
-    // Parker (3/2/17): the fileChooser variable can be reused throughout the
-    // system's event handlers, so we create a global within the controller.
-    final FileChooser fileChooser = new FileChooser();
-    
+  
     // Parker (3/17/17)
     // Create a session variable to store the state of the program:
     Session session = new Session();
@@ -156,11 +154,73 @@ public class AppStageController {
     final String SESSIONS_FOLDER = "\\miceVizSessions";
     
     /*
+    Alex(4/14/17):
+        Exporting function code moved to the Grid class to make saving animation frames a lot easier to do.
+    
+    --------------------------------------------------------------------------------------------------------
+    
+    Parker (4/14/17):
+    Refactored the export code for the purpose of separating the various types of activities involved into separate functions:
+    
+    1) promptExportFile() / promptExportFolder() prepares and displays a file / directory chooser window to the user
+    for the purpose of getting the "Export to" location from the user. They both return the
+    File object representing the user's selection.
+    
+    2) grid.exportFrame() renders the actual image data and will save the image file to the location provided
+    by promptExportFile(). This code exists in the Grid class since the Grid's dimensions and data are
+    required to render the image. It also makes this function possible to be executed each frame during
+    animation exports.
+    
+    3) exportImage() is fired when the user activates the export menu "Export Image" option. It checks to ensure
+    that the grid object contains data to be rendered. If so, the function then calls promptExportFile().
+    If the result of promptExportFile() is not null (implying the user selected a file location), then
+    grid.exportFrame() is called. The export operation ends. 
+    
+    4) exportAnimation() is fired when the user activates the export menu "Export Animation" option.
+    
+    */
+    public File promptExportFile() throws AWTException, IOException {
+        // Creates file options
+        FileChooser fc = new FileChooser();
+
+        //Set extension filters for PNG and JPEG
+        fc.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("PNG (*.png)", "*.png"),
+            new FileChooser.ExtensionFilter("JPEG (*.jpeg)", "*.jpeg")
+        ); //end file extensions
+
+        //Show save file dialog
+        File file = fc.showSaveDialog(stage);
+        return file;
+    }
+    
+    /*
     Alex (4/12/17):
     This function uses the export animation button option in the GUI to export all the animation frames
     selected from the start and end range until a .png folder.
     */
-    @FXML protected void exportAnimation(ActionEvent event) throws IOException {
+    /**
+     * 
+     * @author Parker
+     * 
+     * This function exports a range of data rows, bound by the startDataRangeTextArea and stopDataRangeTextArea timestamps,
+     * as png image files into a user-selected directory. This function is broken into roughly three steps:
+     * 
+     * 1) get the range of data rows to render / export
+     * 2) calculate an estimated storage size of the export, by using the static map image export as a reference file size
+     * 3) display estimation information to the user, await user confirmation, and export the animation.
+     * 
+     * The code achieves a frame-by-frame image export by using an exportFolder parameter in each of the
+     * animation visualization functions; if a File object is supplied, the function will save each frame
+     * of the animation to the location specified in the File object. 
+     * 
+     * @param event
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws AWTException
+     * @throws InterruptedException 
+     */
+    @FXML protected void exportAnimation(ActionEvent event) throws IOException, URISyntaxException, AWTException, InterruptedException {
         
         /* This function is currently being worked on and tested. Currently NON-FUNCTIONAL
             -Figured out checking file storage, but would probably be better to just create a folder inside
@@ -170,76 +230,208 @@ public class AppStageController {
             -Helpful site used: http://code.makery.ch/blog/javafx-dialogs-official/
         */
         
-        //Prints out alert message saying it was successful.
-        //AlertTypes -> CONFIRMATION    ERROR   INFORMATION   WARNING
-        Alert alert = new Alert(AlertType.WARNING);
-        alert.setTitle("Program Notification");
-        alert.setHeaderText("WARNING");
-        alert.setContentText("Exporting start and stop animation frame range into an image folder!");
-        alert.showAndWait();
         
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Text Input Dialog");
-        dialog.setHeaderText("Look, a Text Input Dialog");
-        dialog.setContentText("Please enter your name:");
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent())
-            System.out.println("Your name: " + result.get());
         
-        File f = new File("C:\\");
-        System.out.println("Total Space Here:");
-        System.out.println(f.getTotalSpace()/1024 /1024 /1024 +" GB");
+        // Get the range of data to render -------------------------------------------------------------------
         
-        Alert alert2 = new Alert(AlertType.CONFIRMATION);
-        alert2.setTitle("Program Notification");
-        alert2.setHeaderText("CONFIRM");
-        alert2.setContentText("You are about to export many images to your destination folder. Are you sure?");
-        Optional<ButtonType> confirm = alert2.showAndWait();
+        Date startIndex = null;
+        Date stopIndex = null;
         
-        System.out.println("Usable Space Here:");
-        System.out.println(f.getUsableSpace()/1024 /1024 /1024 +" GB");
+        /* (Parker 4/2/17): perform error checking of the basic animation parameters
+        (map and visualization type, selected mice, start and stop indices). Returns false
+        if a validation error is encountered. */
+        if (checkCommonAnimationParameters() == false) return;
         
-        //Test. If OK is hit, will run normal export file. Otherwise does nothing!
-        if(confirm.get() == ButtonType.OK)
-            System.out.println("OK WAS HIT\n");
-        else
-            System.out.println("OK WAS NOT HIT!!\n");
+        /* (Parker 4/2/17): If the validation check passed, proceed with processing the user options: */
+        
+        // (Parker 4/1/17): get the mice that the user has selected in the mice list of the Visualization Options:
+        ObservableList<String> selectedMiceIds = selectedMiceListView.getSelectionModel().getSelectedItems();
+        // create a Mouse array of selected Mice based on the String Ids from the selected mice list:
+        ArrayList<Mouse> selectedMice = mice.getMicebyIdsLabels(selectedMiceIds);
+        
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+        // attempt to coerce the content of the Stop text area into the required format:
+        try {
+            startIndex = formatter.parse(startDataRangeTextArea.getText());
+            stopIndex = formatter.parse(stopDataRangeTextArea.getText());
+        } catch (ParseException ex) {
+            Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // (Parker 4/14/17): Extract a range of locTimeData "data rows", bounded by the startIndex and stopIndex, from the total number of 
+        // locTimeData in each Mouse object contained within the selectedMice arrayList
+        ArrayList<MouseLocTime> locTimeData = Mice.getMiceDataRowsFromRange(selectedMice, startIndex, stopIndex);
+        
+        // -----------------------------------------------------------------------------------------------------
+        
+        
+        
+        
+         // Calculate estimated export size --------------------------------------------------------------------
          
+        //(Parker 4/15/17): Generate a temporary export of the animation's corresponding static map in order to obtain its
+        // file size. The file size will be used to produce an estimate of the total animation size. 
+        
+        // reset the visual content of the grid before generating the map:
+        grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
+
+        if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
+            grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+        }
+        else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
+            grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+        }
+        else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
+            // in order to create a static overlay of both heat an vector maps, simply call each static mapping method:
+            grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+            grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+        }
+        
+        // Create the File object to save the export to; this will be a temporary file -----------------------------
+        
+        // Parker (3-19-17): get the path of the currently executing JAR file without the program filename:
+        Path folderContainingJarPath = getPathOfCurrentlyExecutingJarFile();
+        // Create a new temporary file for the purposes of saving the static heat map. Help increaase the likelihood that
+        // this filename is unique by appending the current milliseconds timestamp to the filename. 
+        long currentTime = System.currentTimeMillis(); 
+        String tempFilePath = folderContainingJarPath.toString() + "//temp" + String.valueOf(currentTime) + ".png";
+        File tempFile = new File(tempFilePath);
+        
+        // -----------------------------------------------------------------------------------------------------
+        
+        
+        
+        
+        // Get the export location and get confirmation from user ----------------------------------------------
+        
+        // (Parker 4/15/17): create a DirectoryChooser object, which will display the Operating System's file explorer to the user
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        // configure the DirectoryChooser object:
+        directoryChooser.setTitle("Select a folder to save the animation export to");
+        directoryChooser.setInitialDirectory(
+            new File(System.getProperty("user.home"))
+        );
+        
+        // Prompt the user to select a folder that will contain the exported animation
+        File exportFolder = directoryChooser.showDialog(stage);
+        
+        // (Parker 4/15/17): Sleep the thread for a small duration so that the directoryChooser window
+        // can fully close (and not obscure the viewerPane visualization area). This is necessary due to a bug with
+        // the current use of the bufferedImage that takes a snapshot of the current screen:
+        Thread.sleep(500);
+        // Export the static map to the temporary file, and get its file size:
+        grid.exportFrame(viewerPane, tempFile, getFileExtension(tempFilePath));
+        
+        double tempFileSize = 0.0;
+        // if the file exists, get its size and delete it:
+        if(tempFile.exists()){
+            tempFileSize = tempFile.length();
+            System.out.println(tempFile.length() + " Bytes (" + tempFile.length()/1000.00 + " Kilobytes (metric)).");
+            //tempFile.delete();
+        }
+        
+        grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
+        
+        // Calculate an estimated total storage size of the animated frame image files, by extrapolating based on
+        // a reference image (the temporary image of the static map) multiplied by the number of frames. -----------------------------
+        double estimatedStorageSize = tempFileSize * locTimeData.size();
+        String estimateString = getByteSizeSummary(estimatedStorageSize);
+        
+        if (exportFolder != null ) {
+            //(Parker 4/15/17): Get the drive of the folder that the user selected, and calculate its available storage:
+            File hardDrive = new File(exportFolder.getAbsolutePath().substring(0, exportFolder.getAbsolutePath().indexOf("\\")) + "\\");
+            System.out.println(hardDrive.getPath().toString());
+            String usableSpaceString = getByteSizeSummary(hardDrive.getUsableSpace());
+            System.out.println("Usable space: " + usableSpaceString);
+
+            Alert alert2 = new Alert(AlertType.CONFIRMATION);
+            alert2.setTitle("Program Notification");
+            alert2.setHeaderText("Confirm animation export of " + locTimeData.size() + " frames.");
+            alert2.setContentText("You are about to export " + locTimeData.size() + " .png files.\n\nThe estimated total storage size required for the export is \n" + estimateString + ".\n\nThe available space on drive " + hardDrive.getPath().toString() + " is \n" + usableSpaceString + ".\n\nDo you want to proceed?");
+            Optional<ButtonType> confirm = alert2.showAndWait();
+
+            //(Parker 4/15/17): If the user chooses to proceed with the export, notify the user if there is insufficient disk space.
+            // If there is enough disk space, execute the visualization animation function that corresponds to the current map type and
+            // pass the exportFolder File object as a parameter.
+            if(confirm.get() == ButtonType.OK) {
+                if (estimatedStorageSize > hardDrive.getUsableSpace()) {
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle("Program Notification");
+                    alert.setHeaderText("Error: The animation can not be exported.");
+                    alert.setContentText("The animation can not be exported, since its estimated export size is larger than the unused capacity of your selected folder's disk.\n\nPlease free up some disk space or choose another disk and try again.");
+                    alert.showAndWait();
+                }
+                // else, begin the export operation:
+                else {
+                    // alter the GUI so that the user is aware of how to stop the animation:
+                    grid.animationCancelled = false;
+                    Image buttonIcon = new Image("resources/stop.png", 20, 20, true, true);
+                    generateButton.setGraphic(new ImageView(buttonIcon));
+                    generateButton.setText("Stop Animation");
+                    
+                    if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
+                        grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
+                    }
+                    else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
+                        grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
+                    }
+                    else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
+                        grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
+                    }
+                }
+            }
+        } 
     }//end exportAnimation
     
         /*
     Alex (3/27/17):
     This function uses the save button option in the GUI to export the current image
     to your computer as a .png or .jpeg file. [[Currently does everything except capturing image]]
+    
+    ----------------------------------------------------------------------------------------------
+    
+    Parker (4/14/17):
+    Refactored the export code for the purpose of separating the various types of activities involved into separate functions:
+    
+    1) promptExportFile() / promptExportFolder() prepares and displays a file / directory chooser window to the user
+    for the purpose of getting the "Export to" location from the user. They both return the
+    File object representing the user's selection.
+    
+    2) grid.exportFrame() renders the actual image data and will save the image file to the location provided
+    by promptExportFile(). This code exists in the Grid class since the Grid's dimensions and data are
+    required to render the image. It also makes this function possible to be executed each frame during
+    animation exports.
+    
+    3) exportImage() is fired when the user activates the export menu "Export Image" option. It checks to ensure
+    that the grid object contains data to be rendered. If so, the function then calls promptExportFile().
+    If the result of promptExportFile() is not null (implying the user selected a file location), then
+    grid.exportFrame() is called. The export operation ends. 
+    
+    4) exportAnimation() is fired when the user activates the export menu "Export Animation" option.
     */
-    @FXML protected void exportImage(ActionEvent event) throws IOException, AWTException {
-        
-        /****************************Known Bugs******************************** 
-
-            1) After exporting, canvas disappears. Fixed grid lines/grid numbers 
-                from disappearing; Not sure how to get data back to the grid since
-                that's done through a function which is hard to call from here. Will
-                work on fixing it if there's enough time to get to it.
-            2) Null pointer exception found when you close the window without choosing png or jpeg.
-               So far, attempts to catch the error are in vain. Working on fixing.
-            3) Found out the overlay image is bugged since it skips heat map and displays vector only. Working
-               on fixing this.
-        */
+    @FXML protected void exportImage(ActionEvent event) throws IOException, AWTException, InterruptedException {
         
         //If nothing has been generated to the canvas screen, ERROR!
         if(grid.data == null) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Program Notification");
-            alert.setHeaderText("ERROR");
-            alert.setContentText("No Image Detected.");
+            alert.setHeaderText("Error: No data to render.");
+            alert.setContentText("The visualization currently has no data. Please click the Generate Static Map / Play Animataion button to create data for exporting.");
             alert.showAndWait();
         }//end if
         else {
             //Calls exporting function
-            grid.exporting(stage, viewerPane);
-          
-            //***[[1]] Prevents grid lines/numbers from disappearing. See above notes for more details.
-            drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+            File exportLocation = promptExportFile();
+            // (Parker 4/15/17): Sleep the thread for a small duration so that the directoryChooser window
+            // can fully close (and not obscure the viewerPane visualization area). This is necessary due to a bug with
+            // the current use of the bufferedImage that takes a snapshot of the current screen:
+            Thread.sleep(500);
+            if (exportLocation != null) {
+                String exportExtension = getFileExtension(exportLocation.toString());
+                grid.exportFrame(viewerPane, exportLocation, exportExtension);
+                //***[[1]] Prevents grid lines/numbers from disappearing. See above notes for more details.
+                drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+            }
         }//end else
     }//end exportImage
     
@@ -742,10 +934,36 @@ public class AppStageController {
             }
         }
     }
+    
+    //Gets the file extension of a file name
+    public String getFileExtension(String name) {
+        int i = name.lastIndexOf('.');
+        String ext;
+        if (i > 0) {
+            ext = name.substring(i+1);
+            return ext;
+        }//end if
+        return null;
+    }
+    
+    /**
+     * 
+     * @author: Parker
+     * 
+     * Generate a string representation of the quantity of the bytes parameter
+     * 
+     * @param bytes
+     * @return 
+     */
+    public String getByteSizeSummary(double bytes) {
+        String summaryString = bytes + " Bytes";
+        if (bytes > 1000) summaryString = bytes/1000.00 + " Kilobytes (metric)";
+        if (bytes > 1000000) summaryString = bytes/1000000.00 + " Megabytes (metric)";
+        if (bytes > 1000000000) summaryString = bytes/1000000000.00 + " Gigabytes (metric)";
+        
+        return summaryString;
+    }
 
-    // track the number of times the openFile file explorer has been configured (ensure it is configured
-    // only once after the system begins execution for the current session):
-    int timesConfigured = 0;
     /**
      * 
      * @author: parker
@@ -760,17 +978,25 @@ public class AppStageController {
      * @throws IOException 
      */
     @FXML protected void openFileAction(ActionEvent event) throws URISyntaxException, IOException {
-        // prevent the file chooser from being configured multiple times
-        if (timesConfigured == 0) {
-            configureFileChooser(fileChooser);
-            timesConfigured++;
-        }
+        FileChooser fileChooser = new FileChooser();
+        
+        fileChooser.setTitle("Select a data set file (CSV) or session file (JSON)");
+        fileChooser.setInitialDirectory(
+            new File(System.getProperty("user.home"))
+        );
+        // prepopulate the file chooser with allowable file extensions:
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("All Files", "*.*"),
+            new FileChooser.ExtensionFilter("CSV", "*.csv"),
+            new FileChooser.ExtensionFilter("JSON", "*.json")
+        );
+
         // show the file explorer window:
         File fileToOpen = fileChooser.showOpenDialog(stage); 
         // check if the user selected a file:
         if (fileToOpen != null) {
             // get the extension of the user's selected file:
-            String extension = grid.getFileExtension(fileToOpen.toString()); 
+            String extension = getFileExtension(fileToOpen.toString()); 
             // if the file selected has an extension of CSV, assume it is a data set file:
             if (extension.equals("csv")) { 
                 
@@ -1017,7 +1243,7 @@ public class AppStageController {
                     long start = System.currentTimeMillis();
                     
                     if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
-                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex); 
+                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
                     }
                     else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
                         grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
@@ -1064,13 +1290,13 @@ public class AppStageController {
                         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
 
                         if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
-                            grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
+                            grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
                         }
                         else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
-                            grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
+                            grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
                         }
                         else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
-                            grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue());
+                            grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
                         }
                     }
                 }
@@ -1289,6 +1515,23 @@ public class AppStageController {
     
     /**
      * 
+     * @author Parker
+     * 
+     * Get the location of the program's currently executing .JAR file
+     * 
+     * @return
+     * @throws URISyntaxException 
+     */
+    public Path getPathOfCurrentlyExecutingJarFile() throws URISyntaxException {
+        // Parker (3-19-17): get the path of the folder containing the currently executing .jar file: 
+        URL folderContainingJar = getClass().getProtectionDomain().getCodeSource().getLocation();
+        // Parker (3-19-17): get the above path without the filename:
+        Path folderContainingJarPath = Paths.get(folderContainingJar.toURI()).getParent();
+        return folderContainingJarPath;
+    }
+    
+    /**
+     * 
      * @author: parker
      * 
      * constructs the sessions folder by getting the directory that the executable jar
@@ -1298,10 +1541,8 @@ public class AppStageController {
      * @throws URISyntaxException 
      */
     public File getSessionsFolderPath() throws URISyntaxException {
-        // Parker (3-19-17): get the path of the folder containing the currently executing .jar file: 
-        URL folderContainingJar = getClass().getProtectionDomain().getCodeSource().getLocation();
-        // Parker (3-19-17): get the above path without the filename:
-        Path folderContainingJarPath = Paths.get(folderContainingJar.toURI()).getParent();
+        // Parker (3-19-17): get the path of the currently executing JAR file without the program filename:
+        Path folderContainingJarPath = getPathOfCurrentlyExecutingJarFile();
         // Parker (3-19-17): create the path of the sessions folder, using the above path:
         String sessionsFolderPath = folderContainingJarPath.toString() + SESSIONS_FOLDER;
         // Parker (3-19-17): create a File object of the sessionsFolderPath for checking existence:
@@ -1491,29 +1732,6 @@ public class AppStageController {
      * 
      * @author: parker
      * 
-     * configures the file system viewer to have a specific title, initial directory, and accepted file types.
-     * This function is called using an instantiated FileChooser object as its parameter.
-     * 
-     * @param fileChooser the fileChooser object to configure
-     */
-    private static void configureFileChooser(
-    final FileChooser fileChooser) {
-        fileChooser.setTitle("Select a data set file (CSV) or session file (JSON)");
-        fileChooser.setInitialDirectory(
-            new File(System.getProperty("user.home"))
-        );
-        // prepopulate the file chooser with allowable file extensions:
-        fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("All Files", "*.*"),
-            new FileChooser.ExtensionFilter("CSV", "*.csv"),
-            new FileChooser.ExtensionFilter("JSON", "*.json")
-        );
-    }
-    
-    /**
-     * 
-     * @author: parker
-     * 
      * opens the File passed as a parameter. This class is called after the user picks
      * a file from the FileChooser display in the openFileAction event handler.
      * 
@@ -1537,7 +1755,7 @@ public class AppStageController {
                 // start timing the file processing action:
                 long start = System.currentTimeMillis(); 
                 
-                String extension = grid.getFileExtension(file.toString());
+                String extension = getFileExtension(file.toString());
                 
                 // process .csv data files:
                 if (extension.equals("csv")) {
