@@ -695,6 +695,9 @@ public class Grid {
                         // to latest Date timestamp:
                         Collections.sort(locTimeData);
                         
+                        // arraylist to store the vectorframe objects
+                        ArrayList<VectorFrame> line_frames = new ArrayList<VectorFrame>();
+                        
                         // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
                         // stops at the stopping index:
                         for (int j = 0; j < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
@@ -713,6 +716,13 @@ public class Grid {
                             mouseDate = locTimeData.get(j).timestamp;
                             // if the current data row is within the Start and Stop indicies, perform the
                             // color shade calculations and update the GUI inside the Platform.runLater() function:
+                            
+                            //increment the frame count for each mouse position
+                            for (int position = 0; position < line_frames.size(); position ++){
+                                line_frames.get(position).increment();
+
+                            }
+                            
                             if (mouseDate.compareTo(start) >= 0) {
                                 
                                 // Create a Platform to run code in the background on the new thread;
@@ -800,14 +810,48 @@ public class Grid {
                                         // get the graphics context of the heat map data layer for the purpose of drawing:
                                         GraphicsContext vectorCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
                                         
-                                        vectorCanvasContext.setLineWidth(5);
-                                        vectorCanvasContext.setStroke(mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color);      
+                                        vectorCanvasContext.save();
+
+                                        // Use the identity matrix while clearing the canvas
+                                        vectorCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
+                                        vectorCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
+
+                                        // Restore the transform
+                                        vectorCanvasContext.restore();
                                         
-                                        vectorCanvasContext.strokeLine(
-                                        previous_grid.center_x,
-                                        previous_grid.center_y,
-                                        current_grid.center_x,
-                                        current_grid.center_y);
+                                        vectorCanvasContext.setLineWidth(5);
+                                                                                
+                                        int frame_number = 1;
+                                        VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                        line_frames.add(vectorFrame);
+                                        
+                                        for (int position = 0; position < line_frames.size(); position ++){
+                                            
+                                            if(line_frames.get(position).get_animation_state() == 1){
+                                            
+                                                vectorCanvasContext.setStroke(line_frames.get(position).color);
+                                                 vectorCanvasContext.setLineDashes(0d);
+                                                
+                                                
+                                            }else if(line_frames.get(position).get_animation_state() == 2){
+                                                
+                                                vectorCanvasContext.setStroke(line_frames.get(position).color);
+                                                vectorCanvasContext.setLineDashes(10d);
+                                                
+                                                
+                                                
+                                            }else if(line_frames.get(position).get_animation_state() >= 3){ 
+                                                
+                                                vectorCanvasContext.setStroke(Color.TRANSPARENT);
+                                                vectorCanvasContext.setLineDashes(0d);
+                                                
+                                            }
+                                            vectorCanvasContext.strokeLine(
+                                                line_frames.get(position).first.center_x,
+                                                line_frames.get(position).first.center_y,
+                                                line_frames.get(position).second.center_x,
+                                                line_frames.get(position).second.center_y);
+                                        }
                                         
                                         //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
                                         moveInfoLayersToFront(viewerPane);
