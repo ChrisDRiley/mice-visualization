@@ -51,8 +51,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.sun.javafx.scene.control.behavior.TextAreaBehavior;
 import com.sun.javafx.scene.control.skin.ButtonSkin;
-import com.sun.javafx.scene.control.skin.CheckBoxSkin;
-import com.sun.javafx.scene.control.skin.ChoiceBoxSkin;
 import com.sun.javafx.scene.control.skin.TextAreaSkin;
 import java.awt.AWTException;
 import java.text.ParseException;
@@ -445,20 +443,18 @@ public class AppStageController {
      * @param cb the ChoiceBox object to attach the event handler to
      */
     void addEnterKeyDisplayToChoiceBox(ChoiceBox cb) {
-        cb.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.ENTER) {
-                    if (event.getSource() instanceof ChoiceBox) {
-                        if (cb.showingProperty().get())
-                            cb.hide();
-                        else
-                            cb.show();
-                        event.consume();
-                    }//end if
+        cb.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                if (event.getSource() instanceof ChoiceBox) {
+                    if (cb.showingProperty().get())
+                        cb.hide();
+                    else
+                        cb.show();
+                    event.consume();
                 }//end if
-            }//end handle
-        });
+            }//end if
+        } //end handle
+        );
     }//end addEnterKeyDisplayToChoiceBox
     
     /**
