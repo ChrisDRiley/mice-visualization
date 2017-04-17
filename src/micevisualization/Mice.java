@@ -81,16 +81,13 @@ public class Mice {
             String rfid = ids.get(i).substring(0, cutoff);
             //System.out.println("getMicebyIdsLables: " + rfid);
             // check if the array of Mouse objects contains a mouse with the IdRFID:
-            if (getMouseByIdRFID(rfid) != null) {
+            if (getMouseByIdRFID(rfid) != null)
                 returnMice.add(getMouseByIdRFID(rfid));
-            }
         }
-        if (!returnMice.isEmpty()) {
+        if (!returnMice.isEmpty())
             return returnMice;
-        }
-        else {
+        else
             return null;
-        }
     }
     
     /**
