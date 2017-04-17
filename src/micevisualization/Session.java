@@ -18,7 +18,14 @@ import java.io.PrintStream;
  */
 public class Session {
     Boolean isDataSetFileLoaded = false;
+    // currentDataSetFilePath represents the absolute path to the selected data set file
     String currentDataSetFilePath = "";
+    // relativeDataSetFilePath represents the relative path to the selected data set file,
+    // which by default is set to: the mice-sessions directory path + the selected file's name.
+    // This way, if a session file is shared across two or more computers, the new users
+    // will simply need to copy their data set to the mice-sessions folder for the program to
+    // find the path of the data set.
+    String relativeDataSetFilePath = "";
     Boolean isSessionLoaded = false;
     String currentSessionFilePath = "";
     Boolean isNewSession = true;
@@ -30,6 +37,7 @@ public class Session {
     Boolean showGridNumbers = false;
     String startingIndex = "";
     String stoppingIndex = "";
+    Double animationSpeed = 0.1;
     
     /**
      * @author: parker
@@ -38,9 +46,10 @@ public class Session {
      * 
      * @param path 
      */
-    public void dataSetFileLoaded(String path) {
+    public void dataSetFileLoaded(String absolute, String relative) {
         isDataSetFileLoaded = true;
-        currentDataSetFilePath = path;
+        currentDataSetFilePath = absolute;
+        relativeDataSetFilePath = relative;
     }
     
     /**

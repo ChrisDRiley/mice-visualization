@@ -71,12 +71,14 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import static java.lang.System.out;
+import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
@@ -151,7 +153,7 @@ public class AppStageController {
     Grid grid = new Grid();
     
     // Parker (3/19/17): The name of the folder for storing session data in:
-    final String SESSIONS_FOLDER = "\\miceVizSessions";
+    final String SESSIONS_FOLDER = "\\mice-sessions";
     
     /*
     Alex(4/14/17):
@@ -690,6 +692,18 @@ public class AppStageController {
            }           
         });
         
+        animationSpeedSlider.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
+                session.animationSpeed = newValue.doubleValue();
+                try {
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }           
+        });
+        
         // (Parker 3/26/17): When the user changes their selection in the visualization type choice box,
         // respond to that change
         visualizationTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
@@ -742,6 +756,23 @@ public class AppStageController {
                 }
             }
         });
+
+        // (Parker): Get the selected mice from the selectedMiceListView GUI control, and save their indicies to 
+        // the session whenever a change in the selection is made:
+        ObservableList<Integer> selectedMice = selectedMiceListView.getSelectionModel().getSelectedIndices();
+        selectedMice.addListener((ListChangeListener.Change<? extends Integer> c) -> {
+            String selectedIndices = "";
+            for (int i = 0; i < selectedMice.size(); ++i) {
+                selectedIndices += String.valueOf(selectedMice.get(i));
+                if (i < selectedMice.size() - 1) selectedIndices += ",";
+            }
+            session.selectedMiceIndices = selectedIndices;
+            try {
+                session.saveState();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         
         // (Parker 4/10/17): When the user has the Generate Map or Play/Stop Animation button
         // selected, make it possible to trigger the button's associated onAction function via the
@@ -764,6 +795,12 @@ public class AppStageController {
                 }
             }
         });
+        
+        // (Parker): check if the directory for storing sessions exists:
+        if (checkIfSessionsFolderExists() == false) {
+            // create the directory:
+            getSessionsFolderPath().mkdir(); 
+        }
         
         // (Parker): Refresh the list of available session files that appear in the left hand
         // sessions listView GUI control:
@@ -831,15 +868,35 @@ public class AppStageController {
      * 
      * @param s the session object.
      */
-    public void restoreState(Session s) {
-        visualizationTypeChoiceBox.getSelectionModel().select(s.visualizationType);
-        mapTypeChoiceBox.getSelectionModel().select(s.mapType);
+    public void restoreState() {
+        visualizationTypeChoiceBox.getSelectionModel().select(session.visualizationType);
+        mapTypeChoiceBox.getSelectionModel().select(session.mapType);
         
-        showGridLinesCheckBox.selectedProperty().set(s.showGridLines);
-        showGridNumbersCheckBox.selectedProperty().set(s.showGridNumbers);
+        showGridLinesCheckBox.selectedProperty().set(session.showGridLines);
+        showGridNumbersCheckBox.selectedProperty().set(session.showGridNumbers);
         
-        startDataRangeTextArea.setText(s.startingIndex);
-        stopDataRangeTextArea.setText(s.stoppingIndex);
+        animationSpeedSlider.setValue(session.animationSpeed);
+        
+        startDataRangeTextArea.setText(session.startingIndex);
+        stopDataRangeTextArea.setText(session.stoppingIndex);
+        
+        
+        // (Parker): Attempt to select the mice based on their indices from the session data:
+        List<String> selectedMiceArray = Arrays.asList(session.selectedMiceIndices.split(",")); 
+        int[] indices = new int[selectedMiceArray.size()];
+        
+        try {
+            for (int i = 0; i < selectedMiceArray.size(); ++i) {
+                indices[i] = (Integer.parseInt(selectedMiceArray.get(i)));
+                System.out.println(selectedMiceArray.get(i));
+                System.out.println(indices[i]);
+            }
+            selectedMiceListView.getSelectionModel().selectIndices(indices[0], indices);
+        }
+        catch (Exception e) {
+
+        }
+
     }
     
     /**
@@ -1007,8 +1064,9 @@ public class AppStageController {
                 
                 // attempt to open the file and proceed if successful:
                 if (openFile(fileToOpen)) {
+                    
                     // update the program's state via the session variable:
-                    session.dataSetFileLoaded(fileToOpen.getPath()); 
+                    session.dataSetFileLoaded(fileToOpen.getPath(), fileToOpen.getName()); 
                     // update the state of the GUI to enable visualization options:
                     unlockVisualizationOptions(); 
                     // Check if the current session is new:
@@ -1444,7 +1502,7 @@ public class AppStageController {
      * @param sessionFile the session file to load
      * @return true if session file was loaded, false if otherwise
      */
-    public Boolean loadSessionFile(File sessionFile) throws FileNotFoundException {
+    public Boolean loadSessionFile(File sessionFile) throws FileNotFoundException, URISyntaxException {
         if (openFile(sessionFile)) {
             // if the selected session file contains a different session filename than the one listed in the 
             // currentSessionFilePath property of the session object, update the session object:
@@ -1453,22 +1511,28 @@ public class AppStageController {
             }
             // create a File object based on the filepath string of the current data set file:
             File dataFile = new File(session.currentDataSetFilePath);
-            // attempt to parse the data set file associated with the session file being loaded:
-            if (openFile(dataFile)) {
-                // update the program's state via the session variable:
-                session.sessionLoaded(sessionFile.getPath().toString());
-                // write the session state to file:
-                session.saveState();
-                // update the System's GUI to enable the visualization options:
-                unlockVisualizationOptions();
-                // draw the basic appearance of the grid in the viewer pane:
-                drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-                // restore the user's GUI control settings from the loaded session file:
-                restoreState(session);
-                // give the user a status update via the lower left text Label
-                leftStatus.setText("Session file loaded.");
-                return true;
-            } 
+            //debugAlert("Attempting to open file " + dataFile.getPath().toString() + ", " + dataFile.exists());
+            if (!dataFile.exists()) {
+                dataFile = new File(getSessionsFolderPath() + "\\" + session.relativeDataSetFilePath);
+                //debugAlert("Attempting to open file " + getSessionsFolderPath() + "\\" + session.relativeDataSetFilePath + ", " + dataFile.exists());
+            }
+            if (dataFile.exists()) {
+                // attempt to parse the data set file associated with the session file being loaded:
+                if (openFile(dataFile)) {
+                    // update the program's state via the session variable:
+                    session.sessionLoaded(sessionFile.getPath().toString());
+                    session.dataSetFileLoaded(dataFile.getPath(), dataFile.getName()); 
+                    // write the session state to file:
+                    session.saveState();
+                    // update the System's GUI to enable the visualization options:
+                    unlockVisualizationOptions();
+                    // draw the basic appearance of the grid in the viewer pane:
+                    drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
+                    // restore the user's GUI control settings from the loaded session file:
+                    restoreState();
+                    return true;
+                }
+            }
         }
         leftStatus.setText("Error: The session file could not be loaded.");
         return false;
@@ -1760,6 +1824,17 @@ public class AppStageController {
                 // process .csv data files:
                 if (extension.equals("csv")) {
                     
+                    // (Parker): Since the session data may contain selected mice indices from the previous session,
+                    // and since there is an event listener attached to the selectedMiceListView that overwrites the
+                    // session data when selectedMiceListView's selection changes, save that data in a temporary variable 
+                    // since selectedMiceListView's selection will be cleared after data parsing has finished:
+                    String selectedMiceIndices = session.selectedMiceIndices;
+                    
+                    // reset the grid object
+                    grid = new Grid();
+                    // reset the mice object
+                    mice = new Mice();
+                    
                     // (Parker) these represent the indices of specific columns of data in the data set file.
                     // Note: an enum also could have worked here, but this serves the same purpose:
                     int TIMESTAMP = 0;
@@ -1780,6 +1855,7 @@ public class AppStageController {
                     // (Parker): define a string format for converting Dates to Strings:
                     SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
                     
+                    // while there are lines to be read in the data file:
                     while (sc.hasNextLine()) {
                         linesProcessed++;
                          //pulls next line of input:
@@ -1806,6 +1882,23 @@ public class AppStageController {
                         // extract the location and timestamp data for the current row:
                         MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
                         
+                        // (Parker 4/16/17): if the current data row has a timestamp that cannot be read, skip this data row
+                        if (mlt.timestamp == null) continue;
+                        
+                        int unitLabelToInteger;
+                        
+                        // (Parker 4/16/17): check that the unitLabel (the grid sector index in the current data row) contains an integer index after
+                        // its 4 character 'RFID' prefix: 
+                        try {
+                            unitLabelToInteger = Integer.parseInt(items.get(UNIT_LABEL).substring(4));
+                        }
+                        // (Parker 4/16/17): if not, skip the current data row:
+                        catch (Exception e) {
+                            continue;
+                        }
+                        
+                        // (Parker 4/16/17): since the timestamp passed validation (it was not null after
+                        // going through the MouseLocTime constructor), add it to the list of timestamps from the data set:
                         dataTimestampsList.add(mlt.timestamp);
                         
                         // update the dateRange variable:
@@ -1813,7 +1906,7 @@ public class AppStageController {
                         // the 2nd line processed should be the first row of data,
                         // so prepopulate the Start field with this date:
                         if (linesProcessed == 2) {
-                            // if there is no previous session value (if one does exist, it will be restored at a later point),
+                            // if there is no previous Start timestamp session value (if one does exist, it will be restored at a later point),
                             // proceed with prepopulating the Start TextArea:
                             if (session.stoppingIndex.equals("")) {
                                 startDataRangeTextArea.setText(sdf.format(dateRange));
@@ -1860,9 +1953,13 @@ public class AppStageController {
 
                     // (Parker 3/26/17): Add the mice IdRFIDs and Labels to the visualization options mice listView:
                     
+                    selectedMiceListView.getItems().clear();
                     selectedMiceListView.setItems(mice.getMouseIdsLabelsObservableList());
-                    
                     selectedMiceListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+                    
+                    // Attempt to re-select the mice selection based on indices in the session data:
+                    session.selectedMiceIndices = selectedMiceIndices;
+                    
                     mice.print();
                 }
                 // else if the user chose a JSON file, assume it is a session file:
