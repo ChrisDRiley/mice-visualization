@@ -26,86 +26,56 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javafx.scene.text.Text;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.ArcType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.sun.javafx.scene.control.behavior.TextAreaBehavior;
 import com.sun.javafx.scene.control.skin.ButtonSkin;
 import com.sun.javafx.scene.control.skin.CheckBoxSkin;
 import com.sun.javafx.scene.control.skin.ChoiceBoxSkin;
 import com.sun.javafx.scene.control.skin.TextAreaSkin;
 import java.awt.AWTException;
-import java.awt.AlphaComposite;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import static java.lang.System.out;
-import java.nio.file.Files;
 import java.text.ParseException;
-import java.util.Timer;
-import java.util.TimerTask;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SkinBase;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
-import javafx.util.Callback;
-import javax.imageio.ImageIO;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -196,7 +166,7 @@ public class AppStageController {
         //Show save file dialog
         File file = fc.showSaveDialog(stage);
         return file;
-    }
+    }//end promptExportFile
     
     /*
     Alex (4/12/17):
@@ -224,20 +194,9 @@ public class AppStageController {
      * @throws AWTException
      * @throws InterruptedException 
      */
-    @FXML protected void exportAnimation(ActionEvent event) throws IOException, URISyntaxException, AWTException, InterruptedException {
-        
-        /* This function is currently being worked on and tested. Currently NON-FUNCTIONAL
-            -Figured out checking file storage, but would probably be better to just create a folder inside
-                the one you created whenever program is ran. WAY less variables that way 
-            -Each picture (assuming all mice in image) are around 2.77KB each. 1 Mouse was around 1KB. Therefore,
-                shouldn't be a huge file size, just a lot of images.
-            -Helpful site used: http://code.makery.ch/blog/javafx-dialogs-official/
-        */
-        
-        
+    @FXML protected void exportAnimation(ActionEvent event) throws IOException, URISyntaxException, AWTException, InterruptedException {           
         
         // Get the range of data to render -------------------------------------------------------------------
-        
         Date startIndex = null;
         Date stopIndex = null;
         
@@ -250,6 +209,7 @@ public class AppStageController {
         
         // (Parker 4/1/17): get the mice that the user has selected in the mice list of the Visualization Options:
         ObservableList<String> selectedMiceIds = selectedMiceListView.getSelectionModel().getSelectedItems();
+        
         // create a Mouse array of selected Mice based on the String Ids from the selected mice list:
         ArrayList<Mouse> selectedMice = mice.getMicebyIdsLabels(selectedMiceIds);
         
@@ -266,11 +226,6 @@ public class AppStageController {
         // locTimeData in each Mouse object contained within the selectedMice arrayList
         ArrayList<MouseLocTime> locTimeData = Mice.getMiceDataRowsFromRange(selectedMice, startIndex, stopIndex);
         
-        // -----------------------------------------------------------------------------------------------------
-        
-        
-        
-        
          // Calculate estimated export size --------------------------------------------------------------------
          
         //(Parker 4/15/17): Generate a temporary export of the animation's corresponding static map in order to obtain its
@@ -279,17 +234,21 @@ public class AppStageController {
         // reset the visual content of the grid before generating the map:
         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
 
-        if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
-            grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
-        }
-        else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
-            grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
-        }
-        else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
-            // in order to create a static overlay of both heat an vector maps, simply call each static mapping method:
-            grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
-            grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
-        }
+        switch (mapTypeChoiceBox.getValue().toString()) {
+            case "Heat":
+                grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+                break;
+            case "Vector":
+                grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+                break;
+            case "Overlay":
+                // in order to create a static overlay of both heat an vector maps, simply call each static mapping method:
+                grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+                grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+                break;
+            default:
+                break;
+        }//end switch
         
         // Create the File object to save the export to; this will be a temporary file -----------------------------
         
@@ -323,6 +282,7 @@ public class AppStageController {
         // can fully close (and not obscure the viewerPane visualization area). This is necessary due to a bug with
         // the current use of the bufferedImage that takes a snapshot of the current screen:
         Thread.sleep(500);
+        
         // Export the static map to the temporary file, and get its file size:
         grid.exportFrame(viewerPane, tempFile, getFileExtension(tempFilePath));
         
@@ -332,7 +292,7 @@ public class AppStageController {
             tempFileSize = tempFile.length();
             System.out.println(tempFile.length() + " Bytes (" + tempFile.length()/1000.00 + " Kilobytes (metric)).");
             //tempFile.delete();
-        }
+        }//end if
         
         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
         
@@ -342,16 +302,17 @@ public class AppStageController {
         String estimateString = getByteSizeSummary(estimatedStorageSize);
         
         if (exportFolder != null ) {
+            
             //(Parker 4/15/17): Get the drive of the folder that the user selected, and calculate its available storage:
             File hardDrive = new File(exportFolder.getAbsolutePath().substring(0, exportFolder.getAbsolutePath().indexOf("\\")) + "\\");
-            System.out.println(hardDrive.getPath().toString());
+            System.out.println(hardDrive.getPath());
             String usableSpaceString = getByteSizeSummary(hardDrive.getUsableSpace());
             System.out.println("Usable space: " + usableSpaceString);
 
             Alert alert2 = new Alert(AlertType.CONFIRMATION);
             alert2.setTitle("Program Notification");
             alert2.setHeaderText("Confirm animation export of " + locTimeData.size() + " frames.");
-            alert2.setContentText("You are about to export " + locTimeData.size() + " .png files.\n\nThe estimated total storage size required for the export is \n" + estimateString + ".\n\nThe available space on drive " + hardDrive.getPath().toString() + " is \n" + usableSpaceString + ".\n\nDo you want to proceed?");
+            alert2.setContentText("You are about to export " + locTimeData.size() + " .png files.\n\nThe estimated total storage size required for the export is \n" + estimateString + ".\n\nThe available space on drive " + hardDrive.getPath() + " is \n" + usableSpaceString + ".\n\nDo you want to proceed?");
             Optional<ButtonType> confirm = alert2.showAndWait();
 
             //(Parker 4/15/17): If the user chooses to proceed with the export, notify the user if there is insufficient disk space.
@@ -364,8 +325,9 @@ public class AppStageController {
                     alert.setHeaderText("Error: The animation can not be exported.");
                     alert.setContentText("The animation can not be exported, since its estimated export size is larger than the unused capacity of your selected folder's disk.\n\nPlease free up some disk space or choose another disk and try again.");
                     alert.showAndWait();
-                }
+                }//end if
                 // else, begin the export operation:
+                
                 else {
                     // alter the GUI so that the user is aware of how to stop the animation:
                     grid.animationCancelled = false;
@@ -373,24 +335,29 @@ public class AppStageController {
                     generateButton.setGraphic(new ImageView(buttonIcon));
                     generateButton.setText("Stop Animation");
                     
-                    if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
-                        grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
-                    }
-                    else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
-                        grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
-                    }
-                    else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
-                        grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
-                    }
-                }
-            }
-        } 
+                    switch (mapTypeChoiceBox.getValue().toString()) {
+                        case "Heat":
+                            grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
+                            break;
+                        case "Vector":
+                            grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
+                            break;
+                        case "Overlay":
+                            grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), exportFolder);
+                            break;
+                        default:
+                            break;
+                    }//end switch
+                }//end else
+            }//end if
+        }//end if
     }//end exportAnimation
     
         /*
     Alex (3/27/17):
     This function uses the save button option in the GUI to export the current image
-    to your computer as a .png or .jpeg file. [[Currently does everything except capturing image]]
+    to your computer as a .png or .jpeg file. Will be modified later once we work on
+    animation export options
     
     ----------------------------------------------------------------------------------------------
     
@@ -430,12 +397,13 @@ public class AppStageController {
             // can fully close (and not obscure the viewerPane visualization area). This is necessary due to a bug with
             // the current use of the bufferedImage that takes a snapshot of the current screen:
             Thread.sleep(500);
+            
             if (exportLocation != null) {
                 String exportExtension = getFileExtension(exportLocation.toString());
                 grid.exportFrame(viewerPane, exportLocation, exportExtension);
                 //***[[1]] Prevents grid lines/numbers from disappearing. See above notes for more details.
                 drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-            }
+            }//end if
         }//end else
     }//end exportImage
     
@@ -481,20 +449,17 @@ public class AppStageController {
             @Override
             public void handle(KeyEvent event) {
                 if (event.getCode() == KeyCode.ENTER) {
-                    ChoiceBoxSkin skin = (ChoiceBoxSkin) cb.getSkin();
                     if (event.getSource() instanceof ChoiceBox) {
-                        if (cb.showingProperty().get()) {
+                        if (cb.showingProperty().get())
                             cb.hide();
-                        }
-                        else {
+                        else
                             cb.show();
-                        }
                         event.consume();
-                    }
-                }
-            }
+                    }//end if
+                }//end if
+            }//end handle
         });
-    }
+    }//end addEnterKeyDisplayToChoiceBox
     
     /**
      * 
@@ -509,25 +474,20 @@ public class AppStageController {
      * @param cb the CheckBox object to attach the event handler to
      */
     void addEnterKeyToggleToCheckBox(CheckBox cb) {
-        cb.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.ENTER) {
-                    CheckBoxSkin skin = (CheckBoxSkin) cb.getSkin();
-                    if (event.getSource() instanceof CheckBox) {
-                        CheckBox currentCheckBox = (CheckBox) event.getSource();
-                        if (currentCheckBox.isSelected()) {
-                            currentCheckBox.setSelected(false);
-                        }
-                        else {
-                            currentCheckBox.setSelected(true);
-                        }
-                        event.consume();
-                    }
-                }
-            }
-        });
-    }
+        cb.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                if (event.getSource() instanceof CheckBox) {
+                    CheckBox currentCheckBox = (CheckBox) event.getSource();
+                    if (currentCheckBox.isSelected())
+                        currentCheckBox.setSelected(false);
+                    else
+                        currentCheckBox.setSelected(true);
+                    event.consume();
+                }//end if
+            }//end if
+        } //end handle
+        );
+    }//end addEnterKeyToggleToCheckBox
     
     /**
      * 
@@ -540,24 +500,20 @@ public class AppStageController {
      * @param cb the TextArea object to attach the event handler to
      */
     void addTabKeyNavigationToTextArea(TextArea ta) {
-        ta.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.TAB) {
-                    TextAreaSkin skin = (TextAreaSkin) ta.getSkin();
-                    if (skin.getBehavior() instanceof TextAreaBehavior) {
-                        TextAreaBehavior behavior = (TextAreaBehavior) skin.getBehavior();
-                        if (event.isShiftDown()) {
-                            behavior.callAction("TraversePrevious");
-                        } else {
-                            behavior.callAction("TraverseNext");
-                        }
-                        event.consume();
-                    }
-                }
-            }
+        ta.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
+            if (event.getCode() == KeyCode.TAB) {
+                TextAreaSkin skin = (TextAreaSkin) ta.getSkin();
+                if (skin.getBehavior() instanceof TextAreaBehavior) {
+                    TextAreaBehavior behavior = (TextAreaBehavior) skin.getBehavior();
+                    if (event.isShiftDown())
+                        behavior.callAction("TraversePrevious");
+                    else
+                        behavior.callAction("TraverseNext");
+                    event.consume();
+                }//end if
+            }//end if
         });
-    }
+    }//end addTabKeyNavigationToTextArea
     
     /**
      * 
@@ -577,7 +533,7 @@ public class AppStageController {
                 ta.setText(newValue);
             }
         });
-    }
+    }//end applyDataRangeChoiceBoxSelectionToTextArea
     
     /**
      * 
@@ -590,27 +546,26 @@ public class AppStageController {
      * @param cb the CheckBox object to assign the event handler to
      */
     void addToggleGridOptionActionToCheckBox(CheckBox cb) {
-        cb.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            public void changed(ObservableValue<? extends Boolean> ov,
-                Boolean old_val, Boolean new_val) {
-                if ((CheckBox)gridOptionsCheckBoxesHBox.lookup("#" + cb.getId()) != null) {
-                    if (cb.getId().equals("showGridLinesCheckBox")) {
-                        grid.toggleGridLines(viewerPane);
-                        session.showGridLines = new_val;
-                    }
-                    else if (cb.getId().equals("showGridNumbersCheckBox")) {
-                        grid.toggleGridNumbers(viewerPane);
-                        session.showGridNumbers = new_val;
-                    }
-                    try {
-                        session.saveState();
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
+        cb.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
+            if ((CheckBox)gridOptionsCheckBoxesHBox.lookup("#" + cb.getId()) != null) {
+                if (cb.getId().equals("showGridLinesCheckBox")) {
+                    grid.toggleGridLines(viewerPane);
+                    session.showGridLines = new_val;
+                }//end if
+                
+                else if (cb.getId().equals("showGridNumbersCheckBox")) {
+                    grid.toggleGridNumbers(viewerPane);
+                    session.showGridNumbers = new_val;
+                }//end else if
+                
+                try {
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }//end catch
+            }//end if
         });
-    }
+    }//end addToggleGridOptionActionToCheckBox
     
     /**
      * 
@@ -624,25 +579,21 @@ public class AppStageController {
      * @param ta the TextArea object to assign the event handler to
      */
     void updateSessionTextAreaContent(TextArea ta) {
-        ta.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if ((TextArea) dataRangeControlVBox.lookup("#" + ta.getId()) != null) {
-                    if (ta.getId().equals("startDataRangeTextArea")) {
-                        session.startingIndex = newValue;
-                    }
-                    else if (ta.getId().equals("stopDataRangeTextArea")) {
-                        session.stoppingIndex = newValue;
-                    }
-                    try {
-                        session.saveState();
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
+        ta.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            if ((TextArea) dataRangeControlVBox.lookup("#" + ta.getId()) != null) {
+                if (ta.getId().equals("startDataRangeTextArea"))
+                    session.startingIndex = newValue;
+                else if (ta.getId().equals("stopDataRangeTextArea"))
+                    session.stoppingIndex = newValue;
+                
+                try {
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }//end catch
+            }//end if
         });
-    }
+    }//end updateSessionTextAreaContent
     
     /**
      * 
@@ -655,14 +606,13 @@ public class AppStageController {
      */
     void redrawGridUponWindowResize() {
          // if the session is not a new session, then there is data available to draw:
-        if (session.isNewSession == false) {
+        if (session.isNewSession == false)
             drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-        }
+        
         // if the user resizes the window during an animation, cancel the animation:
-        if (grid.animationCancelled == false) {
+        if (grid.animationCancelled == false)
             grid.stopAnimation(generateButton);
-        }
-    }
+    }//end redrawGridUponWindowResize
     
     /**
      * 
@@ -679,30 +629,21 @@ public class AppStageController {
     @FXML
     private void initialize() throws URISyntaxException {
         // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects in the visualization
-        viewerPane.widthProperty().addListener(new ChangeListener<Number>() {
-           @Override
-           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
-                redrawGridUponWindowResize();
-           }           
+        viewerPane.widthProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) -> {
+            redrawGridUponWindowResize();           
         });
         
         // (Parker 3/26/17): When the user resizes the window, trigger a redraw of the Canvas objects in the visualization
-        viewerPane.heightProperty().addListener(new ChangeListener<Number>() {
-           @Override
-           public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
-                redrawGridUponWindowResize();
-           }           
+        viewerPane.heightProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) -> {
+            redrawGridUponWindowResize();           
         });
         
-        animationSpeedSlider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
-                session.animationSpeed = newValue.doubleValue();
-                try {
-                    session.saveState();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        animationSpeedSlider.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) -> {
+            session.animationSpeed = newValue.doubleValue();
+            try {
+                session.saveState();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
             }           
         });
         
@@ -717,28 +658,28 @@ public class AppStageController {
                 options whose state needs to change: */
                 if (newValue.equals("Static") || newValue.equals("Overlay")) {
                     // if the user changes a visualization option during an animation, cancel the animation:
-                    if (grid.animationCancelled == false) {
+                    if (grid.animationCancelled == false)
                         grid.stopAnimation(generateButton);
-                    }
                     
                     animationOptionsVBox.setDisable(true);
                     generateButton.setText("Generate Static Map");
                     generateButton.setGraphic(null);
                     lockExportAnimationOption(); //locks out animation export since it's now static view
-                    
-                }
+                }//end if
+                
                 else if (newValue.equals("Animated")) {
                     grid.stopAnimation(generateButton);
                     animationOptionsVBox.setDisable(false);
                     unlockExportAnimationOption(); //unlocks animation exporting option
-                }
+                }//end else if
+                
                 try {
                     session.visualizationType = newValue;
                     session.saveState();
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+                }//end catch
+            }//end change
         });
         
          // (Parker 3/27/17): When the user changes their selection in the map type choice box,
@@ -747,32 +688,37 @@ public class AppStageController {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 // if the user changes a visualization option during an animation, cancel the animation:
-                if (grid.animationCancelled == false) {
+                if (grid.animationCancelled == false)
                     grid.stopAnimation(generateButton);
-                }
+                
                 try {
                     session.mapType = newValue;
                     session.saveState();
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+                }//end catch
+            }//end changed
         });
 
         // (Parker): Get the selected mice from the selectedMiceListView GUI control, and save their indicies to 
         // the session whenever a change in the selection is made:
         ObservableList<Integer> selectedMice = selectedMiceListView.getSelectionModel().getSelectedIndices();
-        selectedMice.addListener((ListChangeListener.Change<? extends Integer> c) -> {
-            String selectedIndices = "";
-            for (int i = 0; i < selectedMice.size(); ++i) {
-                selectedIndices += String.valueOf(selectedMice.get(i));
-                if (i < selectedMice.size() - 1) selectedIndices += ",";
-            }
-            session.selectedMiceIndices = selectedIndices;
-            try {
-                session.saveState();
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+        selectedMice.addListener(new ListChangeListener<Integer>() {
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends Integer> c) {
+                String selectedIndices = "";
+                for (int i = 0; i < selectedMice.size(); ++i) {
+                    selectedIndices += String.valueOf(selectedMice.get(i));
+                    if (i < selectedMice.size() - 1) selectedIndices += ",";
+                }//end for
+                
+                session.selectedMiceIndices = selectedIndices;
+                
+                try {
+                    session.saveState();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                }//end catch
             }
         });
         
@@ -789,20 +735,19 @@ public class AppStageController {
                             generateMapFunction();
                         } catch (InterruptedException ex) {
                             Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                        }//end catch
                         finally {
                             event.consume();
-                        }
-                    }
-                }
-            }
+                        }//end finally
+                    }//end if
+                }//end if
+            }//end handle
         });
         
         // (Parker): check if the directory for storing sessions exists:
-        if (checkIfSessionsFolderExists() == false) {
+        if (checkIfSessionsFolderExists() == false)
             // create the directory:
             getSessionsFolderPath().mkdir(); 
-        }
         
         // (Parker): Refresh the list of available session files that appear in the left hand
         // sessions listView GUI control:
@@ -845,7 +790,7 @@ public class AppStageController {
         visualizationOptionsScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         visualizationTypeChoiceBox.getSelectionModel().selectFirst();
         mapTypeChoiceBox.getSelectionModel().selectFirst();
-    }
+    }//end initialize
     
     /**
      * 
@@ -858,7 +803,7 @@ public class AppStageController {
      */
     public void drawCanvas(double width, double height) {
         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
-    }
+    }//end drawCanvas
     
     /**
      * 
@@ -867,8 +812,6 @@ public class AppStageController {
      * restores the state of the program by setting GUI control values equal to their
      * values contained within the session object. This function is called after
      * a user successfully loads a session json file.
-     * 
-     * @param s the session object.
      */
     public void restoreState() {
         visualizationTypeChoiceBox.getSelectionModel().select(session.visualizationType);
@@ -892,14 +835,13 @@ public class AppStageController {
                 indices[i] = (Integer.parseInt(selectedMiceArray.get(i)));
                 System.out.println(selectedMiceArray.get(i));
                 System.out.println(indices[i]);
-            }
+            }//end for
             selectedMiceListView.getSelectionModel().selectIndices(indices[0], indices);
-        }
-        catch (Exception e) {
+        }//end try
+        catch (NumberFormatException e) {
 
-        }
-
-    }
+        }//end catch
+    }//end restoreState
     
     /**
      * 
@@ -916,7 +858,7 @@ public class AppStageController {
         selectedMiceListView.getItems().clear();
         startDataRangeTextArea.clear();
         stopDataRangeTextArea.clear();
-    }
+    }//end lockVisualizationOptions
     
     /**
      * 
@@ -929,9 +871,8 @@ public class AppStageController {
         visualizationOptionsAnchorPane.setDisable(false);
         saveMenuItem.setDisable(false);
         exportMenuItem.setDisable(false);
-        drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
-        
-    }
+        drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());   
+    }//end unlockVisualizationOptions
     
     /*
     Alex (4/12/17):
@@ -940,11 +881,11 @@ public class AppStageController {
     */
     public void unlockExportAnimationOption() {
         exportAnimationItem .setDisable(false);
-    }
+    }//end unlockExportAnimationOption
     
     public void lockExportAnimationOption() {
         exportAnimationItem .setDisable(true);
-    }
+    }//end lockExportAnimationOption
     
     /**
      * @author: parker
@@ -955,7 +896,7 @@ public class AppStageController {
         session = new Session();
         visualizationTypeChoiceBox.getSelectionModel().clearSelection();
         lockVisualizationOptions();
-    }
+    }//end resetToDefaultState
     
     /**
      * 
@@ -976,23 +917,22 @@ public class AppStageController {
             File[] files = getSessionsFolderPath().listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile()) {
+                    if (file.isFile())
                         sessionFiles.add(file.getName());
-                    }
-                }
+                }//end for
+                
                 //if there were no files in the sessions folder, disable the sessions manager pane:
-                if (sessionFiles.size() > 0) {
+                if (sessionFiles.size() > 0)
                     sessionsAnchorPane.setDisable(false);
-                }
                 // if at least one sessions file exists in the sessions folder, enable the sessions manager pane:
-                else {
+                else
                     sessionsAnchorPane.setDisable(true);
-                }
+                
                 // update the contents of the recent sessions list to reflect the files in the sessions folder:
                 sessionsListView.setItems(sessionFiles);
-            }
-        }
-    }
+            }//end if
+        }//end if
+    }//end refreshListOfSessions
     
     //Gets the file extension of a file name
     public String getFileExtension(String name) {
@@ -1003,7 +943,7 @@ public class AppStageController {
             return ext;
         }//end if
         return null;
-    }
+    }//end getFileExtension
     
     /**
      * 
@@ -1021,7 +961,7 @@ public class AppStageController {
         if (bytes > 1000000000) summaryString = bytes/1000000000.00 + " Gigabytes (metric)";
         
         return summaryString;
-    }
+    }//end getByteSizeSummary
 
     /**
      * 
@@ -1057,42 +997,41 @@ public class AppStageController {
             // get the extension of the user's selected file:
             String extension = getFileExtension(fileToOpen.toString()); 
             // if the file selected has an extension of CSV, assume it is a data set file:
-            if (extension.equals("csv")) { 
+            switch (extension) {
+                case "csv":
+                    // assume that the user is opening a new data set file, so disregard any previously saved
+                    // starting and stopping indices associated with the current session's previous data set:
+                    session.stoppingIndex = "";
+                    session.startingIndex = "";
+                    // attempt to open the file and proceed if successful:
+                    if (openFile(fileToOpen)) {
+                        
+                        // update the program's state via the session variable:
+                        session.dataSetFileLoaded(fileToOpen.getPath(), fileToOpen.getName());
+                        // update the state of the GUI to enable visualization options:
+                        unlockVisualizationOptions();
+                        
+                        // Check if the current session is new:
+                        if (session.isNewSession)
+                            // prompt the user to create a new session file:
+                            promptUserToCreateNewSessionFile(session);
+                    }   break;
                 
-                // assume that the user is opening a new data set file, so disregard any previously saved
-                // starting and stopping indices associated with the current session's previous data set:
-                session.stoppingIndex = "";
-                session.startingIndex = "";
+                case "json":
+                    // attempt to load the session file and restore its state to the current system session:
+                    loadSessionFile(fileToOpen);
+                    break;
                 
-                // attempt to open the file and proceed if successful:
-                if (openFile(fileToOpen)) {
-                    
-                    // update the program's state via the session variable:
-                    session.dataSetFileLoaded(fileToOpen.getPath(), fileToOpen.getName()); 
-                    // update the state of the GUI to enable visualization options:
-                    unlockVisualizationOptions(); 
-                    // Check if the current session is new:
-                    if (session.isNewSession) {
-                        // prompt the user to create a new session file:
-                        promptUserToCreateNewSessionFile(session);
-                    }
-                }  
-            }
-            // if the user selected a file with an extension of type JSON, assume it is a session file:
-            else if (extension.equals("json")) {
-                // attempt to load the session file and restore its state to the current system session:
-                loadSessionFile(fileToOpen);
-            }
-            // else the user attempted to open a file with an invalid extension, show an alert dialog:
-            else {
-                Alert alert = new Alert(AlertType.WARNING);
-                alert.setTitle("Program Notification");
-                alert.setHeaderText("Invalid file type");
-                alert.setContentText("Allowable file types are:\n\n.csv data files\n.json session files");
-                alert.showAndWait();
-            }
-        }
-    }
+                default:
+                    Alert alert = new Alert(AlertType.WARNING);
+                    alert.setTitle("Program Notification");
+                    alert.setHeaderText("Invalid file type");
+                    alert.setContentText("Allowable file types are:\n\n.csv data files\n.json session files");
+                    alert.showAndWait();
+                    break;
+            }//end switch
+        }//end if
+    }//end openFileAction
     
     /**
      * @author parker
@@ -1107,6 +1046,7 @@ public class AppStageController {
         
         // get the selected session file name from the recent sessions list in the session manager pane:
         String currentListViewItem = sessionsListView.getSelectionModel().getSelectedItem().toString();
+        
         // notify the user of the impending delete action:
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Delete session file?");
@@ -1121,6 +1061,7 @@ public class AppStageController {
             
             // get the filename from the currentSessionFilePath:
             int i = session.currentSessionFilePath.lastIndexOf("\\"); 
+            
             if (currentListViewItem.equals(session.currentSessionFilePath.substring(i + 1))) { // compare the filename to the selected session name
                 // if the user has chosen to delete the session file that corresponds to the current session, obtain
                 // additional confirmation from the user via another alert dialog:
@@ -1136,27 +1077,27 @@ public class AppStageController {
                 if (retryFileCreationAnswer.get() == ButtonType.OK) {
                     // turn the file URL into a File object
                     File deleteFile = new File(getSessionsFolderPath().toString() + "\\" + currentListViewItem);
+                    
                     // attempt to delete the current session file:
-                    if (!deleteFile.delete()) {
+                    if (!deleteFile.delete())
                         simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
-                    }
                     else {
                         leftStatus.setText("Session file successfully deleted.");
                         resetToDefaultState(); // create a new Session object and reset the GUI
-                    }
-                }
-            }
+                    }//end else
+                }//end if
+            }//end if
+            
             else { // delete a file that is not associated with the current session::
                 File deleteFile = new File(getSessionsFolderPath().toString() + "\\" + currentListViewItem);
-                if (!deleteFile.delete()) {
+                if (!deleteFile.delete())
                     simpleAlert("Error: File '" + currentListViewItem + "' could not be deleted.", null);
-                }
                 else leftStatus.setText("Session file successfully deleted.");
-            }
+            }//end else
             // update the list of sessions appearing in the recent sessions list after an attempted delete operation:
             refreshListOfSessions();
-        }
-    }
+        }//end if
+    }//end deleteSessionFileAction
     
     /**
      * 
@@ -1175,25 +1116,28 @@ public class AppStageController {
         if (sessionsListView.getSelectionModel().getSelectedItem() != null) {
             // get the selected name from the Recent sessions listView:
             String selectedSession = sessionsListView.getSelectionModel().getSelectedItem().toString();
+            
             // we need to trim the extension off the filename, so get the index of the last period:
             int i = selectedSession.lastIndexOf('.'); 
+            
             // trim the extension off of the selectedSession string:
             selectedSession = selectedSession.substring(0, i); 
+            
             // create an Optional for use with constructSessionFilePath():
             Optional<String> sessionName = Optional.of(selectedSession); 
             // recreate the path to the session file, which should reside in the sessions folder:
             File sessionFile = constructSessionFilePath(sessionName); 
-            if (sessionFile.exists()) {
+            
+            if (sessionFile.exists())
                 // load the session file:
                 loadSessionFile(sessionFile);
-            }
-        } else {
+        }//end if
+        else
             simpleAlert("Please select a session filename from the list of sessions.", null);
-        }
-    }
+    }//end loadSessionFromManagerAction
     
     @FXML protected void showHelpDocumentationAction(ActionEvent event) {
-            final Stage stage = new Stage();
+            final Stage helpDoc = new Stage();
             
             // create the root node:
             TabPane tabPane = new TabPane();
@@ -1206,17 +1150,17 @@ public class AppStageController {
             Scene scene = new Scene(tabPane, 200, 200, Color.WHITESMOKE);
  
             //set scene to stage
-            stage.setScene(scene);
+            helpDoc.setScene(scene);
  
             //set title to stage
-            stage.setTitle("New stage");
+            helpDoc.setTitle("New stage");
  
             //center stage on screen
-            stage.centerOnScreen();
+            helpDoc.centerOnScreen();
  
             //show the stage
-            stage.show();
-    }
+            helpDoc.show();
+    }//end showHelpDocumentationAction
     
     /**
      * 
@@ -1236,43 +1180,44 @@ public class AppStageController {
             // attempt to coerce the content of the Start text area into the required format:
             SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
             startIndex = formatter.parse(startDataRangeTextArea.getText());
-        }
+        }//end try
         catch (ParseException pe) {
             simpleAlert("Invalid starting index", "Please ensure the value entered into the Start field is a Date in the format: MM/dd/yyyy HH:mm:ss.SSS");
             return false;
-        }
+        }//end catch
         
         try {
             // attempt to coerce the content of the Stop text area into the required format:
             SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
             stopIndex = formatter.parse(stopDataRangeTextArea.getText());
-        }
+        }//end try
         catch (ParseException pe) {
             simpleAlert("Invalid stopping index", "Please ensure the value entered into the Stop field is a Date in the format: MM/dd/yyyy HH:mm:ss.SSS");
             return false;
-        }
+        }//end catch
         
         // (Parker 4/1/17): Check that the Start and Stop values are in range:
         if (startIndex.compareTo(stopIndex) > 0) {
             simpleAlert("Out-of-bounds starting index", "The starting index in the Start field must be less than or equal to the stopping index in the Stop field.");
             return false;
-        }
+        }//end if
         else if (stopIndex.compareTo(startIndex) < 0) {
             simpleAlert("Out-of-bounds stopping index", "The stopping index in the Stop field must be greater than or equal to the starting index in the Start field.");
             return false;            
-        }
+        }//end else if
         
         // (Parker 4/1/17): get the mice that the user has selected in the mice list of the Visualization Options:
         ObservableList<String> selectedMiceIds = selectedMiceListView.getSelectionModel().getSelectedItems();
         // create a Mouse array of selected Mice based on the String Ids from the selected mice list:
         ArrayList<Mouse> selectedMice = mice.getMicebyIdsLabels(selectedMiceIds);
+        
         if (selectedMice == null) {
             simpleAlert("No mice selected!", "Please select at least one mouse to visualize.");
             return false;
-        }
+        }//end if
         // if there were no validation errors, return true:
         return true;
-    }
+    }//end checkCommonAnimationParameters
     
     /**
      * 
@@ -1304,6 +1249,7 @@ public class AppStageController {
         
         // (Parker 4/1/17): get the mice that the user has selected in the mice list of the Visualization Options:
         ObservableList<String> selectedMiceIds = selectedMiceListView.getSelectionModel().getSelectedItems();
+        
         // create a Mouse array of selected Mice based on the String Ids from the selected mice list:
         ArrayList<Mouse> selectedMice = mice.getMicebyIdsLabels(selectedMiceIds);
         
@@ -1314,7 +1260,7 @@ public class AppStageController {
             stopIndex = formatter.parse(stopDataRangeTextArea.getText());
         } catch (ParseException ex) {
             Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }//end catch
 
         // (Parker 3/27/17): Check to ensure the value of the visualizationTypeChoiceBox is not null:
         if (visualizationTypeChoiceBox.getValue() != null) {
@@ -1328,41 +1274,46 @@ public class AppStageController {
                     // begin a timer to record the amount of time the generation takes
                     long start = System.currentTimeMillis();
                     
-                    if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
-                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
-                    }
-                    else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
-                        grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
-                    }
-                    else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
-                        // in order to create a static overlay of both heat an vector maps, simply call each static mapping method:
-                        grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
-                        grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
-                    }
+                    switch (mapTypeChoiceBox.getValue().toString()) {
+                        case "Heat":
+                            grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+                            break;
+                        case "Vector":
+                            grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+                            break;
+                        case "Overlay":
+                            // in order to create a static overlay of both heat an vector maps, simply call each static mapping method:
+                            grid.staticHeatMap(viewerPane, selectedMice, startIndex, stopIndex);
+                            grid.staticVectorMap(viewerPane, selectedMice, startIndex, stopIndex);
+                            break;
+                        default:
+                            break;
+                    }//end switch
                     
                     // stop the timer:
                     long end = System.currentTimeMillis();
+                    
                     // get the elapsed time of the generation duration:
                     long elapsed = end - start;
+                    
                     // output a summary of the map generation duration to the user as a text status:
                     String describeMice = (selectedMice.size() > 1) ? "mice" : "mouse";
                     String visualizationType = visualizationTypeChoiceBox.getValue().toString();
                     String mapType = mapTypeChoiceBox.getValue().toString();
                     leftStatus.setText("Finished generating a " + visualizationType + " " + mapType + " map of " + selectedMice.size() + " " + describeMice + " in " + elapsed + " milliseconds.");
-                }
-                else {
+                }//end if
+                else
                     simpleAlert("No map type selected!", "Please select a map type from the dropdown.");
-                    return;
-                }
-            }
+            }//end if
+            
             else if (visualizationTypeChoiceBox.getValue().toString().equals("Animated")) {
                 // (Parker 3/27/17): Check to ensure the value of the mapTypeChoiceBox is not null:
                 if (mapTypeChoiceBox.getValue() != null) {
                     // if there is a current animation running and it has not been cancelled,
                     // stop the animation
-                    if (grid.animationCancelled == false) {
+                    if (grid.animationCancelled == false)
                         grid.stopAnimation(generateButton);
-                    }
+                    
                     // else, the current animation has been cancelled (or there is no current animation),
                     // so proceed to generate one:
                     else {
@@ -1375,28 +1326,29 @@ public class AppStageController {
                         // reset the visual content of the grid before generating the animation:
                         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
 
-                        if (mapTypeChoiceBox.getValue().toString().equals("Heat")) {
-                            grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
-                        }
-                        else if (mapTypeChoiceBox.getValue().toString().equals("Vector")) {
-                            grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
-                        }
-                        else if (mapTypeChoiceBox.getValue().toString().equals("Overlay")) {
-                            grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
-                        }
-                    }
-                }
-                else {
+                        switch (mapTypeChoiceBox.getValue().toString()) {
+                            case "Heat":
+                                grid.animatedHeatMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
+                                break;
+                            case "Vector":
+                                grid.animatedVectorMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
+                                break;
+                            case "Overlay":
+                                grid.animatedOverlayMap(viewerPane, generateButton, currentAnimationFrame, leftStatus, selectedMice, startIndex, stopIndex, animationSpeedSlider.getValue(), null);
+                                break;
+                            default:
+                                break;
+                        }//end switch
+                    }//end else
+                }//end if
+                else
                     simpleAlert("No map type selected!", "Please select a map type from the dropdown.");
-                    return;
-                }
-            }
-        }
-        else {
+            }//end else if
+        }//end if
+        
+        else
             simpleAlert("No visualization type selected!", "Please select a visualization type from the dropdown.");
-            return;           
-        }
-    }
+    }//end generateMapFunction
     
     /**
      * 
@@ -1411,7 +1363,7 @@ public class AppStageController {
      */
     @FXML protected void generateMapAction(ActionEvent event) throws InterruptedException {
         generateMapFunction();
-    }
+    }//end generateMapAction
     
     /**
      * 
@@ -1427,20 +1379,21 @@ public class AppStageController {
      */
     public void saveFileAction(ActionEvent event) throws FileNotFoundException, URISyntaxException, IOException {
         // Check if the current session is new:
-        if (session.isNewSession) { 
+        if (session.isNewSession) 
             // prompt the user to create a new session file:
             promptUserToCreateNewSessionFile(session);
-        }
+        
         // if the session is not new (already associated with a session file), save 
         // the current state of the session and alert the user via a dialog window:
         else {
             session.saveState();
             simpleAlert("File saved!", "The session data was saved to disk.");
-        }
-    }
+        }//end else
+    }//end saveFileAction
    
     /**
      * 
+     * @throws java.io.FileNotFoundException
      * @author: parker
      * 
      * exitApplication is called when the user exits the application, currently by
@@ -1452,20 +1405,19 @@ public class AppStageController {
     @FXML
     public void exitApplication(ActionEvent event) throws FileNotFoundException {
        System.out.println("Platform is closing");
-       if (session.isNewSession == false) {
+       if (session.isNewSession == false)
            // save the session's state before exiting:
            session.saveState();
-       }
        Platform.exit();
-    }
+    }//end exitApplication
     
     /**
      * 
      * @author: parker
      * 
-     * debugAlert is an easy way to show a popup containing a string of info (DEBUGGING ONLY)
+     * debugAlert is an easy way to show a pop-up containing a string of info (DEBUGGING ONLY)
      * 
-     * @param info a string of information to display in the popup dialog
+     * @param info a string of information to display in the pop-up dialog
      */
     public void debugAlert(String info) {
         Alert alert = new Alert(AlertType.INFORMATION);
@@ -1473,7 +1425,7 @@ public class AppStageController {
         alert.setHeaderText(null);
         alert.setContentText(info);
         alert.showAndWait();
-    }
+    }//end debugAlert
     
     /**
      * 
@@ -1491,9 +1443,7 @@ public class AppStageController {
         alert.setHeaderText(header);
         alert.setContentText(info);
         alert.showAndWait();
-        //Image image = new Image(getClass().getResourceAsStream("checkmark.jpg"));
-        //alert.setGraphic(new ImageView(image));
-    }
+    }//end simpleAlert
     
     /**
      * 
@@ -1518,14 +1468,16 @@ public class AppStageController {
         dialog.setContentText("Please enter a name for this session:");
         
         return dialog;
-    }
+    }//end showSessionFilePrompt
     
     /**
      * 
+     * @throws java.io.FileNotFoundException
+     * @throws java.net.URISyntaxException
      * @author: parker
      * 
-     * loads a json session file, updates the program GUI, and restores the state
-     * of the program contained within the json file.
+     * loads a JSON session file, updates the program GUI, and restores the state
+     * of the program contained within the JSON file.
      * 
      * @param sessionFile the session file to load
      * @return true if session file was loaded, false if otherwise
@@ -1534,37 +1486,40 @@ public class AppStageController {
         if (openFile(sessionFile)) {
             // if the selected session file contains a different session filename than the one listed in the 
             // currentSessionFilePath property of the session object, update the session object:
-            if (session.currentSessionFilePath != sessionFile.getPath().toString()) {
-                session.currentSessionFilePath = sessionFile.getPath().toString();
-            }
+            if (!session.currentSessionFilePath.equals(sessionFile.getPath()))
+                session.currentSessionFilePath = sessionFile.getPath();
+            
             // create a File object based on the filepath string of the current data set file:
             File dataFile = new File(session.currentDataSetFilePath);
+            
             //debugAlert("Attempting to open file " + dataFile.getPath().toString() + ", " + dataFile.exists());
-            if (!dataFile.exists()) {
+            if (!dataFile.exists())
                 dataFile = new File(getSessionsFolderPath() + "\\" + session.relativeDataSetFilePath);
-                //debugAlert("Attempting to open file " + getSessionsFolderPath() + "\\" + session.relativeDataSetFilePath + ", " + dataFile.exists());
-            }
+            
             if (dataFile.exists()) {
                 // attempt to parse the data set file associated with the session file being loaded:
                 if (openFile(dataFile)) {
                     // update the program's state via the session variable:
-                    session.sessionLoaded(sessionFile.getPath().toString());
+                    session.sessionLoaded(sessionFile.getPath());
                     session.dataSetFileLoaded(dataFile.getPath(), dataFile.getName()); 
+                    
                     // write the session state to file:
                     session.saveState();
+                    
                     // update the System's GUI to enable the visualization options:
                     unlockVisualizationOptions();
+                    
                     // draw the basic appearance of the grid in the viewer pane:
                     drawCanvas(viewerPane.getWidth(), viewerPane.getHeight());
                     // restore the user's GUI control settings from the loaded session file:
                     restoreState();
                     return true;
-                }
-            }
-        }
+                }//end if
+            }//end if
+        }//end if
         leftStatus.setText("Error: The session file could not be loaded.");
         return false;
-    }
+    }//end loadSessionFile
     
     /**
      * 
@@ -1581,13 +1536,13 @@ public class AppStageController {
         for (int i = 0; i < name.length(); ++i) {
             // inspect the current character and judge if it is valid:
             char c = name.charAt(i);
-            if (!Character.isDigit(c) && !Character.isAlphabetic(c) && c != '-' && c != '_' && c != ' ' && c != '.') {
+            if (!Character.isDigit(c) && !Character.isAlphabetic(c) && c != '-' && c != '_' && c != ' ' && c != '.')
                 return false;
-            }
-        }
+        }//end for
+        
         // return true if the string passed the validation check
         return true;
-    }
+    }//end isFileNameValid
     
     /**
      * 
@@ -1603,7 +1558,7 @@ public class AppStageController {
         alert.setHeaderText("Invalid filename");
         alert.setContentText("Allowable characters in the filename include:\nAlphanumeric characters\nSpaces\n'-', '_', and '.' (dashes, underscores, and periods.");
         alert.showAndWait();
-    }
+    }//end showInvalidFileNameWarning
     
     /**
      * 
@@ -1620,7 +1575,7 @@ public class AppStageController {
         // Parker (3-19-17): get the above path without the filename:
         Path folderContainingJarPath = Paths.get(folderContainingJar.toURI()).getParent();
         return folderContainingJarPath;
-    }
+    }//end getPathOfCurrentlyExecutingJarFile
     
     /**
      * 
@@ -1640,7 +1595,7 @@ public class AppStageController {
         // Parker (3-19-17): create a File object of the sessionsFolderPath for checking existence:
         File miceVizSessionsFolder = new File(sessionsFolderPath);
         return miceVizSessionsFolder;
-    }
+    }//end getSessionsFolderPath
     
     /**
      * 
@@ -1656,13 +1611,8 @@ public class AppStageController {
         // Parker (3-19-17): check to see if there is an existing sessions folder 
         // (in the same directory as the program's executable .JAR file):
         File miceVizSessionsFolder = getSessionsFolderPath();
-        if (miceVizSessionsFolder.isDirectory()) {
-           return true;
-        }
-        else {
-            return false;
-        }
-    }
+        return miceVizSessionsFolder.isDirectory();
+    }//end checkIfSessionsFolderExists
     
     /**
      * 
@@ -1677,7 +1627,7 @@ public class AppStageController {
     public File constructSessionFilePath(Optional sessionName) throws URISyntaxException {
         File newSessionFile = new File(getSessionsFolderPath().toString() + "\\" + sessionName.get() + ".json");
         return newSessionFile;
-    }
+    }//end constructSessionFilePath
     
     /**
      * 
@@ -1700,15 +1650,13 @@ public class AppStageController {
             if (newSessionFile.createNewFile()){
                 simpleAlert("Session file created!", "File location:\n\n" + newSessionFile.toString());
                 return "true";
-            }
-            else {
+            }//end if
+            else
                 return "Could not create the session file.";
-            }
-        }
-        else {
+        }//end if
+        else
             return "Session file already exists.";
-        }
-    }
+    }//end createSessionFile
 
     /**
      * 
@@ -1728,13 +1676,12 @@ public class AppStageController {
         alert.setContentText("Do you want to retry creating a session file?");
 
         Optional<ButtonType> retryFileCreationAnswer = alert.showAndWait();
-        if (retryFileCreationAnswer.get() == ButtonType.OK){
+        
+        if (retryFileCreationAnswer.get() == ButtonType.OK)
             return true;
-        }
-        else {
+        else
             return false;
-        }
-    }
+    }//end showRetryFileCreationPrompt
     
     /**
      * 
@@ -1750,7 +1697,7 @@ public class AppStageController {
         // store the session name entered by the user during the prompt:
         Optional<String> sessionName = null;
         // store if the user-entered file name is valid:
-        Boolean isValidFileName = false;
+        Boolean isValidFileName;
         // store if the user has canceled the new session file creation operation:
         Boolean userCanceled = false;
 
@@ -1770,36 +1717,34 @@ public class AppStageController {
                 // if the user submitted a file name::
                 if (sessionName.isPresent()) { 
                     // if the file name entered is invalid:
-                    if (!isFileNameValid(sessionName.get())) { 
+                    if (!isFileNameValid(sessionName.get()))
                         // alert the user the file name is invalid:
                         showInvalidFileNameWarning(); 
-                    }
-                    else {
+                    else
                         // valid file name; break out of the !isValidFileName while loop:
                         isValidFileName = true;
-                    }
-                }
+                }//end if
+                
                 // else the user cancelled (meaning that sessionName was not entered):
                 else {
                     // the user has canceled the operation:
                     userCanceled = true;
                     // break out of the !userCanceled while loop:
                     break;
-                }
-            }
+                }//end else
+            }//end while
 
             // the program has passed the file name entry step, proceed to further steps:
             if (!userCanceled) {
                 // check if the directory for storing sessions exists:
-                if (checkIfSessionsFolderExists() == false) {
+                if (checkIfSessionsFolderExists() == false)
                     // create the directory:
                     getSessionsFolderPath().mkdir(); 
-                }
 
                 // attempt to create the session file within the session directory:
                 String sessionFileCreated = createSessionFile(sessionName);
                 // if the session file was created successfully:
-                if (sessionFileCreated == "true") {
+                if ("true".equals(sessionFileCreated)) {
                     leftStatus.setText("New session file '" + sessionName.get() + "' was created.");
                     String name = constructSessionFilePath(sessionName).toString();
                     // update the program's state via the session variable:
@@ -1809,16 +1754,17 @@ public class AppStageController {
                     refreshListOfSessions();
                     // the save new session operation is complete; break out of the !userCanceled while loop :
                     break; 
-                }
+                }//end if
+                
                 else {
                     // Parker (3-19-17): If the user wants to retry creating the file
                     // (which results in showRetryFileCreationPrompt returning true),
                     // then the user has NOT canceled the operation (setting userCanceled to false)
                     userCanceled = !(showRetryFileCreationPrompt(sessionFileCreated));
-                }
-            }
-        }
-    }
+                }//end else
+            }//end if
+        }//end while
+    }//end promptUserToCreateNewSessionFile
     
     /**
      * 
@@ -1878,7 +1824,7 @@ public class AppStageController {
                     // and startDataRangeChoiceBox, store all timestamps in the data set and later use the ArrayList
                     // to select the timestamps that represent the 0/5, 1/5, 2/5, 3/5, 4/5, and 5/5 divisions of the 
                     // data set:
-                    ArrayList<Date> dataTimestampsList = new ArrayList<Date>();
+                    ArrayList<Date> dataTimestampsList = new ArrayList<>();
                     
                     // (Parker): define a string format for converting Dates to Strings:
                     SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
@@ -1913,15 +1859,13 @@ public class AppStageController {
                         // (Parker 4/16/17): if the current data row has a timestamp that cannot be read, skip this data row
                         if (mlt.timestamp == null) continue;
                         
-                        int unitLabelToInteger;
-                        
                         // (Parker 4/16/17): check that the unitLabel (the grid sector index in the current data row) contains an integer index after
                         // its 4 character 'RFID' prefix: 
                         try {
-                            unitLabelToInteger = Integer.parseInt(items.get(UNIT_LABEL).substring(4));
+                            Integer.parseInt(items.get(UNIT_LABEL).substring(4));
                         }
                         // (Parker 4/16/17): if not, skip the current data row:
-                        catch (Exception e) {
+                        catch (NumberFormatException e) {
                             continue;
                         }
                         
@@ -1936,10 +1880,9 @@ public class AppStageController {
                         if (linesProcessed == 2) {
                             // if there is no previous Start timestamp session value (if one does exist, it will be restored at a later point),
                             // proceed with prepopulating the Start TextArea:
-                            if (session.stoppingIndex.equals("")) {
+                            if (session.stoppingIndex.equals(""))
                                 startDataRangeTextArea.setText(sdf.format(dateRange));
-                            }
-                        }
+                        }//end if
                         
                         // check if the mice object contains a mouse with the current row's IdRFID:
                         if (mice.hasMouse(items.get(ID_RFID)) == false) {
@@ -1949,21 +1892,21 @@ public class AppStageController {
                             m.addLocTime(mlt);
                             // add the mouse object to the mice array:
                             mice.add(m);
-                        }
+                        }//end if
+                        
                         // else, the mouse of the current row already has a corresponding Mouse object;
                         // get the Mouse object by IdRFID and add the current row's location and timestamp data:
-                        else {
+                        else
                             mice.getMouseByIdRFID(items.get(ID_RFID)).addLocTime(mlt);
-                        }
-                    }
+                    }//end while
+                    
                     // (Parker 3/26/17): Prepopulate the stop visualization option 
                     // with the timestamp from the last row processed:
                     
                     // if there is no previous session value (if one does exist, it will be restored at a later point),
                     // proceed with prepopulating the Stop TextArea:
-                    if (session.stoppingIndex.equals("")) {
+                    if (session.stoppingIndex.equals(""))
                         stopDataRangeTextArea.setText(sdf.format(dateRange));
-                    }
                     
                     /// (Parker): Create an observable list for the purpose of populating the stopDataRangeChoiceBox and
                     // startDataRangeChoiceBox options. Add to the observable list 6 timestamps from the data, representing
@@ -1989,24 +1932,26 @@ public class AppStageController {
                     session.selectedMiceIndices = selectedMiceIndices;
                     
                     mice.print();
-                }
+                }//end if
+                
                 // else if the user chose a JSON file, assume it is a session file:
                 else if (extension.equals("json")) {
                     String jsonData = "";
                     // read the JSON data, which should be contained on one line due to how the GSON library works:
-                    while (sc.hasNextLine()) {
+                    while (sc.hasNextLine())
                         jsonData = sc.nextLine();
-                    }
+                    
                     // attempt to recreate the session from the data contained within the session file by using GSON:
                     Gson gson = new GsonBuilder().create();
+                    
                     try {
                         Session loadedSession = gson.fromJson(jsonData, Session.class);
                         session = loadedSession; // replace the current session's info with the loaded session's info
-                    }
-                    catch (Exception e) {
+                    }//end try
+                    catch (JsonSyntaxException e) {
                         return false;
-                    }
-                }
+                    }//end catch
+                }//end else if
                 
                 // file processing finished; calculate the time spent:
                 long end = System.currentTimeMillis();
@@ -2019,22 +1964,23 @@ public class AppStageController {
                 if (sc.ioException() != null) {
                     leftStatus.setText("An ioException from the Scanner object was thrown.");
                     throw sc.ioException();
-                }
-            }
+                }//end if
+            }//end try
+            
             // finally, perform cleanup on the file reading objects:
             finally {
-                if (inputStream != null) {
+                if (inputStream != null)
                     inputStream.close();
-                }
-                if (sc != null) {
+                if (sc != null)
                     sc.close();
-                }
+                
                 return true;
-            }
-        } 
-        catch(Exception e) {
+            }//end finally
+        }//end try
+        catch(IOException e) {
             System.out.println(e);
             return false;
-        }
-    }
-}
+        }//end catch
+    }//end openFile
+    
+}//end AppStageController
