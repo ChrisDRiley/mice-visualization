@@ -1,4 +1,5 @@
-Spring 2017 CPSC 430 - Mice Visualization Project
+Spring 2017
+CPSC 430 - Mice Visualization Project
 
 Development Team:
   -Parker Rowland
