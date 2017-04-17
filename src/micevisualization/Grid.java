@@ -1096,33 +1096,26 @@ public class Grid {
                                             
                                                 dataCanvasContext.setStroke(line_frames.get(position).color);
                                                  dataCanvasContext.setLineDashes(0d);
-                                                dataCanvasContext.strokeLine(
-                                                line_frames.get(position).first.center_x,
-                                                line_frames.get(position).first.center_y,
-                                                line_frames.get(position).second.center_x,
-                                                line_frames.get(position).second.center_y);
+                                                
                                                 
                                             }else if(line_frames.get(position).get_animation_state() == 2){
                                                 
                                                 dataCanvasContext.setStroke(line_frames.get(position).color);
                                                 dataCanvasContext.setLineDashes(10d);
-                                                dataCanvasContext.strokeLine(
-                                                line_frames.get(position).first.center_x,
-                                                line_frames.get(position).first.center_y,
-                                                line_frames.get(position).second.center_x,
-                                                line_frames.get(position).second.center_y);
+                                                
                                                 
                                                 
                                             }else if(line_frames.get(position).get_animation_state() >= 3){ 
                                                 
                                                 dataCanvasContext.setStroke(Color.TRANSPARENT);
                                                 dataCanvasContext.setLineDashes(0d);
-                                                dataCanvasContext.strokeLine(
+                                                
+                                            }
+                                            dataCanvasContext.strokeLine(
                                                 line_frames.get(position).first.center_x,
                                                 line_frames.get(position).first.center_y,
                                                 line_frames.get(position).second.center_x,
                                                 line_frames.get(position).second.center_y);
-                                            }
                                         }
                                         // If the exportFolder parameter contains a File object, create a new File.
                                         // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
