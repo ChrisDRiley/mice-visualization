@@ -43,7 +43,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 
 import com.google.gson.Gson;
@@ -65,7 +64,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
@@ -81,16 +79,12 @@ public class AppStageController {
     @FXML private Label leftStatus;
     // @FXML private ProgressBar progressBar;
     @FXML private ListView sessionsListView;
-    @FXML private Button sessionsLoadButton;
-    @FXML private Button sessionsDeleteButton;
     @FXML private AnchorPane visualizationOptionsAnchorPane;
     @FXML private AnchorPane sessionsAnchorPane;
     @FXML private ChoiceBox visualizationTypeChoiceBox;
     @FXML private CustomMenuItem saveMenuItem;
     @FXML private CustomMenuItem exportMenuItem;
-    @FXML private Canvas canvasBasePane;
     @FXML private StackPane viewerPane;
-    @FXML private SplitPane mainSplitPane;
     @FXML private ListView selectedMiceListView;
     @FXML private TextArea startDataRangeTextArea;
     @FXML private TextArea stopDataRangeTextArea;
@@ -101,7 +95,6 @@ public class AppStageController {
     @FXML private ScrollPane visualizationOptionsScrollPane;
     @FXML private VBox animationOptionsVBox;
     @FXML private Slider animationSpeedSlider;
-    @FXML private Button generateAnimatedMapButton;
     @FXML private TextArea currentAnimationFrame;
     @FXML private ChoiceBox stopDataRangeChoiceBox;
     @FXML private ChoiceBox startDataRangeChoiceBox;
@@ -385,7 +378,7 @@ public class AppStageController {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Program Notification");
             alert.setHeaderText("Error: No data to render.");
-            alert.setContentText("The visualization currently has no data. Please click the Generate Static Map / Play Animataion button to create data for exporting.");
+            alert.setContentText("The visualization currently has no data. Please click the Generate Static Map / Play Animation button to create data for exporting.");
             alert.showAndWait();
         }//end if
         else {
@@ -699,46 +692,41 @@ public class AppStageController {
         // (Parker): Get the selected mice from the selectedMiceListView GUI control, and save their indicies to 
         // the session whenever a change in the selection is made:
         ObservableList<Integer> selectedMice = selectedMiceListView.getSelectionModel().getSelectedIndices();
-        selectedMice.addListener(new ListChangeListener<Integer>() {
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends Integer> c) {
-                String selectedIndices = "";
-                for (int i = 0; i < selectedMice.size(); ++i) {
-                    selectedIndices += String.valueOf(selectedMice.get(i));
-                    if (i < selectedMice.size() - 1) selectedIndices += ",";
-                }//end for
-                
-                session.selectedMiceIndices = selectedIndices;
-                
-                try {
-                    session.saveState();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                }//end catch
-            }
+        selectedMice.addListener((ListChangeListener.Change<? extends Integer> c) -> {
+            String selectedIndices = "";
+            for (int i = 0; i < selectedMice.size(); ++i) {
+                selectedIndices += String.valueOf(selectedMice.get(i));
+                if (i < selectedMice.size() - 1) selectedIndices += ",";
+            }//end for
+            
+            session.selectedMiceIndices = selectedIndices;
+            
+            try {
+                session.saveState();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+            }//end catch
         });
         
         // (Parker 4/10/17): When the user has the Generate Map or Play/Stop Animation button
         // selected, make it possible to trigger the button's associated onAction function via the
         // Enter key:
-        generateButton.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.ENTER) {
-                    ButtonSkin skin = (ButtonSkin) generateButton.getSkin();
-                    if (event.getSource() instanceof Button) {
-                        try {
-                            generateMapFunction();
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
-                        }//end catch
-                        finally {
-                            event.consume();
-                        }//end finally
-                    }//end if
+        generateButton.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                ButtonSkin skin = (ButtonSkin) generateButton.getSkin();
+                if (event.getSource() instanceof Button) {
+                    try {
+                        generateMapFunction();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
+                    }//end catch
+                    finally {
+                        event.consume();
+                    }//end finally
                 }//end if
-            }//end handle
-        });
+            }//end if
+        } //end handle
+        );
         
         // (Parker): check if the directory for storing sessions exists:
         if (checkIfSessionsFolderExists() == false)
@@ -798,6 +786,7 @@ public class AppStageController {
      * @param height intended for use with the parent node's height
      */
     public void drawCanvas(double width, double height) {
+        grid.data = null;
         grid.redraw(viewerPane, showGridNumbersCheckBox.isSelected(), showGridLinesCheckBox.isSelected(), false);
     }//end drawCanvas
     
@@ -1673,10 +1662,7 @@ public class AppStageController {
 
         Optional<ButtonType> retryFileCreationAnswer = alert.showAndWait();
         
-        if (retryFileCreationAnswer.get() == ButtonType.OK)
-            return true;
-        else
-            return false;
+        return retryFileCreationAnswer.get() == ButtonType.OK;
     }//end showRetryFileCreationPrompt
     
     /**
@@ -1743,6 +1729,7 @@ public class AppStageController {
                 if ("true".equals(sessionFileCreated)) {
                     leftStatus.setText("New session file '" + sessionName.get() + "' was created.");
                     String name = constructSessionFilePath(sessionName).toString();
+                    
                     // update the program's state via the session variable:
                     session.sessionLoaded(name); 
                     // write the session state to file:
@@ -1969,7 +1956,6 @@ public class AppStageController {
                     inputStream.close();
                 if (sc != null)
                     sc.close();
-                
                 return true;
             }//end finally
         }//end try
