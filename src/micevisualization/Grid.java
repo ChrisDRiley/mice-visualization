@@ -6,9 +6,7 @@
 package micevisualization;
 
 import java.awt.AWTException;
-import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -20,16 +18,10 @@ import java.util.Date;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
-import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -37,16 +29,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.ArcType;
-import javafx.scene.shape.Line;
-import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
-import javafx.util.Duration;
 import javax.imageio.ImageIO;
-import javafx.stage.Stage;
 
 /**
  *
@@ -70,15 +55,15 @@ public class Grid {
     
     // (Parker 3/26/17): allocate the arrays during grid object construction:
     Grid() {
-        this.sectors = new ArrayList<GridSector>();
-        this.datalayers = new ArrayList<Canvas>();
+        this.sectors = new ArrayList<>();
+        this.datalayers = new ArrayList<>();
         this.animationCancelled = true;
-    }
+    }//end Grid
     
     // (Parker 3/26/17): add a GridSector object to the sectors array
     Boolean addSector(GridSector gs) {
         return this.sectors.add(gs);
-    }
+    }//end addSector
     
     // (Parker 3/26/17): return the matching grid sector by its grid index. The grid is set up like this:
     // 1 5 9  13 17 21 
@@ -87,39 +72,38 @@ public class Grid {
     // 4 8 12 16 20 24
     GridSector getSectorByGridIndex(int index) {
         for (int i = 0; i < this.sectors.size(); ++i) {
-            if (this.sectors.get(i).gridIndex == index) {
+            if (this.sectors.get(i).gridIndex != index) {
+            } else {
                 return this.sectors.get(i);
-            }
-        }
+            }//end else
+        }//end for
         return null;
-    }
+    }//end getSectorByGridIndex
     
     // (Parker 3/26/17): draw a white background for each grid sector:
     void drawSectorsBackground(Canvas c) {
         GraphicsContext gc = c.getGraphicsContext2D();
         gc.setFill(Color.WHITE);
-        for (int i = 0; i < this.sectors.size(); ++i) {
+        for (int i = 0; i < this.sectors.size(); ++i)
             gc.fillRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
-        }
-    }
+    }//end drawSectorsBackground
     
     // (Parker 3/26/17): draw black gridlines around each grid sector:
     void drawSectorsGridlines(Canvas c) {
         GraphicsContext gc = c.getGraphicsContext2D();
         gc.setFill(Color.BLACK);
-        for (int i = 0; i < this.sectors.size(); ++i) {
+        for (int i = 0; i < this.sectors.size(); ++i)
             gc.strokeRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
-        }
-    }
+    }//end drawSectorsGridlines
     
     // (Parker 3/26/17): draw sector numbers in each grid sector:
     void drawSectorsNumbers(Canvas c) {
         GraphicsContext gc = c.getGraphicsContext2D();
         gc.setStroke(Color.GRAY);
-        for (int i = 0; i < this.sectors.size(); ++i) {
+        for (int i = 0; i < this.sectors.size(); ++i)
             gc.strokeText(String.valueOf(this.sectors.get(i).gridIndex), this.sectors.get(i).x + this.sectors.get(i).w*0.5, this.sectors.get(i).y + this.sectors.get(i).h*0.9);
-        }
-    }
+    }//end drawSectorsNumbers
+    
     
     // (Parker 3/26/17): create a new this.gridlines Canvas object. use setId for the purpose of selecting
     // it (the object) in the list of viewerPane's children at some point in the future. Call this.drawSectorsGridlines on 
@@ -127,10 +111,9 @@ public class Grid {
     void makeGridLinesCanvas(StackPane viewerPane, double width, double height) {
             this.gridlines = new Canvas(width, height);
             this.gridlines.setId("gridlines");
-            GraphicsContext gridlinesCanvasContext = this.gridlines.getGraphicsContext2D();
             this.drawSectorsGridlines(this.gridlines);
             viewerPane.getChildren().add(this.gridlines);   
-    }
+    }//end makeGridLinesCanvas
     
     // (Parker 3/26/17): create a new this.gridnumbers Canvas object. Use setId for the purpose of selecting
     // it (the object) in the list of viewerPane's children at some point in the future. Call this.drawSectorsNumbers on 
@@ -138,10 +121,9 @@ public class Grid {
     void makeGridNumbersCanvas(StackPane viewerPane, double width, double height) {
             this.gridnumbers = new Canvas(width, height);
             this.gridnumbers.setId("gridnumbers");
-            GraphicsContext gridNumbersCanvasContext = this.gridnumbers.getGraphicsContext2D();
             this.drawSectorsNumbers(this.gridnumbers);
             viewerPane.getChildren().add(this.gridnumbers);   
-    }
+    }//end makeGridNumbersCanvas
     
     // (Parker 3/26/17): search viewerPane's children for the #gridlines Canvas object. If the gridlines Canvas
     // object is not a child of viewerPane, create it by calculating current width and height and using
@@ -153,12 +135,12 @@ public class Grid {
             double width = calculateDimensions(viewerPane).w;
             double height = calculateDimensions(viewerPane).h;
             makeGridLinesCanvas(viewerPane, width, height);
-        }
+        }//end if
         else {
             System.out.println("toggling grid lines off");
             viewerPane.getChildren().remove(viewerPane.lookup(id));
-        }
-    }
+        }//end else
+    }//end toggleGridLines
 
     // (Parker 3/26/17): search viewerPane's children for the #gridnumbers Canvas object. If the gridnumbers Canvas
     // object is not a child of viewerPane, create it by calculating current width and height and using
@@ -171,12 +153,12 @@ public class Grid {
             double width = calculateDimensions(viewerPane).w;
             double height = calculateDimensions(viewerPane).h;
             makeGridNumbersCanvas(viewerPane, width, height);
-        }
+        }//end if
         else {
             System.out.println("toggling grid numbers off");
             viewerPane.getChildren().remove(viewerPane.lookup(id));
-        }
-    }
+        }//end else
+    }//end toggleGridNumbers
     
     // (Parker 3/26/17): calculate the width and height of the canvas layers, maintaining a 7:4 aspect ratio,
     // and return the width and height as a Dimensions object
@@ -186,18 +168,18 @@ public class Grid {
         double height = viewerPane.getHeight() - 30;
         
         // (Parker 3/25/17): maintain a 7:4 aspect ratio in the canvas dimensions:
-        if (width > height) {
+        if (width > height)
             width = height;
-        }
-        else if (width < height) {
+        
+        else if (width < height)
             height = width;
-        }
         
         height = (height/7)*4;
         
         Dimensions d = new Dimensions(width, height);
         return d;
-    }
+    }//end calculateDimensions
+    
     
     // (Parker 3/26/17): reset the rendered visualization. Redraw() draws all of the non-computationally intensive layers
     // of the visualization, including the background, gridlines, and gridnumbers Canvas objects.
@@ -237,16 +219,18 @@ public class Grid {
         grid sectors in the first 6x4 spaces are regular sectors, while column 7x4
         contains one grid sector, offset from the others, which represents the feeding station.
         Add the gridSectors to the grid's gridSectors array with addSector(). */
-        double currentY = 0.0;
-        double currentX = 0.0;
+        double currentY;
+        double currentX;
+        
         for (int i = 0; i < ROWS; ++i) {
             currentY = (height / ROWS) * i;
             for (int j = 0; j < COLS-1; ++j) { // handle the first 24 grid sectors (#s 0 - 23)
                 currentX = (width / COLS) * j;
                 GridSector gs = new GridSector(currentX, currentY, width/COLS, height/ROWS, (j*4 + i) + 1); // unitLabel (the gridSector id# from the data set) ranges from 1 - 25, hence (j*4 + i) + 1
                 this.addSector(gs);
-            }
-        }
+            }//end for
+        }//end for
+        
         // handle the last grid sector, the feeding station (# 24):
         GridSector gs = new GridSector((width / COLS) * 6, height/2 - ((height/ROWS)/2), width/COLS, height/ROWS, 25);  
         this.addSector(gs);
@@ -258,18 +242,15 @@ public class Grid {
         layer n: gridlines overlay */
         this.background = new Canvas(width, height);
         this.background.setId("background");
-        GraphicsContext backgroundCanvasContext = this.background.getGraphicsContext2D();
         this.drawSectorsBackground(this.background);
         viewerPane.getChildren().add(this.background);
         
-        if (showGridNumbers) {
+        if (showGridNumbers)
             makeGridNumbersCanvas(viewerPane, width, height);
-        }   
         
-        if (showGridLines) { 
+        if (showGridLines)
             makeGridLinesCanvas(viewerPane, width, height);
-        }   
-    }
+    }//end redraw
     
     /**
      * 
@@ -303,7 +284,7 @@ public class Grid {
             Bounds screenBoundaries = this.background.localToScreen(bounds);
             x = (int) screenBoundaries.getMinX();
             y = (int) screenBoundaries.getMinY();
-        }
+        }//end if
        
         // Capture screen to store as an image of users choosing
         BufferedImage screencapture = new Robot().createScreenCapture(new java.awt.Rectangle(x, y, IMG_W, IMG_H));
@@ -311,12 +292,12 @@ public class Grid {
         try {
             // Write to file path selected
             ImageIO.write(screencapture, ext, file);
-
         }//end try
+        
         catch (IOException | NullPointerException ex) {
             Logger.getLogger(AppStageController.class.getName()).log(Level.SEVERE, null, ex);
         }//end catch
-    } 
+    }//end exportFrame
     
     /**
      * 
@@ -332,8 +313,8 @@ public class Grid {
         for (int i = 0; i < this.sectors.size(); ++i) {
             this.sectors.get(i).finalTotalDuration = 0;
             this.sectors.get(i).currentTotalDuration = 0;
-        }
-    }
+        }//end for
+    }//end resetGridSectorsInfo
     
     /**
      * 
@@ -349,7 +330,7 @@ public class Grid {
      * @return maxDuration
      */
     double calculateGridSectorHeatMapInfo(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
-        Date mouseDate = start;
+        Date mouseDate;
         // (Parker 3/26/17): store the cumulative event durations of the most active
         // grid sector, for the purposes of calibrating the heat map colors:
         double maxDuration = 0;
@@ -359,22 +340,26 @@ public class Grid {
         for (int i = 0; i < mice.size(); ++i) {
             for (int j = 0; j < mice.get(i).locTimeData.size() && mice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
                 mouseDate = mice.get(i).locTimeData.get(j).timestamp;
+                
                 if (mouseDate.compareTo(start) >= 0) {
+                    
                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                     int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
+                    
                     /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                     GridSector gs = getSectorByGridIndex(gridSectorIndex);
+                    
                     /* add the current record's event duration to the selected GridSector's finalTotalDuration parameter */
                     gs.finalTotalDuration += mice.get(i).locTimeData.get(j).eventDuration;
+                    
                     /* calculate the largest gridSector finalTotalDuration, for the purpose of calibrating the heatmap colors: */
-                    if (gs.finalTotalDuration > maxDuration) {
+                    if (gs.finalTotalDuration > maxDuration)
                         maxDuration = gs.finalTotalDuration;
-                    }
-                }
-            }
-        }
+                }//end if
+            }//end for
+        }//end for
         return maxDuration;
-    }
+    }//end calculateGridSectorHeatMapInfo
     
     /**
      * 
@@ -396,6 +381,7 @@ public class Grid {
         // calculate width and height of the Canvas object:
         double width = calculateDimensions(viewerPane).w;
         double height = calculateDimensions(viewerPane).h;
+        
         data = new Canvas(width, height);
         
         // get the graphics context of the data Canvas in order to perform drawing:
@@ -409,19 +395,19 @@ public class Grid {
                 /* the gridSector with the maxDuration will have the darkest shade, so 
                 gridSectors with less activity will have lighter shades: */
                 opacity = this.sectors.get(i).finalTotalDuration / maxDuration;
-            }
+            }//end if
             
             /* perform the drawing of the shade onto the Canvas for this gridSector */
             dataCanvasContext.setFill(Color.rgb(0, 0, 255, opacity));
             dataCanvasContext.fillRect(sectors.get(i).x, sectors.get(i).y, sectors.get(i).w, sectors.get(i).h);
-        }
+        }//end for
         
         // check for and remove any pre-existing heat map layer:
         String heatMapId = "heatmap";
         Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
-        if (viewerPaneHeatMapLayer != null) {
+        
+        if (viewerPaneHeatMapLayer != null)
             viewerPane.getChildren().remove(viewerPane.lookup("#" + heatMapId));
-        }
         
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
         data.setId(heatMapId);
@@ -430,7 +416,7 @@ public class Grid {
         
         //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
         moveInfoLayersToFront(viewerPane);
-    }
+    }//end staticHeatMap
     
     /**
      * 
@@ -447,7 +433,7 @@ public class Grid {
         this.animationCancelled = true;
         Image buttonIcon = new Image("resources/play.png", 16, 16, true, true);
         button.setGraphic(new ImageView(buttonIcon));
-    }
+    }//end stopAnimation
     
     
     
@@ -487,7 +473,8 @@ public class Grid {
         moveInfoLayersToFront(viewerPane);
 
         // Establish a new service:
-        Service<Void> service = new Service<Void>() {
+        Service<Void> service;
+        service = new Service<Void>() {
             long elapsedTs = 0; // Create a timestamp based timer to measure the duration of the animation
             
             long frameCount = 0; // Count how many frames the animation has rendered
@@ -502,9 +489,7 @@ public class Grid {
                         
                         long startTs = System.currentTimeMillis(); // begin a timer to record the amount of time the generation takes
                         
-                        Date mouseDate = start;
-                        
-                        /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from 
+                        /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from
                         the Mouse objects in the mice function parameter and store the collective MouseLocTime data in
                         a new ArrayList. Only data rows that are within the start and stop indices are included. */
                         ArrayList<MouseLocTime> locTimeData = Mice.getMiceDataRowsFromRange(mice, start, stop);
@@ -518,87 +503,82 @@ public class Grid {
                         for (int j = 0; j < locTimeData.size(); ++j) {
                             // if the animation was cancelled (by setting the Grid class' animationCancelled property),
                             // then cancel the animation thread:
-                            if (animationCancelled == true) {
+                            if (animationCancelled == true)
                                 this.cancel(true);
-                            }
-                           if (isCancelled()) {
+                           
+                            if (isCancelled())
                                 break;
-                            }
-                           // since we need to reference the 'j' incrementor inside the Platform.runlater code, 
-                           // we need to make a new final variable that is a copy of j's current value:
+                            // since we need to reference the 'j' incrementor inside the Platform.runlater code,
+                            // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
-                            // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
-                            mouseDate = locTimeData.get(j).timestamp;
                                 
                             // Create a Platform to run code in the background on the new thread;
                             // this is where the data layer of the Grid's Canvas objects gets updated:
-                            Platform.runLater(new Runnable() {                    
-                                @Override
-                                public void run() {
-                                    /* PUT GUI UPDATE LOGIC HERE */
-
-                                    /* (Parker 4/3/17): display to the user the current frame being rendered: */
-                                    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
-                                    currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
-
-                                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                    int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
-                                    /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
-                                    GridSector gs = getSectorByGridIndex(gridSectorIndex);
-
-                                    /* add the current record's event duration to the selected GridSector's currentTotalDuration parameter */
-                                    gs.currentTotalDuration += locTimeData.get(finalJ).eventDuration;
-
-                                    /* get the maximum opacity for this grid sector (AKA this GridSector's value in the static heat map) */
-                                    double baseOpacity = gs.finalTotalDuration / maxDuration;
-
-                                    /* now create a shade of the baseOpactiy by applying the ratio of the finalTotalDuration vs currentTotalDuration */
-                                    double currentOpacity = ((double)gs.currentTotalDuration / (double)gs.finalTotalDuration) * baseOpacity;
-
-                                    /* attempt to reference the heatmap data layer of the viewerPane's children;
-                                    if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
-                                    String heatMapId = "heatmap";
-                                    Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
-                                    if (viewerPaneHeatMapLayer == null) {
-                                        // calculate width and height of the Canvas object:
-                                        double width = calculateDimensions(viewerPane).w;
-                                        double height = calculateDimensions(viewerPane).h;
-                                        data = new Canvas(width, height);
-                                        data.setId(heatMapId);
-                                        //this.datalayers.add(data);
-                                        viewerPane.getChildren().add(data);
-                                        //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
-                                        moveInfoLayersToFront(viewerPane);
-                                    }
-
-                                    viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
-
-                                    // get the graphics context of the heat map data layer for the purpose of drawing:
-                                    GraphicsContext dataCanvasContext = viewerPaneHeatMapLayer.getGraphicsContext2D();
-
-                                    /* perform the drawing of the shade onto the Canvas for this gridSector: */
-                                    // clear out the current GridSector's old shade:
-                                    dataCanvasContext.clearRect(gs.x, gs.y, gs.w, gs.h);
-                                    // fill the current GridSector with the calculated shade:
-                                    dataCanvasContext.setFill(Color.rgb(0, 0, 255, currentOpacity));
-                                    dataCanvasContext.fillRect(gs.x, gs.y, gs.w, gs.h);
-                                    
-                                    // If the exportFolder parameter contains a File object, create a new File.
-                                    // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
-                                    // unique to the current frame.
-                                    if (exportFolder != null) {
-                                        try {
-                                            File exportFile = new File(exportFolder.getPath().toString() + "\\" + frameCount + ".png");
-                                            System.out.println("Frame filename: " + exportFile.getPath().toString());
-                                            exportFrame(viewerPane, exportFile, "png");
-                                        } catch (AWTException ex) {
-                                            Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
-                                        }
-                                    }
-
-                                     // increment the number of frames rendered in the animation:
-                                    frameCount++;
-                                }
+                            Platform.runLater(() -> {
+                                /* PUT GUI UPDATE LOGIC HERE */
+                                
+                                /* (Parker 4/3/17): display to the user the current frame being rendered: */
+                                SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+                                currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                
+                                /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                GridSector gs = getSectorByGridIndex(gridSectorIndex);
+                                
+                                /* add the current record's event duration to the selected GridSector's currentTotalDuration parameter */
+                                gs.currentTotalDuration += locTimeData.get(finalJ).eventDuration;
+                                
+                                /* get the maximum opacity for this grid sector (AKA this GridSector's value in the static heat map) */
+                                double baseOpacity = gs.finalTotalDuration / maxDuration;
+                                
+                                /* now create a shade of the baseOpactiy by applying the ratio of the finalTotalDuration vs currentTotalDuration */
+                                double currentOpacity = ((double)gs.currentTotalDuration / (double)gs.finalTotalDuration) * baseOpacity;
+                                
+                                /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                String heatMapId = "heatmap";
+                                Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
+                                
+                                if (viewerPaneHeatMapLayer == null) {
+                                    // calculate width and height of the Canvas object:
+                                    double width = calculateDimensions(viewerPane).w;
+                                    double height = calculateDimensions(viewerPane).h;
+                                    data = new Canvas(width, height);
+                                    data.setId(heatMapId);
+                                    //this.datalayers.add(data);
+                                    viewerPane.getChildren().add(data);
+                                    //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
+                                    moveInfoLayersToFront(viewerPane);
+                                }//end if
+                                
+                                viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
+                                
+                                // get the graphics context of the heat map data layer for the purpose of drawing:
+                                GraphicsContext dataCanvasContext = viewerPaneHeatMapLayer.getGraphicsContext2D();
+                                
+                                /* perform the drawing of the shade onto the Canvas for this gridSector: */
+                                // clear out the current GridSector's old shade:
+                                dataCanvasContext.clearRect(gs.x, gs.y, gs.w, gs.h);
+                                // fill the current GridSector with the calculated shade:
+                                dataCanvasContext.setFill(Color.rgb(0, 0, 255, currentOpacity));
+                                dataCanvasContext.fillRect(gs.x, gs.y, gs.w, gs.h);
+                                
+                                // If the exportFolder parameter contains a File object, create a new File.
+                                // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
+                                // unique to the current frame.
+                                if (exportFolder != null) {
+                                    try {
+                                        File exportFile = new File(exportFolder.getPath() + "\\" + frameCount + ".png");
+                                        System.out.println("Frame filename: " + exportFile.getPath());
+                                        exportFrame(viewerPane, exportFile, "png");
+                                    } catch (AWTException ex) {
+                                        Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
+                                    }//end catch
+                                }//end if
+                                
+                                // increment the number of frames rendered in the animation:
+                                frameCount++;
                             });
                             // delay the animation thread by "speed" number of milliseconds;
                             // this value should come directly from the Frame Delay GUI slider control:
@@ -607,25 +587,28 @@ public class Grid {
                         long endTs = System.currentTimeMillis(); // stop the timer
                         elapsedTs = endTs - startTs; // get the elapsed time of the generation duration
                         return null; // we aren't returning a specific value from the task, so return null
-                    }
+                    }//end call
+                    
                     // if the animation was cancelled by the user, respond gracefully:
                     @Override protected void cancelled() {
                         super.cancelled();
                         updateMessage("Cancelled!");
-                    }
+                    }//end cancelled
+                    
                     // if the animation succeeded, respond gracefully:
                     @Override protected void succeeded() {
                         stopAnimation(generateButton);
+                        
                         // output a text status update to the user containing the duration of the animation:
                         String describeMice = (mice.size() > 1) ? "mice" : "mouse";
                         leftStatus.setText("Finished generating an animated heat map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds. " + frameCount + " frames rendered.");
-                    }
+                    }//end succeeded
                 };
             }
         };
         // start the animation thread:
         service.start();
-    }
+    }//end animatedHeatMap
     
        /**
      * 
@@ -678,228 +661,224 @@ public class Grid {
                         
                         long startTs = System.currentTimeMillis(); // begin a timer to record the amount of time the generation takes
                         
-                        Date mouseDate = start;
+                        Date mouseDate;
                         
                         /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from 
                         the Mouse objects in the selected mice function parameter and store the collective MouseLocTime data in
                         a new ArrayList. */
                         HashMap<Date, Mouse> mouse_color = new HashMap<Date, Mouse>();
                         ArrayList<MouseLocTime> locTimeData = new ArrayList<MouseLocTime>();
+                        
                         for (int i = 0; i < mice.size(); ++i) {
                             for (int j = 0; j < mice.get(i).locTimeData.size(); ++j) {
                                 locTimeData.add(mice.get(i).locTimeData.get(j));
                                 mouse_color.put(mice.get(i).locTimeData.get(j).timestamp,mice.get(i));
-                            }
-                        }
+                            }//end for
+                        }//end for
+                        
                         // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
                         // to latest Date timestamp:
                         Collections.sort(locTimeData);
                         
                         // arraylist to store the vectorframe objects
-                        ArrayList<VectorFrame> line_frames = new ArrayList<VectorFrame>();
+                        ArrayList<VectorFrame> line_frames = new ArrayList<>();
                         
                         // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
                         // stops at the stopping index:
                         for (int j = 0; j < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
                             // if the animation was cancelled (by setting the Grid class' animationCancelled property),
                             // then cancel the animation thread:
-                            if (animationCancelled == true) {
+                            if (animationCancelled == true)
                                 this.cancel(true);
-                            }
-                           if (isCancelled()) {
+                           if (isCancelled())
                                 break;
-                            }
                            // since we need to reference the 'j' incrementor inside the Platform.runlater code, 
                            // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
+                            
                             // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
                             mouseDate = locTimeData.get(j).timestamp;
                             // if the current data row is within the Start and Stop indicies, perform the
                             // color shade calculations and update the GUI inside the Platform.runLater() function:
                             
                             //increment the frame count for each mouse position
-                            for (int position = 0; position < line_frames.size(); position ++){
+                            for (int position = 0; position < line_frames.size(); position ++)
                                 line_frames.get(position).increment();
-
-                            }
                             
                             if (mouseDate.compareTo(start) >= 0) {
                                 
                                 // Create a Platform to run code in the background on the new thread;
                                 // this is where the data layer of the Grid's Canvas objects gets updated:
-                                Platform.runLater(new Runnable() {                    
-                                    @Override
-                                    public void run() {
-                                        /* PUT GUI UPDATE LOGIC HERE */
-
-                                        /* (Parker 4/3/17): display to the user the current frame being rendered: */
-                                        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
-                                        currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                Platform.runLater(() -> {
+                                    /* PUT GUI UPDATE LOGIC HERE */
+                                    
+                                    /* (Parker 4/3/17): display to the user the current frame being rendered: */
+                                    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+                                    currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                    
+                                    /* GENERATE HEAT MAP: *************************************************** */
+                                    
+                                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                    int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                    GridSector gs = getSectorByGridIndex(gridSectorIndex);
+                                    
+                                    /* add the current record's event duration to the selected GridSector's currentTotalDuration parameter */
+                                    gs.currentTotalDuration += locTimeData.get(finalJ).eventDuration;
+                                    
+                                    /* get the maximum opacity for this grid sector (AKA this GridSector's value in the static heat map) */
+                                    double baseOpacity = gs.finalTotalDuration / maxDuration;
+                                    
+                                    /* now create a shade of the baseOpactiy by applying the ratio of the finalTotalDuration vs currentTotalDuration */
+                                    double currentOpacity = ((double)gs.currentTotalDuration / (double)gs.finalTotalDuration) * baseOpacity;
+                                    
+                                    /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                    if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                    String heatMapId = "heatmap";
+                                    Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
+                                    
+                                    if (viewerPaneHeatMapLayer == null) {
+                                        // calculate width and height of the Canvas object:
+                                        double width = calculateDimensions(viewerPane).w;
+                                        double height = calculateDimensions(viewerPane).h;
+                                        data = new Canvas(width, height);
+                                        data.setId(heatMapId);
+                                        //this.datalayers.add(data);
+                                        viewerPane.getChildren().add(data);
+                                    }//end if
+                                    
+                                    viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
+                                    
+                                    // get the graphics context of the heat map data layer for the purpose of drawing:
+                                    GraphicsContext heatCanvasContext = viewerPaneHeatMapLayer.getGraphicsContext2D();
+                                    
+                                    /* perform the drawing of the shade onto the Canvas for this gridSector: */
+                                    // clear out the current GridSector's old shade:
+                                    heatCanvasContext.clearRect(gs.x, gs.y, gs.w, gs.h);
+                                    // fill the current GridSector with the calculated shade:
+                                    heatCanvasContext.setFill(Color.rgb(0, 0, 255, currentOpacity));
+                                    heatCanvasContext.fillRect(gs.x, gs.y, gs.w, gs.h);
+                                    
+                                    /* GENERATE VECTOR MAP: *************************************************** */
+                                    
+                                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                    int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    int nextIndex = finalJ+1;
+                                    // (Parker): prevent an index out of bounds error:
+                                    if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
+                                    int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
+                                    /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                    
+                                    GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
+                                    GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
+                                    
+                                    /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                    if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                    String vectorMapId = "vectormap";
+                                    Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                    
+                                    if (viewerPaneVectorMapLayer == null) {
+                                        // calculate width and height of the Canvas object:
+                                        double width = calculateDimensions(viewerPane).w;
+                                        double height = calculateDimensions(viewerPane).h;
+                                        data = new Canvas(width, height);
+                                        data.setId(vectorMapId);
+                                        //this.datalayers.add(data);
+                                        viewerPane.getChildren().add(data);
+                                    }//end if
+                                    
+                                    viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                    
+                                    // get the graphics context of the heat map data layer for the purpose of drawing:
+                                    GraphicsContext vectorCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
+                                    
+                                    vectorCanvasContext.save();
+                                    
+                                    // Use the identity matrix while clearing the canvas
+                                    vectorCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
+                                    vectorCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
+                                    
+                                    // Restore the transform
+                                    vectorCanvasContext.restore();
+                                    
+                                    vectorCanvasContext.setLineWidth(5);
+                                    
+                                    int frame_number = 1;
+                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                    line_frames.add(vectorFrame);
+                                    
+                                    for (int position = 0; position < line_frames.size(); position ++){
                                         
-                                        /* GENERATE HEAT MAP: *************************************************** */
-
-                                        /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                        int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
-                                        /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
-                                        GridSector gs = getSectorByGridIndex(gridSectorIndex);
-
-                                        /* add the current record's event duration to the selected GridSector's currentTotalDuration parameter */
-                                        gs.currentTotalDuration += locTimeData.get(finalJ).eventDuration;
-
-                                        /* get the maximum opacity for this grid sector (AKA this GridSector's value in the static heat map) */
-                                        double baseOpacity = gs.finalTotalDuration / maxDuration;
-
-                                        /* now create a shade of the baseOpactiy by applying the ratio of the finalTotalDuration vs currentTotalDuration */
-                                        double currentOpacity = ((double)gs.currentTotalDuration / (double)gs.finalTotalDuration) * baseOpacity;
-                                        
-                                        /* attempt to reference the heatmap data layer of the viewerPane's children;
-                                        if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
-                                        String heatMapId = "heatmap";
-                                        Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
-                                        if (viewerPaneHeatMapLayer == null) {
-                                            // calculate width and height of the Canvas object:
-                                            double width = calculateDimensions(viewerPane).w;
-                                            double height = calculateDimensions(viewerPane).h;
-                                            data = new Canvas(width, height);
-                                            data.setId(heatMapId);
-                                            //this.datalayers.add(data);
-                                            viewerPane.getChildren().add(data);
-                                        }
-                                        
-                                        viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + heatMapId);
-
-                                        // get the graphics context of the heat map data layer for the purpose of drawing:
-                                        GraphicsContext heatCanvasContext = viewerPaneHeatMapLayer.getGraphicsContext2D();
-
-                                        /* perform the drawing of the shade onto the Canvas for this gridSector: */
-                                        // clear out the current GridSector's old shade:
-                                        heatCanvasContext.clearRect(gs.x, gs.y, gs.w, gs.h);
-                                        // fill the current GridSector with the calculated shade:
-                                        heatCanvasContext.setFill(Color.rgb(0, 0, 255, currentOpacity));
-                                        heatCanvasContext.fillRect(gs.x, gs.y, gs.w, gs.h);
-                                        
-                                        /* GENERATE VECTOR MAP: *************************************************** */
-                                        
-                                        /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                        int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
-                                        int nextIndex = finalJ+1;
-                                        // (Parker): prevent an index out of bounds error:
-                                        if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
-                                        int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
-                                        /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
-                                        
-                                        GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
-                                        GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
-                                        
-                                        /* attempt to reference the heatmap data layer of the viewerPane's children;
-                                        if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
-                                        String vectorMapId = "vectormap";
-                                        Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-                                        if (viewerPaneVectorMapLayer == null) {
-                                            // calculate width and height of the Canvas object:
-                                            double width = calculateDimensions(viewerPane).w;
-                                            double height = calculateDimensions(viewerPane).h;
-                                            data = new Canvas(width, height);
-                                            data.setId(vectorMapId);
-                                            //this.datalayers.add(data);
-                                            viewerPane.getChildren().add(data);
-                                        }
-                                        
-                                        viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-
-                                        // get the graphics context of the heat map data layer for the purpose of drawing:
-                                        GraphicsContext vectorCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
-                                        
-                                        vectorCanvasContext.save();
-
-                                        // Use the identity matrix while clearing the canvas
-                                        vectorCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
-                                        vectorCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
-
-                                        // Restore the transform
-                                        vectorCanvasContext.restore();
-                                        
-                                        vectorCanvasContext.setLineWidth(5);
-                                                                                
-                                        int frame_number = 1;
-                                        VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
-                                        line_frames.add(vectorFrame);
-                                        
-                                        for (int position = 0; position < line_frames.size(); position ++){
+                                        if(line_frames.get(position).get_animation_state() == 1){
                                             
-                                            if(line_frames.get(position).get_animation_state() == 1){
+                                            vectorCanvasContext.setStroke(line_frames.get(position).color);
+                                            vectorCanvasContext.setLineDashes(0d);  
+                                        }else if(line_frames.get(position).get_animation_state() == 2){
                                             
-                                                vectorCanvasContext.setStroke(line_frames.get(position).color);
-                                                 vectorCanvasContext.setLineDashes(0d);
-                                                
-                                                
-                                            }else if(line_frames.get(position).get_animation_state() == 2){
-                                                
-                                                vectorCanvasContext.setStroke(line_frames.get(position).color);
-                                                vectorCanvasContext.setLineDashes(10d);
-                                                
-                                                
-                                                
-                                            }else if(line_frames.get(position).get_animation_state() >= 3){ 
-                                                
-                                                vectorCanvasContext.setStroke(Color.TRANSPARENT);
-                                                vectorCanvasContext.setLineDashes(0d);
-                                                
-                                            }
-                                            vectorCanvasContext.strokeLine(
+                                            vectorCanvasContext.setStroke(line_frames.get(position).color);
+                                            vectorCanvasContext.setLineDashes(10d);
+                                        }else if(line_frames.get(position).get_animation_state() >= 3){
+                                            
+                                            vectorCanvasContext.setStroke(Color.TRANSPARENT);
+                                            vectorCanvasContext.setLineDashes(0d);
+                                        }//end else if
+                                        
+                                        vectorCanvasContext.strokeLine(
                                                 line_frames.get(position).first.center_x,
                                                 line_frames.get(position).first.center_y,
                                                 line_frames.get(position).second.center_x,
                                                 line_frames.get(position).second.center_y);
-                                        }
-                                        
-                                        //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
-                                        moveInfoLayersToFront(viewerPane);
-                                        
-                                        // If the exportFolder parameter contains a File object, create a new File.
-                                        // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
-                                        // unique to the current frame.
-                                        if (exportFolder != null) {
-                                            try {
-                                                File exportFile = new File(exportFolder.getPath().toString() + "\\" + frameCount + ".png");
-                                                System.out.println("Frame filename: " + exportFile.getPath().toString());
-                                                exportFrame(viewerPane, exportFile, "png");
-                                            } catch (AWTException ex) {
-                                                Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
-                                            }
-                                        }
-                                        
-                                         // increment the number of frames rendered in the animation:
-                                        frameCount++;
-                                    }
+                                    }//end for
+                                    
+                                    //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
+                                    moveInfoLayersToFront(viewerPane);
+                                    
+                                    // If the exportFolder parameter contains a File object, create a new File.
+                                    // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
+                                    // unique to the current frame.
+                                    if (exportFolder != null) {
+                                        try {
+                                            File exportFile = new File(exportFolder.getPath().toString() + "\\" + frameCount + ".png");
+                                            System.out.println("Frame filename: " + exportFile.getPath().toString());
+                                            exportFrame(viewerPane, exportFile, "png");
+                                        } catch (AWTException ex) {
+                                            Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
+                                        }//end catch
+                                    }//end if
+                                    
+                                    // increment the number of frames rendered in the animation:
+                                    frameCount++;
                                 });
                                 // delay the animation thread by "speed" number of milliseconds;
                                 // this value should come directly from the Frame Delay GUI slider control:
                                 Thread.sleep((int)speed);
-                            }
-                        }
+                            }//end if
+                        }//end for
+                        
                         long endTs = System.currentTimeMillis(); // stop the timer
                         elapsedTs = endTs - startTs; // get the elapsed time of the generation duration
                         return null; // we aren't returning a specific value from the task, so return null
-                    }
+                    }//end call
+                    
                     // if the animation was cancelled by the user, respond gracefully:
                     @Override protected void cancelled() {
                         super.cancelled();
                         updateMessage("Cancelled!");
-                    }
+                    }//end cancelled
+                    
                     // if the animation succeeded, respond gracefully:
                     @Override protected void succeeded() {
                         stopAnimation(generateButton);
                         // output a text status update to the user containing the duration of the animation:
                         String describeMice = (mice.size() > 1) ? "mice" : "mouse";
                         leftStatus.setText("Finished generating an animated overlay map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds. " + frameCount + " frames rendered.");
-                    }
+                    }//end succeeded
                 };
-            }
+            }//end createTask
         };
         // start the animation thread:
         service.start();
-    }
+    }//end animatedOverlayMap
     
     /**
      * @author Joshua
@@ -913,12 +892,12 @@ public class Grid {
      */
     
     void staticVectorMap(StackPane viewerPane, ArrayList<Mouse> mice, Date start, Date stop) {
-        Date mouseDate = start;
-        HashMap<Mouse, ArrayList<Integer>> Mouse_positions = new HashMap<Mouse, ArrayList<Integer>>(); 
+        Date mouseDate;
+        HashMap<Mouse, ArrayList<Integer>> Mouse_positions = new HashMap<>(); 
         /*Creates a hashmap that stores mouse labels with that paticular mouse's grid positions stored as the value */
         
         for (int i = 0; i < mice.size(); ++i) {
-            ArrayList<Integer> UnitLabels = new ArrayList<Integer>();
+            ArrayList<Integer> UnitLabels = new ArrayList<>();
             //creates an arraylist to store all the mouse postions for a particulars mouse 
             
             for (int j = 0; j < mice.get(i).locTimeData.size() && mice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
@@ -928,10 +907,10 @@ public class Grid {
                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                     int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
                     UnitLabels.add(gridSectorIndex);
-                    }
-                }
+                    }//end if
+                }//end for
             Mouse_positions.put(mice.get(i), UnitLabels);
-        }
+        }//end for
         
         double width = calculateDimensions(viewerPane).w;
         double height = calculateDimensions(viewerPane).h;
@@ -941,31 +920,31 @@ public class Grid {
         GraphicsContext dataCanvasContext = data.getGraphicsContext2D();
         
         
-        for(Map.Entry<Mouse, ArrayList<Integer>> entry: Mouse_positions.entrySet()){
+        Mouse_positions.entrySet().stream().map((entry) -> {
             dataCanvasContext.setLineWidth(5);
             dataCanvasContext.setStroke(entry.getKey().mouse_color);
-            
+            return entry;            
+        }).forEachOrdered((entry) -> {
             for (int i =1; i< entry.getValue().size(); i++){
                 
                 
                 GridSector GS1 = getSectorByGridIndex(entry.getValue().get(i-1));
                 GridSector GS2 = getSectorByGridIndex(entry.getValue().get(i));
                 dataCanvasContext.strokeLine(
-                    GS1.center_x ,
-                    GS1.center_y,
-                    GS2.center_x,
-                    GS2.center_y);
+                        GS1.center_x ,
+                        GS1.center_y,
+                        GS2.center_x,
+                        GS2.center_y);
                 //Draws the line segments connecting all the sectors that the a mouse traveled
             }
-        }
+        });
         
         
         // check for and remove any pre-existing heat map layer:
         String vectorMapId = "vectormap";
         Canvas viewerPaneHeatMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-        if (viewerPaneHeatMapLayer != null) {
+        if (viewerPaneHeatMapLayer != null)
             viewerPane.getChildren().remove(viewerPane.lookup("#" + vectorMapId));
-        }
         
         // add the Canvas layer containing the heatmap to the grid object itself, and then to the viewerPane:
         data.setId(vectorMapId);
@@ -974,7 +953,7 @@ public class Grid {
         
         //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
         moveInfoLayersToFront(viewerPane);
-    }
+    }//end staticVectorMap
     
     /**
      * 
@@ -1004,7 +983,6 @@ public class Grid {
      */
     void animatedVectorMap(StackPane viewerPane, Button generateButton, TextArea currentAnimationFrame, Label leftStatus, ArrayList<Mouse> mice, Date start, Date stop, double speed, File exportFolder) throws InterruptedException {
 
-
         //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
         moveInfoLayersToFront(viewerPane);
 
@@ -1025,38 +1003,38 @@ public class Grid {
                         
                         long startTs = System.currentTimeMillis(); // begin a timer to record the amount of time the generation takes
                         
-                        Date mouseDate = start;
+                        Date mouseDate;
                         
                         /* (Parker): in order to display the data rows in order, extract all the MouseLocTime data from
                         the Mouse objects in the selected mice function parameter and store the collective MouseLocTime data in
                         a new ArrayList. */
                         
-                        HashMap<Date, Mouse> mouse_color = new HashMap<Date, Mouse>();
-                        ArrayList<MouseLocTime> locTimeData = new ArrayList<MouseLocTime>();
+                        HashMap<Date, Mouse> mouse_color = new HashMap<>();
+                        ArrayList<MouseLocTime> locTimeData = new ArrayList<>();
                         for (int i = 0; i < mice.size(); ++i) {
                             for (int j = 0; j < mice.get(i).locTimeData.size(); ++j) {
                                 locTimeData.add(mice.get(i).locTimeData.get(j));
                                 mouse_color.put(mice.get(i).locTimeData.get(j).timestamp,mice.get(i));
-                            }
-                        }
+                            }//end for
+                        }//end for
+                        
                         // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
                         // to latest Date timestamp:
                         Collections.sort(locTimeData);
                         
                         //A list stores lines and the animatation frame state of each line
-                        ArrayList<VectorFrame> line_frames = new ArrayList<VectorFrame>();
+                        ArrayList<VectorFrame> line_frames = new ArrayList<>();
                         
                         // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
                         // stops at the stopping index:
                         for (int j = 0; j+1 < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
                             // if the animation was cancelled (by setting the Grid class' animationCancelled property),
                             // then cancel the animation thread:
-                            if (animationCancelled == true) {
+                            if (animationCancelled == true)
                                 this.cancel(true);
-                            }
-                            if (isCancelled()) {
+                            if (isCancelled())
                                 break;
-                            }
+                            
                             // since we need to reference the 'j' incrementor inside the Platform.runlater code,
                             // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
@@ -1065,132 +1043,131 @@ public class Grid {
                             // if the current data row is within the Start and Stop indicies, perform the
                             // color shade calculations and update the GUI inside the Platform.runLater() function:
                             
-                            for (int position = 0; position < line_frames.size(); position ++){
+                            for (int position = 0; position < line_frames.size(); position ++)
                                 line_frames.get(position).increment();
-
-                            }
                             
                             
                             if (mouseDate.compareTo(start) >= 0) {
                                 
                                 // Create a Platform to run code in the background on the new thread;
                                 // this is where the data layer of the Grid's Canvas objects gets updated:
-                                Platform.runLater(new Runnable() {                          
-                                    @Override
-                                    public void run() {
-                                        /* PUT GUI UPDATE LOGIC HERE */
+                                Platform.runLater(() -> {
+                                    /* PUT GUI UPDATE LOGIC HERE */
+                                    
+                                    //Draws the line segments connecting all the sectors that the a mouse traveled
+                                    
+                                    /* (Parker 4/3/17): display to the user the current frame being rendered: */
+                                    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+                                    currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                    
+                                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                    int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    int nextIndex = finalJ+1;
+                                    // (Parker): prevent an index out of bounds error:
+                                    if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
+                                    int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
+                                    /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                    
+                                    GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
+                                    GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
+                                    
+                                    /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                    if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                    String vectorMapId = "vectormap";
+                                    Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                    
+                                    if (viewerPaneVectorMapLayer == null) {
+                                        // calculate width and height of the Canvas object:
+                                        double width = calculateDimensions(viewerPane).w;
+                                        double height = calculateDimensions(viewerPane).h;
+                                        data = new Canvas(width, height);
+                                        data.setId(vectorMapId);
+                                        //this.datalayers.add(data);
+                                        viewerPane.getChildren().add(data);
+                                        //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
+                                        moveInfoLayersToFront(viewerPane);
+                                    }//end if
+                                    
+                                    viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                    
+                                    // get the graphics context of the heat map data layer for the purpose of drawing:
+                                    GraphicsContext dataCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
+                                    
+                                    // Store the current transformation matrix
+                                    dataCanvasContext.save();
+                                    
+                                    // Use the identity matrix while clearing the canvas
+                                    dataCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
+                                    dataCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
+                                    
+                                    // Restore the transform
+                                    dataCanvasContext.restore();
+                                    
+                                    dataCanvasContext.setLineWidth(5);
+                                    
+                                    int frame_number = 1;
+                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                    line_frames.add(vectorFrame);
+                                    
+                                    for (int position = 0; position < line_frames.size(); position ++){
                                         
-                                        //Draws the line segments connecting all the sectors that the a mouse traveled
-
-                                        /* (Parker 4/3/17): display to the user the current frame being rendered: */
-                                        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
-                                        currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
-
-                                        /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                        int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
-                                        int nextIndex = finalJ+1;
-                                        // (Parker): prevent an index out of bounds error:
-                                        if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
-                                        int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
-                                        /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
-                                        
-                                        GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
-                                        GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
-                                        
-                                        /* attempt to reference the heatmap data layer of the viewerPane's children;
-                                        if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
-                                        String vectorMapId = "vectormap";
-                                        Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-                                        if (viewerPaneVectorMapLayer == null) {
-                                            // calculate width and height of the Canvas object:
-                                            double width = calculateDimensions(viewerPane).w;
-                                            double height = calculateDimensions(viewerPane).h;
-                                            data = new Canvas(width, height);
-                                            data.setId(vectorMapId);
-                                            //this.datalayers.add(data);
-                                            viewerPane.getChildren().add(data);
-                                            //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
-                                            moveInfoLayersToFront(viewerPane);
+                                        if(line_frames.get(position).get_animation_state() == 1){
+                                            
+                                            dataCanvasContext.setStroke(line_frames.get(position).color);
+                                            dataCanvasContext.setLineDashes(0d);
+                                            
+                                            
+                                        }else if(line_frames.get(position).get_animation_state() == 2){
+                                            
+                                            dataCanvasContext.setStroke(line_frames.get(position).color);
+                                            dataCanvasContext.setLineDashes(10d);
+                                            
+                                            
+                                            
+                                        }else if(line_frames.get(position).get_animation_state() >= 3){
+                                            
+                                            dataCanvasContext.setStroke(Color.TRANSPARENT);
+                                            dataCanvasContext.setLineDashes(0d);
+                                            
                                         }
-                                        
-                                        viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-
-                                        // get the graphics context of the heat map data layer for the purpose of drawing:
-                                        GraphicsContext dataCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
-                                        
-                                        // Store the current transformation matrix
-                                        dataCanvasContext.save();
-
-                                        // Use the identity matrix while clearing the canvas
-                                        dataCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
-                                        dataCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
-
-                                        // Restore the transform
-                                        dataCanvasContext.restore();
-                                        
-                                        dataCanvasContext.setLineWidth(5);
-                                                                                
-                                        int frame_number = 1;
-                                        VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
-                                        line_frames.add(vectorFrame);
-                                        
-                                        for (int position = 0; position < line_frames.size(); position ++){
-                                            
-                                            if(line_frames.get(position).get_animation_state() == 1){
-                                            
-                                                dataCanvasContext.setStroke(line_frames.get(position).color);
-                                                 dataCanvasContext.setLineDashes(0d);
-                                                
-                                                
-                                            }else if(line_frames.get(position).get_animation_state() == 2){
-                                                
-                                                dataCanvasContext.setStroke(line_frames.get(position).color);
-                                                dataCanvasContext.setLineDashes(10d);
-                                                
-                                                
-                                                
-                                            }else if(line_frames.get(position).get_animation_state() >= 3){ 
-                                                
-                                                dataCanvasContext.setStroke(Color.TRANSPARENT);
-                                                dataCanvasContext.setLineDashes(0d);
-                                                
-                                            }
-                                            dataCanvasContext.strokeLine(
+                                        dataCanvasContext.strokeLine(
                                                 line_frames.get(position).first.center_x,
                                                 line_frames.get(position).first.center_y,
                                                 line_frames.get(position).second.center_x,
                                                 line_frames.get(position).second.center_y);
-                                        }
-                                        // If the exportFolder parameter contains a File object, create a new File.
-                                        // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
-                                        // unique to the current frame.
-                                        if (exportFolder != null) {
-                                            try {
-                                                File exportFile = new File(exportFolder.getPath().toString() + "\\" + frameCount + ".png");
-                                                System.out.println("Frame filename: " + exportFile.getPath().toString());
-                                                exportFrame(viewerPane, exportFile, "png");
-                                            } catch (AWTException ex) {
-                                                Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
-                                            }
-                                        }
-                                        
-                                        ++frameCount;
                                     }
+                                    // If the exportFolder parameter contains a File object, create a new File.
+                                    // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
+                                    // unique to the current frame.
+                                    if (exportFolder != null) {
+                                        try {
+                                            File exportFile = new File(exportFolder.getPath().toString() + "\\" + frameCount + ".png");
+                                            System.out.println("Frame filename: " + exportFile.getPath().toString());
+                                            exportFrame(viewerPane, exportFile, "png");
+                                        } catch (AWTException ex) {
+                                            Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
+                                        }
+                                    }
+                                    
+                                    ++frameCount;
                                 });
                                 // delay the animation thread by "speed" number of milliseconds;
                                 // this value should come directly from the Frame Delay GUI slider control:
                                 Thread.sleep((int)speed);
-                            }
-                        }
+                            }//end if
+                        }//end for
+                        
                         long endTs = System.currentTimeMillis(); // stop the timer
                         elapsedTs = endTs - startTs; // get the elapsed time of the generation duration
                         return null; // we aren't returning a specific value from the task, so return null
-                    }
+                    }//end  call
+                    
                     // if the animation was cancelled by the user, respond gracefully:
                     @Override protected void cancelled() {
                         super.cancelled();
                         updateMessage("Cancelled!");
-                    }
+                    }//end cancelled
+                    
                     // if the animation succeeded, respond gracefully:
                     @Override protected void succeeded() {
                         stopAnimation(generateButton);
@@ -1198,13 +1175,13 @@ public class Grid {
                         // output a text status update to the user containing the duration of the animation:
                         String describeMice = (mice.size() > 1) ? "mice" : "mouse";
                         leftStatus.setText("Finished generating an animated vector map of " + mice.size() + " " + describeMice + " in " + elapsedTs + " milliseconds. " + frameCount + " frames rendered.");
-                    }
+                    }//end succeeded
                 };
-            }
+            }//end createTask
         };
         // start the animation thread:
         service.start();
-    }
+    }//end animatedVectorMap
     
     /*
     Alex (3/29/17):
@@ -1235,5 +1212,5 @@ public class Grid {
         
         if (viewerPaneGridLines != null)
             viewerPaneGridLines.toFront();
-    }
+    }//end moveInfoLayersToFront
 }//end class Grid
