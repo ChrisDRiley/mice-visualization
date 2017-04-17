@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Date;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -1153,7 +1152,7 @@ public class Grid {
                                         }//end if
                                         
                                         ++frameCount;
-                                    }//end run
+                                    } //end run
                                 });
                                 // delay the animation thread by "speed" number of milliseconds;
                                 // this value should come directly from the Frame Delay GUI slider control:
