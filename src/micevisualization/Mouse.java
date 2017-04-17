@@ -22,7 +22,7 @@ public class Mouse {
     public Mouse(String idr, String idl) {
         this.IdRFID = idr;
         this.IdLabel = idl;
-        this.locTimeData = new ArrayList<MouseLocTime>();
+        this.locTimeData = new ArrayList<>();
         
         Random rand = new Random();
         this.mouse_color = Color.rgb(rand.nextInt(256),
