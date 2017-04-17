@@ -94,6 +94,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.WritableImage;
@@ -1188,6 +1190,32 @@ public class AppStageController {
         } else {
             simpleAlert("Please select a session filename from the list of sessions.", null);
         }
+    }
+    
+    @FXML protected void showHelpDocumentationAction(ActionEvent event) {
+            final Stage stage = new Stage();
+            
+            // create the root node:
+            TabPane tabPane = new TabPane();
+            Tab tab = new Tab();
+            tab.setText("new tab");
+            tab.setContent(new Rectangle(200,200, Color.LIGHTSTEELBLUE));
+            tabPane.getTabs().add(tab);
+ 
+            //create scene with set width, height and color
+            Scene scene = new Scene(tabPane, 200, 200, Color.WHITESMOKE);
+ 
+            //set scene to stage
+            stage.setScene(scene);
+ 
+            //set title to stage
+            stage.setTitle("New stage");
+ 
+            //center stage on screen
+            stage.centerOnScreen();
+ 
+            //show the stage
+            stage.show();
     }
     
     /**

@@ -86,7 +86,16 @@
         </Menu>
         <Menu mnemonicParsing="false" text="_Help" >
             <items>
-                <CustomMenuItem mnemonicParsing="false" onAction="#Tutorial">
+             <CustomMenuItem mnemonicParsing="false" fx:id="helpDocumentationItem" onAction="#showHelpDocumentationAction">
+                <content>
+                    <Label text="Help Documentation                  ">
+                        <tooltip >
+                          <Tooltip text="Guide to using Software."/>
+                      </tooltip>
+                    </Label>
+                </content>
+            </CustomMenuItem>
+             <CustomMenuItem mnemonicParsing="false" onAction="#Tutorial">
                 <content>
                     <Label text="Tutorial                       ">
                         <tooltip >
@@ -94,7 +103,8 @@
                       </tooltip>
                     </Label>
                 </content>
-            </CustomMenuItem><CustomMenuItem mnemonicParsing="false" onAction="#About">
+            </CustomMenuItem>
+            <CustomMenuItem mnemonicParsing="false" onAction="#About">
                 <content>
                     <Label text="About                      ">
                         <tooltip >
