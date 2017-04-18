@@ -1,6 +1,7 @@
 package micevisualization;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,6 +18,13 @@ public class AppStage extends Application {
         stage.setTitle("FXML Welcome");
         stage.setScene(scene);
         stage.show();
+        
+        //Closes All windows if main stage is closed
+        Platform.setImplicitExit(true);
+        stage.setOnCloseRequest((ae) -> {
+            Platform.exit();
+            System.exit(0);
+        });
     }
     
     @Override
