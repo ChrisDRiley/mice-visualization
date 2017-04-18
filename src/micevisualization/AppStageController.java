@@ -65,6 +65,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -1120,24 +1121,41 @@ public class AppStageController {
             simpleAlert("Please select a session filename from the list of sessions.", null);
     }//end loadSessionFromManagerAction
     
+    
+    /*
+    Parker(4/17/17): Created a new window for help documentation
+    Alex(4/18/17):  Creating full functionality for each tab with information.
+    */
+    
     @FXML protected void showHelpDocumentationAction(ActionEvent event) {
             final Stage helpDoc = new Stage();
             
             // create the root node:
             TabPane tabPane = new TabPane();
-            Tab tab = new Tab();
-            tab.setText("new tab");
-            tab.setContent(new Rectangle(200,200, Color.LIGHTSTEELBLUE));
-            tabPane.getTabs().add(tab);
+            
+            /* Creates tabs for each section
+                1) File Menu -> Goes over all items in it
+                2) Session Manager -> Explains how sessions work
+                3) Visualization Options -> Explains the different options, grid line/numbers, and selecting mice
+                4) Frame -> Explains start, stop, current frame, frame delay.
+                5) Generating Map -> Explains what this does after selecting your options
+            */
+            
+            HelpTabs(tabPane, "File Menu");
+            HelpTabs(tabPane, "Session Manager");
+            HelpTabs(tabPane, "Visualization Options");
+            HelpTabs(tabPane, "Frames");
+            HelpTabs(tabPane, "Map Generation");
+            
  
             //create scene with set width, height and color
-            Scene scene = new Scene(tabPane, 200, 200, Color.WHITESMOKE);
+            Scene scene = new Scene(tabPane, 700, 700, Color.WHITESMOKE);
  
             //set scene to stage
             helpDoc.setScene(scene);
  
             //set title to stage
-            helpDoc.setTitle("New stage");
+            helpDoc.setTitle("Help Documentation");
  
             //center stage on screen
             helpDoc.centerOnScreen();
@@ -1145,6 +1163,21 @@ public class AppStageController {
             //show the stage
             helpDoc.show();
     }//end showHelpDocumentationAction
+    
+    /*
+    Alex(4/18/17):  function to set up new tabs for help documentation (cuts down on some repetition)
+    */
+    public void HelpTabs(TabPane tabPane, String text) {
+        
+        Tab tab = new Tab();
+        tab.setText(text);
+        tab.setContent(new Rectangle(700, 700, Color.LIGHTSTEELBLUE));
+        tabPane.getTabs().add(tab);
+
+        //Disables tab closing
+        tab.setOnCloseRequest(e -> e.consume());
+        
+    }
     
     /**
      * 
