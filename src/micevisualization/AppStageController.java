@@ -65,7 +65,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -1149,13 +1148,14 @@ public class AppStageController {
             
  
             //create scene with set width, height and color
-            Scene scene = new Scene(tabPane, 700, 700, Color.WHITESMOKE);
+            Scene scene = new Scene(tabPane, 675, 700, Color.WHITESMOKE);
  
             //set scene to stage
             helpDoc.setScene(scene);
  
             //set title to stage
             helpDoc.setTitle("Help Documentation");
+            helpDoc.setResizable(false);
  
             //center stage on screen
             helpDoc.centerOnScreen();
