@@ -40,11 +40,11 @@ public class Session {
     Double animationSpeed = 0.1;
     
     /**
+     * @param absolute
+     * @param relative
      * @author: parker
      * 
-     * If a dataset is loaded, reflect that change in the state
-     * 
-     * @param path 
+     * If a dataset is loaded, reflect that change in the state 
      */
     public void dataSetFileLoaded(String absolute, String relative) {
         isDataSetFileLoaded = true;
@@ -78,9 +78,9 @@ public class Session {
         if (this.isNewSession == false) {
             Gson gson = new Gson();
             String json = gson.toJson(this); 
-            PrintStream ps = new PrintStream(currentSessionFilePath);
-            ps.println(json);
-            ps.close();
+            try (PrintStream ps = new PrintStream(currentSessionFilePath)) {
+                ps.println(json);
+            }
         }
 
     }

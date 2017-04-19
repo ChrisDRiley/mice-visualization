@@ -5,7 +5,6 @@
  */
 package micevisualization;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,7 +17,7 @@ public class Mice {
     ArrayList<Mouse> mice;
     
     public Mice() {
-        this.mice = new ArrayList<Mouse>();
+        this.mice = new ArrayList<>();
     }
     
     public void print() {
@@ -75,23 +74,20 @@ public class Mice {
      * @return 
      */
     public ArrayList<Mouse> getMicebyIdsLabels(ObservableList<String> ids) {
-        ArrayList<Mouse> returnMice = new ArrayList<Mouse>();
+        ArrayList<Mouse> returnMice = new ArrayList<>();
         for (int i = 0; i < ids.size(); ++i) {
             // perform string manipulation to grab only the IdRFID portion of the string:
             int cutoff = ids.get(i).indexOf(' ');
             String rfid = ids.get(i).substring(0, cutoff);
             //System.out.println("getMicebyIdsLables: " + rfid);
             // check if the array of Mouse objects contains a mouse with the IdRFID:
-            if (getMouseByIdRFID(rfid) != null) {
+            if (getMouseByIdRFID(rfid) != null)
                 returnMice.add(getMouseByIdRFID(rfid));
-            }
         }
-        if (!returnMice.isEmpty()) {
+        if (!returnMice.isEmpty())
             return returnMice;
-        }
-        else {
+        else
             return null;
-        }
     }
     
     /**
@@ -106,7 +102,7 @@ public class Mice {
      * @return 
      */
     public static ArrayList<MouseLocTime> getMiceDataRowsFromRange(ArrayList<Mouse> selectedMice, Date start, Date stop) {
-        ArrayList<MouseLocTime> locTimeData = new ArrayList<MouseLocTime>();
+        ArrayList<MouseLocTime> locTimeData = new ArrayList<>();
         for (int i = 0; i < selectedMice.size(); ++i) {
             for (int j = 0; j < selectedMice.get(i).locTimeData.size(); ++j) {
                 if (selectedMice.get(i).locTimeData.get(j).timestamp.compareTo(stop) <= 0) {

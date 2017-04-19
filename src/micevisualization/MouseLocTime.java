@@ -33,11 +33,12 @@ public class MouseLocTime implements Comparable<MouseLocTime> {
         try {
             this.eventDuration = Integer.parseInt(ed);
         }
-        catch (Exception e) {
+        catch (NumberFormatException e) {
             this.eventDuration = 0;
         }
     }
     
+    @Override
     public int compareTo(MouseLocTime other) {
         return this.timestamp.compareTo(other.timestamp);
     }

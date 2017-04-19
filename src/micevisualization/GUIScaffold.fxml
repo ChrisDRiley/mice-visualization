@@ -88,18 +88,9 @@
             <items>
              <CustomMenuItem mnemonicParsing="false" fx:id="helpDocumentationItem" onAction="#showHelpDocumentationAction">
                 <content>
-                    <Label text="Help Documentation                  ">
+                    <Label text="Documentation                  ">
                         <tooltip >
-                          <Tooltip text="Guide to using Software."/>
-                      </tooltip>
-                    </Label>
-                </content>
-            </CustomMenuItem>
-             <CustomMenuItem mnemonicParsing="false" onAction="#Tutorial">
-                <content>
-                    <Label text="Tutorial                       ">
-                        <tooltip >
-                          <Tooltip text="Guide to using Software."/>
+                          <Tooltip text="Displays the guide to using the software."/>
                       </tooltip>
                     </Label>
                 </content>

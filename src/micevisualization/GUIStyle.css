@@ -15,3 +15,15 @@
 #playButton {
     -fx-font-size: 18px;
 }
+
+.helpHeader {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-padding: 15px;
+    -fx-font-color: red;
+}
+
+.helpVBox {
+    -fx-spacing: 15;
+    -fx-padding: 15px;
+}
