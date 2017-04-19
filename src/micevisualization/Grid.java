@@ -679,10 +679,10 @@ public class Grid {
                         
                         
                         //(Joshua) Hashmap to store the current position on the grid for each mouse as the animation iterates
-                        HashMap<Mouse, GridSector> current_mouse_positions = new HashMap<Mouse, GridSector>();
-                        for(Map.Entry<Date, Mouse> entry: mouse_color.entrySet()){
+                        HashMap<Mouse, GridSector> current_mouse_positions = new HashMap<>();
+                        mouse_color.entrySet().forEach((entry) -> {
                             current_mouse_positions.put(entry.getValue(), null);
-                        }
+                        });
                         
                         // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
                         // to latest Date timestamp:
@@ -818,14 +818,13 @@ public class Grid {
                                      //update mouse position before drawing lines
                                         current_mouse_positions.put(mouse_color.get(locTimeData.get(finalJ).timestamp), current_grid);
                                     
-                                     //Draw on the mouse positions 
-                                        for(Map.Entry<Mouse, GridSector> entry: current_mouse_positions.entrySet()){
-                                            
-                                            if (entry.getValue()!=null){
-                                                vectorCanvasContext.setFill(entry.getKey().mouse_color);
-                                                vectorCanvasContext.fillOval(entry.getValue().center_x-5,entry.getValue().center_y-5, 9, 9);
-                                            }
-                                        }
+                                    //Draw on the mouse positions
+                                    current_mouse_positions.entrySet().stream().filter((entry) -> (entry.getValue()!=null)).map((entry) -> {
+                                        vectorCanvasContext.setFill(entry.getKey().mouse_color);
+                                        return entry;
+                                    }).forEachOrdered((entry) -> {
+                                        vectorCanvasContext.fillOval(entry.getValue().center_x-5,entry.getValue().center_y-5, 9, 9);
+                                    });
                                     
                                     for (int position = 0; position < line_frames.size(); position ++){
                                         
@@ -1040,10 +1039,10 @@ public class Grid {
                         }
                         
                         //Hashmap to store the current position on the grid for each mouse as the animation iterates
-                        HashMap<Mouse, GridSector> current_mouse_positions = new HashMap<Mouse, GridSector>();
-                        for(Map.Entry<Date, Mouse> entry: mouse_color.entrySet()){
+                        HashMap<Mouse, GridSector> current_mouse_positions = new HashMap<>();
+                        mouse_color.entrySet().forEach((entry) -> {
                             current_mouse_positions.put(entry.getValue(), null);
-                        }
+                        });
 
                         
                         // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
@@ -1079,121 +1078,118 @@ public class Grid {
                                 
                                 // Create a Platform to run code in the background on the new thread;
                                 // this is where the data layer of the Grid's Canvas objects gets updated:
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        /* PUT GUI UPDATE LOGIC HERE */
+                                Platform.runLater(() -> {
+                                    /* PUT GUI UPDATE LOGIC HERE */
+                                    
+                                    //Draws the line segments connecting all the sectors that the a mouse traveled
+                                    
+                                    /* (Parker 4/3/17): display to the user the current frame being rendered: */
+                                    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
+                                    currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                    
+                                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                                    int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    int nextIndex = finalJ+1;
+                                    // (Parker): prevent an index out of bounds error:
+                                    if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
+                                    int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
+                                    /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
+                                    
+                                    GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
+                                    GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
+                                    
+                                    /* attempt to reference the heatmap data layer of the viewerPane's children;
+                                    if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
+                                    String vectorMapId = "vectormap";
+                                    Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                    
+                                    if (viewerPaneVectorMapLayer == null) {
+                                        // calculate width and height of the Canvas object:
+                                        double width = calculateDimensions(viewerPane).w;
+                                        double height = calculateDimensions(viewerPane).h;
+                                        data = new Canvas(width, height);
+                                        data.setId(vectorMapId);
+                                        //this.datalayers.add(data);
+                                        viewerPane.getChildren().add(data);
+                                        //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
+                                        moveInfoLayersToFront(viewerPane);
+                                    }//end if
+                                    
+                                    viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
+                                    
+                                    // get the graphics context of the heat map data layer for the purpose of drawing:
+                                    GraphicsContext dataCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
+                                    
+                                    // Store the current transformation matrix
+                                    dataCanvasContext.save();
+                                    
+                                    // Use the identity matrix while clearing the canvas
+                                    dataCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
+                                    dataCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
+                                    
+                                    // Restore the transform
+                                    dataCanvasContext.restore();
+                                    
+                                    dataCanvasContext.setLineWidth(5);
+                                    
+                                    int frame_number = 1;
+                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                    line_frames.add(vectorFrame);
+                                    
+                                    //update mouse position before drawing lines
+                                    current_mouse_positions.put(mouse_color.get(locTimeData.get(finalJ).timestamp), current_grid);
+                                    
+                                    //Draw on the mouse positions
+                                    current_mouse_positions.entrySet().stream().filter((entry) -> (entry.getValue()!=null)).map((entry) -> {
+                                        dataCanvasContext.setFill(entry.getKey().mouse_color);
+                                        return entry;
+                                    }).forEachOrdered((entry) -> {
+                                        dataCanvasContext.fillOval(entry.getValue().center_x-5,entry.getValue().center_y-5, 9, 9);
+                                    });
+                                    
+                                    for (int position = 0; position < line_frames.size(); position ++){
                                         
-                                        //Draws the line segments connecting all the sectors that the a mouse traveled
-                                        
-                                        /* (Parker 4/3/17): display to the user the current frame being rendered: */
-                                        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
-                                        currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
-                                        
-                                        /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                        int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
-                                        int nextIndex = finalJ+1;
-                                        // (Parker): prevent an index out of bounds error:
-                                        if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
-                                        int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
-                                        /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
-                                        
-                                        GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
-                                        GridSector current_grid = getSectorByGridIndex(gridSectorIndex_current);
-                                        
-                                        /* attempt to reference the heatmap data layer of the viewerPane's children;
-                                        if this is not possible, create a new heatmap data layer and add it to the viewerPane: */
-                                        String vectorMapId = "vectormap";
-                                        Canvas viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-                                        
-                                        if (viewerPaneVectorMapLayer == null) {
-                                            // calculate width and height of the Canvas object:
-                                            double width = calculateDimensions(viewerPane).w;
-                                            double height = calculateDimensions(viewerPane).h;
-                                            data = new Canvas(width, height);
-                                            data.setId(vectorMapId);
-                                            //this.datalayers.add(data);
-                                            viewerPane.getChildren().add(data);
-                                            //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
-                                            moveInfoLayersToFront(viewerPane);
-                                        }//end if
-                                        
-                                        viewerPaneVectorMapLayer = (Canvas)viewerPane.lookup("#" + vectorMapId);
-                                        
-                                        // get the graphics context of the heat map data layer for the purpose of drawing:
-                                        GraphicsContext dataCanvasContext = viewerPaneVectorMapLayer.getGraphicsContext2D();
-                                        
-                                        // Store the current transformation matrix
-                                        dataCanvasContext.save();
-                                        
-                                        // Use the identity matrix while clearing the canvas
-                                        dataCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
-                                        dataCanvasContext.clearRect(0, 0, viewerPaneVectorMapLayer.getWidth(), viewerPaneVectorMapLayer.getHeight());
-                                        
-                                        // Restore the transform
-                                        dataCanvasContext.restore();
-                                        
-                                        dataCanvasContext.setLineWidth(5);
-                                        
-                                        int frame_number = 1;
-                                        VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
-                                        line_frames.add(vectorFrame);
-                                        
-                                        //update mouse position before drawing lines
-                                        current_mouse_positions.put(mouse_color.get(locTimeData.get(finalJ).timestamp), current_grid);
-                                        
-                                        //Draw on the mouse positions 
-                                        for(Map.Entry<Mouse, GridSector> entry: current_mouse_positions.entrySet()){
+                                        if(line_frames.get(position).get_animation_state() == 1){
                                             
-                                            if (entry.getValue()!=null){
-                                                dataCanvasContext.setFill(entry.getKey().mouse_color);
-                                                dataCanvasContext.fillOval(entry.getValue().center_x-5,entry.getValue().center_y-5, 9, 9);
-                                            }
-                                        }
-                                        
-                                        for (int position = 0; position < line_frames.size(); position ++){
+                                            dataCanvasContext.setStroke(line_frames.get(position).color);
+                                            dataCanvasContext.setLineDashes(0d);
                                             
-                                            if(line_frames.get(position).get_animation_state() == 1){
-                                                
-                                                dataCanvasContext.setStroke(line_frames.get(position).color);
-                                                dataCanvasContext.setLineDashes(0d);
-                                                
-                                                
-                                            }else if(line_frames.get(position).get_animation_state() == 2){
-                                                
-                                                dataCanvasContext.setStroke(line_frames.get(position).color);
-                                                dataCanvasContext.setLineDashes(10d);
-                                                
-                                                
-                                                
-                                            }else if(line_frames.get(position).get_animation_state() >= 3){
-                                                
-                                                dataCanvasContext.setStroke(Color.TRANSPARENT);
-                                                dataCanvasContext.setLineDashes(0d);
-                                                
-                                            }//end else if
-                                            dataCanvasContext.strokeLine(
-                                                    line_frames.get(position).first.center_x,
-                                                    line_frames.get(position).first.center_y,
-                                                    line_frames.get(position).second.center_x,
-                                                    line_frames.get(position).second.center_y);
-                                        }//end for
-                                        // If the exportFolder parameter contains a File object, create a new File.
-                                        // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
-                                        // unique to the current frame.
-                                        if (exportFolder != null) {
-                                            try {
-                                                File exportFile = new File(exportFolder.getPath() + "\\" + frameCount + ".png");
-                                                System.out.println("Frame filename: " + exportFile.getPath());
-                                                exportFrame(viewerPane, exportFile, "png");
-                                            } catch (AWTException ex) {
-                                                Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
-                                            }//end catch
-                                        }//end if
-                                        
-                                        ++frameCount;
-                                    } //end run
-                                });
+                                            
+                                        }else if(line_frames.get(position).get_animation_state() == 2){
+                                            
+                                            dataCanvasContext.setStroke(line_frames.get(position).color);
+                                            dataCanvasContext.setLineDashes(10d);
+                                            
+                                            
+                                            
+                                        }else if(line_frames.get(position).get_animation_state() >= 3){
+                                            
+                                            dataCanvasContext.setStroke(Color.TRANSPARENT);
+                                            dataCanvasContext.setLineDashes(0d);
+                                            
+                                        }//end else if
+                                        dataCanvasContext.strokeLine(
+                                                line_frames.get(position).first.center_x,
+                                                line_frames.get(position).first.center_y,
+                                                line_frames.get(position).second.center_x,
+                                                line_frames.get(position).second.center_y);
+                                    }//end for
+                                    // If the exportFolder parameter contains a File object, create a new File.
+                                    // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
+                                    // unique to the current frame.
+                                    if (exportFolder != null) {
+                                        try {
+                                            File exportFile = new File(exportFolder.getPath() + "\\" + frameCount + ".png");
+                                            System.out.println("Frame filename: " + exportFile.getPath());
+                                            exportFrame(viewerPane, exportFile, "png");
+                                        } catch (AWTException ex) {
+                                            Logger.getLogger(Grid.class.getName()).log(Level.SEVERE, null, ex);
+                                        }//end catch
+                                    }//end if
+                                    
+                                    ++frameCount;
+                                } //end run
+                                );
                                 // delay the animation thread by "speed" number of milliseconds;
                                 // this value should come directly from the Frame Delay GUI slider control:
                                 Thread.sleep((int)speed);
