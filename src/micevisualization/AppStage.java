@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class AppStage extends Application {
@@ -15,7 +16,10 @@ public class AppStage extends Application {
         
         Scene scene = new Scene(root, 1000, 760);
         
-        stage.setTitle("FXML Welcome");
+        stage.setTitle("Mice Visualization Program");
+        
+        stage.getIcons().add(new Image("resources/icon-300.png"));
+        
         stage.setScene(scene);
         stage.show();
         

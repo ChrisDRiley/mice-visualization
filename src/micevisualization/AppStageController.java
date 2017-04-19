@@ -1134,7 +1134,7 @@ public class AppStageController {
             // disallow the closing of individual tabs:
             tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
-            // Generate the GUI objects of the File Menu documentation:
+            // Generate the GUI objects of the File Menu documentation
             GenerateFileMenuTab(tabPane);
  
             //create scene with set width, height and color
