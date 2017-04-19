@@ -65,12 +65,14 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
+import javafx.scene.text.Text;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -100,7 +102,6 @@ public class AppStageController {
     @FXML private HBox gridOptionsCheckBoxesHBox;
     @FXML private VBox dataRangeControlVBox;
     @FXML private CustomMenuItem exportAnimationItem;
-    @FXML private CustomMenuItem Tutorial;
     @FXML private CustomMenuItem About;
   
     // Parker (3/17/17)
@@ -402,23 +403,14 @@ public class AppStageController {
     Simply adding prompts to tutorial and help menus since they are not operational for now
     */
     
-    @FXML protected void Tutorial(ActionEvent event) {
-        
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Program Notification");
-        alert.setHeaderText("ALERT");
-        alert.setContentText("COMING SOON");
-        alert.showAndWait(); 
-    }//end Tutorial
-    
     @FXML protected void About(ActionEvent event) {
         
         Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Program Notification");
-        alert.setHeaderText("ALERT");
-        alert.setContentText("COMING SOON");
+        alert.setTitle("About the Mice Visualization program");
+        alert.setHeaderText("Project information:");
+        alert.setContentText("Project GitHub repository: https://github.com/parkercode/mice-visualization\n\nParker Rowland - heat map, session handling, data parsing, animation code skeleton, animation export, user interface\nEmail: parkertrowland@gmail.com\n\nJosh Mwandu - vector map\nEmail: jmwandu@mail.umw.edu\n\nAlex Brown - image export\nEmail: abrown6@mail.umw.edu\n\n");
         alert.showAndWait(); 
-    }//end About
+    }
     
     
     
@@ -1121,62 +1113,125 @@ public class AppStageController {
     }//end loadSessionFromManagerAction
     
     
-    /*
-    Parker(4/17/17): Created a new window for help documentation
-    Alex(4/18/17):  Creating full functionality for each tab with information.
-    */
-    
+    /**
+     * 
+     * @author: Parker
+     * 
+     * Show a help documentation window to the user. This function generates the
+     * necessary GUI objects that will represent the text and images of the documentation.
+     * 
+     * @param event 
+     */
     @FXML protected void showHelpDocumentationAction(ActionEvent event) {
             final Stage helpDoc = new Stage();
             
             // create the root node:
             TabPane tabPane = new TabPane();
+            tabPane.setPrefSize(700, 700);
+            tabPane.setMinSize(TabPane.USE_PREF_SIZE, TabPane.USE_PREF_SIZE);
+            tabPane.setMaxSize(TabPane.USE_PREF_SIZE, TabPane.USE_PREF_SIZE);
             
-            /* Creates tabs for each section
-                1) File Menu -> Goes over all items in it
-                2) Session Manager -> Explains how sessions work
-                3) Visualization Options -> Explains the different options, grid line/numbers, and selecting mice
-                4) Frame -> Explains start, stop, current frame, frame delay.
-                5) Generating Map -> Explains what this does after selecting your options
-            */
-            
-            HelpTabs(tabPane, "File Menu");
-            HelpTabs(tabPane, "Session Manager");
-            HelpTabs(tabPane, "Visualization Options");
-            HelpTabs(tabPane, "Frames");
-            HelpTabs(tabPane, "Map Generation");
-            
+            // disallow the closing of individual tabs:
+            tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+
+            // Generate the GUI objects of the File Menu documentation:
+            GenerateFileMenuTab(tabPane);
  
             //create scene with set width, height and color
-            Scene scene = new Scene(tabPane, 675, 700, Color.WHITESMOKE);
+            Scene scene = new Scene(tabPane, 700, 700, Color.WHITESMOKE);
  
             //set scene to stage
             helpDoc.setScene(scene);
  
             //set title to stage
             helpDoc.setTitle("Help Documentation");
-            helpDoc.setResizable(false);
+            //helpDoc.setResizable(false);
  
             //center stage on screen
             helpDoc.centerOnScreen();
  
             //show the stage
             helpDoc.show();
-    }//end showHelpDocumentationAction
+    }
     
     /*
-    Alex(4/18/17):  function to set up new tabs for help documentation (cuts down on some repetition)
+    Parker(4/18/17):  This function contains the necessary code for setting up objects that will comprise
+    the File Menu documentation. The tabPane parameter object is the parent of the content generated in this function.
+    This function is called in the showHelpDocumentationAction() function.
     */
-    public void HelpTabs(TabPane tabPane, String text) {
-        
-        Tab tab = new Tab();
-        tab.setText(text);
-        tab.setContent(new Rectangle(700, 700, Color.LIGHTSTEELBLUE));
-        tabPane.getTabs().add(tab);
-
-        //Disables tab closing
-        tab.setOnCloseRequest(e -> e.consume());
-        
+    public void GenerateFileMenuTab(TabPane tabPane) {
+       String vboxStyle = "-fx-padding: 15px; -fx-spacing: 15px;";
+            String headerStyle = "-fx-font-weight: bold; -fx-font-size: 18px";
+            String boldStyle = "-fx-font-weight: bold";
+            
+            Tab tab = new Tab();
+            tab.setText("File Menu");
+            
+            ScrollPane contentScroll = new ScrollPane();
+            
+            VBox contentArea = new VBox();
+            contentArea.setPrefWidth(660.0);
+            contentArea.setStyle(vboxStyle);
+            
+            Label headerLabel = new Label("File Menu");
+            headerLabel.setStyle(headerStyle);
+            
+            Image contentImage = new Image("resources/filemenu.png");
+            ImageView iv = new ImageView(contentImage);
+            
+            Label bodyLabel = new Label("The main menu located at the upper top edge of the program screen contains options that correspond to certain file-related commands that the user can execute.");
+            bodyLabel.setWrapText(true);
+            
+            Label item1Header = new Label("1) Main Menu options");
+            item1Header.setStyle(boldStyle);
+            Label item1Description = new Label("The main menu contains two categories of options: those relating to file operations ('File'), and those relating to the help documentation ('Help'). The options within the File category are explained below; the options in the Help category allow the user to either view the program's documentation or the contact information of the original developers.");
+            item1Description.setWrapText(true);
+            
+            Label item2Header = new Label("2) Open");
+            item2Header.setStyle(boldStyle);
+            Label item2Description = new Label("The Open option opens a file explorer, enabling the user to select either a .CSV data set file or a .JSON session data file.");
+            item2Description.setWrapText(true);
+            
+            Label item3Header = new Label("3) Save");
+            item3Header.setStyle(boldStyle);
+            Label item3Description = new Label("The Save option saves the current state of the program to its session file. If the current session does not have an associated file, the program will ask the user if they would like to create a new session file.");
+            item3Description.setWrapText(true);
+            
+            Label item4Header = new Label("4) Export Image");
+            item4Header.setStyle(boldStyle);
+            Label item4Description = new Label("The Export option exports the current visualization as either a PNG or JPEG file. The program displays a directory chooser in order for the user to specify the save location of the export file.");
+            item4Description.setWrapText(true);
+            
+            Label item5Header = new Label("5) Export Animation");
+            item5Header.setStyle(boldStyle);
+            Label item5Description = new Label("The Export Animation option, enabled only when the 'Visualization Type' is set to 'Animated', exports an animation of the data. The export consists of individual frames of the animation, saved as PNG files. Since it is possible for the animation export to generate a large amount of data, the program will perform a memory check on the export location selected by the user. While rendering, the export happens in 'real time'; the current frame displayed in the viewer area shows the most recently exported frame.");
+            item5Description.setWrapText(true);
+            
+            Label item6Header = new Label("6) Exit");
+            item6Header.setStyle(boldStyle);
+            Label item6Description = new Label("The Exit option closes the program. If the current session of the program has an associated session file, the file is overwritten with the program's current state before the program closes.");
+            item6Description.setWrapText(true);
+            
+            contentArea.getChildren().add(headerLabel);
+            contentArea.getChildren().add(bodyLabel);
+            contentArea.getChildren().add(iv);
+            contentArea.getChildren().add(item1Header);
+            contentArea.getChildren().add(item1Description);
+            contentArea.getChildren().add(item2Header);
+            contentArea.getChildren().add(item2Description);
+            contentArea.getChildren().add(item3Header);
+            contentArea.getChildren().add(item3Description);
+            contentArea.getChildren().add(item4Header);
+            contentArea.getChildren().add(item4Description);
+            contentArea.getChildren().add(item5Header);
+            contentArea.getChildren().add(item5Description);
+            contentArea.getChildren().add(item6Header);
+            contentArea.getChildren().add(item6Description);
+            
+            contentScroll.setContent(contentArea);
+            
+            tab.setContent(contentScroll);
+            tabPane.getTabs().add(tab);
     }
     
     /**
