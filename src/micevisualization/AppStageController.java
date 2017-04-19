@@ -184,7 +184,7 @@ public class AppStageController {
             Label headerLabel = new Label("File Menu");
             headerLabel.setStyle(headerStyle);
             
-            Image contentImage = new Image("resources/HelpDocPics/filemenu.png");
+            Image contentImage = new Image("resources/filemenu.png");
             ImageView iv = new ImageView(contentImage);
             
             Label bodyLabel = new Label("The main menu located at the upper top edge of the program screen contains options that "
@@ -287,7 +287,7 @@ public class AppStageController {
             Label headerLabel = new Label("Session Manager");
             headerLabel.setStyle(headerStyle);
             
-            Image contentImage = new Image("resources/HelpDocPics/Session.png");
+            Image contentImage = new Image("resources/Session.png");
             ImageView iv = new ImageView(contentImage);
             
             Label bodyLabel = new Label("The Session Manager handles all JSON session files that are the data sets loaded into the program, "
@@ -359,10 +359,10 @@ public class AppStageController {
             Label headerLabel = new Label("Visualization Options");
             headerLabel.setStyle(headerStyle);
             
-            Image contentImage = new Image("resources/HelpDocPics/Visualize.png");
+            Image contentImage = new Image("resources/Visualize.png");
             ImageView iv = new ImageView(contentImage);
             
-            Image contentImage2 = new Image("resources/HelpDocPics/PlayAnimation.png");
+            Image contentImage2 = new Image("resources/PlayAnimation.png");
             ImageView iv2 = new ImageView(contentImage2);
             
             Label bodyLabel = new Label("The Visualization Options are shown on the right side of the program, "
