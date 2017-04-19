@@ -202,7 +202,13 @@ public class AppStageController {
             Label item2Header = new Label("2) Open");
             item2Header.setStyle(boldStyle);
             Label item2Description = new Label("The Open option opens a file explorer, enabling the user to select either a "
-                    + ".CSV data set file or a .JSON session data file.");
+                    + ".CSV data set file or a .JSON session data file. \nThe program validates CSV data sets according to certain rules. In the CSV file, the data must conform to the following format:\n" +
+                    "\n" +
+                    "Column headers ...\n" +
+                    "10/10/2010 10:10:10.100,mouseIdString,mouseLabelString,RFID10,1010\n" +
+                    "...\n" +
+                    "\n" +
+                    "The column headers are ignored. The first column in the data row contains the timestamp, which must be in the format MM/dd/yyyy HH:mm:ss.SSS, the second column represents the unique identifier that each mouse should have throughout the data set, the third column contains the label associated with the identifier in the preceding column, the fourth column contains the label for the grid sector, which must be in the format \"XXXX00\" (where 'X' is an alphanumeric character and '0' is a digit), and the fifth column contains the duration, in milliseconds, of how long the mouse remained in the grid sector. There is no limit on the number of data rows that the program can process.");
             item2Description.setWrapText(true);
             
             Label item3Header = new Label("3) Save");
@@ -294,6 +300,17 @@ public class AppStageController {
                     + "which you can switch between at any time.");
             bodyLabel.setWrapText(true);
             
+            Label explanationHeader = new Label("How sessions work");
+            explanationHeader.setStyle(boldStyle);
+            
+            Label explanationBody = new Label("The session management capability of the system works based on file paths that link the system to two types of data: JSON session data, and CSV data set data. If two people, person A and person B, would like to share a program session across two computers, then the follow steps must occur:"
+                                                + "\n\n1. Person A must choose to create a session file when loading a data set. The program will automatically save the state of the program to the session file during program execution."
+                                                + "\n\n2. The CSV data set file that Person A loaded needs to be copied to the program's mice-sessions folder (which is automatically created by the program on startup) in order for Person B to use the session file on their computer. This is due to the program's use of relative paths: the program will attempt to look for the original location of the data set, which was somewhere on Person A's computer, but if this fails on Person B's computer (since Person B's computer will most likely have a different file path tree), the program will look in the mice-sessions folder for the data set, which is relative to the location of the program's executable JAR file."
+                                                + "\n\n3. Person B needs to have the following on their computer: a copy of the program's executable JAR file, a copy of the session file, and a copy of the data set file which should reside in the mice-sessions folder in the same directory as Person B's executable JAR file."
+                                                + "\n\n4. When Person B loads the session file, either through File -> Open or the Session Manager, the program's visualization options should be restored to what they were on Person A's computer, and the data set should be automatically loaded."
+                                                + "\n\n.");
+            explanationBody.setWrapText(true);
+            
             Label item1Header = new Label("1) Recent Sessions");
             item1Header.setStyle(boldStyle);
             Label item1Description = new Label("This will display all current JSON files loaded into the current program, which you can switch between at any time.");
@@ -312,6 +329,10 @@ public class AppStageController {
             // Add everything to the ContentArea
             contentArea.getChildren().add(headerLabel);
             contentArea.getChildren().add(bodyLabel);
+            
+            contentArea.getChildren().add(explanationHeader);
+            contentArea.getChildren().add(explanationBody);
+            
             contentArea.getChildren().add(iv);
             
             contentArea.getChildren().add(item1Header);
@@ -400,15 +421,20 @@ public class AppStageController {
             
             Label item6Header = new Label("6) Start & Stop");
             item6Header.setStyle(boldStyle);
-            Label item6Description = new Label("These paramters are the frame indices which are used to generate the visualization. "
-                    + "You can enter your own selection or choose from a preset selection. By default, it displays the entire file loaded.");
+            Label item6Description = new Label("These paramters are the frame indices which are used to bound the range of the visualization. "
+                    + "You can enter your own selection or choose from a preset selection. By default, the program prepopulates the Start index with the timestamp of the first data row and the Stop index with the timestamp of the last data row.");
             item6Description.setWrapText(true);
             
-            Label item7Header = new Label("7) Generate Map");
+            Label item7Header = new Label("7) Animation Options");
             item7Header.setStyle(boldStyle);
-            Label item7Description = new Label("Under the static option, you'll see 'Generate Static Map', which executes your choices and displays them to the screen. "
-                    + "If you have 'animated' selected, you'll see the button shown below that will play the animation in real-time instead.");
+            Label item7Description = new Label("If 'animated' is selected as the current Visualization Type, then the animation options will be enabled. The slider sets the amount of delay in milliseconds introduced by the program inbetween each frame of the animation. The Current Frame window displays the most recently rendered frame in the animation.");
             item7Description.setWrapText(true);
+            
+            Label item8Header = new Label("8) Generate Map");
+            item8Header.setStyle(boldStyle);
+            Label item8Description = new Label("Under the static option, you'll see 'Generate Static Map', which executes your choices and displays them to the screen. "
+                    + "If you have 'animated' selected, the 'Generate Static Map' button will instead act as a play / stop button for controlling the animation.");
+            item8Description.setWrapText(true);
             
             // Add everything to the ContentArea
             contentArea.getChildren().add(headerLabel);
@@ -435,6 +461,9 @@ public class AppStageController {
             
             contentArea.getChildren().add(item7Header);
             contentArea.getChildren().add(item7Description);
+            
+            contentArea.getChildren().add(item8Header);
+            contentArea.getChildren().add(item8Description);
             contentArea.getChildren().add(iv2);
             
             contentScroll.setContent(contentArea);
