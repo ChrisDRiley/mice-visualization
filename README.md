@@ -1,6 +1,8 @@
 ## Mice Visualization Program
 
-The Mice Visualization Program is a JavaFX software application designed to visualize data collected from a series of mice behavior experiments. The data contains the various locations of individual mice within a 25 sector grid and their corresponding timestamps over time. The program parses this data and is capable of representing the mice activity with three types of maps (heat, vector, and overlay) using two methods of visualization generation (static and animated). 
+The Mice Visualization Program is a JavaFX software application designed to visualize data collected from a series of mice behavior experiments. The data contains the various locations of individual mice within a 25 sector grid and their corresponding timestamps over time. The program parses this data and is capable of representing the mice activity with three types of maps (heat, vector, and overlay) using two methods of visualization generation (static and animated).
+
+![Alt text](screenshot.png?raw=true "Mice Visualization Program")
 
 ## Project Background and Developers
 
