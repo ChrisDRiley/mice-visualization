@@ -1015,8 +1015,16 @@ public class Grid {
                             for (int j = 0; j < mice.get(i).locTimeData.size(); ++j) {
                                 locTimeData.add(mice.get(i).locTimeData.get(j));
                                 mouse_color.put(mice.get(i).locTimeData.get(j).timestamp,mice.get(i));
-                            }//end for
-                        }//end for
+
+                            }
+                        }
+                        
+                        //Hashmap to store the current position on the grid for each mouse as the animation iterates
+                        HashMap<Mouse, GridSector> current_mouse_positions = new HashMap<Mouse, GridSector>();
+                        for(Map.Entry<Date, Mouse> entry: mouse_color.entrySet()){
+                            current_mouse_positions.put(entry.getValue(), null);
+                        }
+
                         
                         // (Parker): sort the collective MouseLocTime data so that it is in order from earliest Date timestamp
                         // to latest Date timestamp:
@@ -1110,6 +1118,18 @@ public class Grid {
                                         int frame_number = 1;
                                         VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
                                         line_frames.add(vectorFrame);
+                                        
+                                        //update mouse position before drawing lines
+                                        current_mouse_positions.put(mouse_color.get(locTimeData.get(finalJ).timestamp), current_grid);
+                                        
+                                        //Draw on the mouse positions 
+                                        for(Map.Entry<Mouse, GridSector> entry: current_mouse_positions.entrySet()){
+                                            
+                                            if (entry.getValue()!=null){
+                                                dataCanvasContext.setFill(entry.getKey().mouse_color);
+                                                dataCanvasContext.fillOval(entry.getValue().center_x-5,entry.getValue().center_y-5, 9, 9);
+                                            }
+                                        }
                                         
                                         for (int position = 0; position < line_frames.size(); position ++){
                                             
