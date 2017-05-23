@@ -2133,6 +2133,10 @@ public class AppStageController {
                     // (Parker): define a string format for converting Dates to Strings:
                     SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
                     
+                    // (Parker 5/23/17) Since there may be a number of header lines that need to be skipped (before the parsing of valid data rows occurs),
+                    // use a Boolean to keep track of when the first valid data row is encountered:
+                    Boolean validDataRowRead = false;
+                    
                     // while there are lines to be read in the data file:
                     while (sc.hasNextLine()) {
                         linesProcessed++;
@@ -2154,24 +2158,11 @@ public class AppStageController {
                         and add the current's rows's location and timestamp data.
                         */
                         
-                        // skip the header line:
-                        if (linesProcessed == 1) continue; 
-                        
                         // extract the location and timestamp data for the current row:
                         MouseLocTime mlt = new MouseLocTime(items.get(TIMESTAMP), items.get(UNIT_LABEL), items.get(EVENT_DURATION));
                         
                         // (Parker 4/16/17): if the current data row has a timestamp that cannot be read, skip this data row
                         if (mlt.timestamp == null) continue;
-                        
-                        // (Parker 4/16/17): check that the unitLabel (the grid sector index in the current data row) contains an integer index after
-                        // its 4 character 'RFID' prefix: 
-                        try {
-                            Integer.parseInt(items.get(UNIT_LABEL).substring(4));
-                        }
-                        // (Parker 4/16/17): if not, skip the current data row:
-                        catch (NumberFormatException e) {
-                            continue;
-                        }
                         
                         // (Parker 4/16/17): since the timestamp passed validation (it was not null after
                         // going through the MouseLocTime constructor), add it to the list of timestamps from the data set:
@@ -2179,9 +2170,11 @@ public class AppStageController {
                         
                         // update the dateRange variable:
                         dateRange = mlt.timestamp;
-                        // the 2nd line processed should be the first row of data,
-                        // so prepopulate the Start field with this date:
-                        if (linesProcessed == 2) {
+                        
+                        // (Parker 5/23/17): the first MouseLocTime timestamp value that is validated as non-null should represent the first valid row of data,
+                        // so prepopulate the Start field with its timestamp value:
+                        if (validDataRowRead == false && mlt.timestamp != null) {
+                            validDataRowRead = true;
                             // if there is no previous Start timestamp session value (if one does exist, it will be restored at a later point),
                             // proceed with prepopulating the Start TextArea:
                             if (session.stoppingIndex.equals(""))

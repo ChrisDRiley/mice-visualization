@@ -319,6 +319,19 @@ public class Grid {
     
     /**
      * 
+     * Since the unitLabel string refers to which grid sector a mouse is in for the current data row,
+     * isolate the numeric portion of this string and return it as an integer. This allows for the 
+     * unitLabel to be either an integer value or a string containing an integer value.
+     * 
+     * @param str
+     * @return 
+     */
+    int getGridSectorIndexFromUnitLabel(String str) {
+        return Integer.parseInt(str.replaceAll("[^0-9]", ""));
+    }
+    
+    /**
+     * 
      * @author Parker
      * 
      * Calculate each individual GridSector's finalTotalDuration, write each finalTotalDuration to
@@ -344,8 +357,8 @@ public class Grid {
                 
                 if (mouseDate.compareTo(start) >= 0) {
                     
-                    /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                    int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
+                    /* Extract the numeric value to get the integer gridIndex from the unitLabel locTimeData parameter: */
+                    int gridSectorIndex = getGridSectorIndexFromUnitLabel(mice.get(i).locTimeData.get(j).unitLabel);
                     
                     /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                     GridSector gs = getSectorByGridIndex(gridSectorIndex);
@@ -523,7 +536,8 @@ public class Grid {
                                 currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
                                 
                                 /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                int gridSectorIndex = getGridSectorIndexFromUnitLabel(locTimeData.get(finalJ).unitLabel);
+                                
                                 /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                                 GridSector gs = getSectorByGridIndex(gridSectorIndex);
                                 
@@ -727,7 +741,8 @@ public class Grid {
                                     /* GENERATE HEAT MAP: *************************************************** */
                                     
                                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                    int gridSectorIndex = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    int gridSectorIndex = getGridSectorIndexFromUnitLabel(locTimeData.get(finalJ).unitLabel);
+                                    
                                     /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                                     GridSector gs = getSectorByGridIndex(gridSectorIndex);
                                     
@@ -770,11 +785,13 @@ public class Grid {
                                     /* GENERATE VECTOR MAP: *************************************************** */
                                     
                                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                    int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    int gridSectorIndex_previous = getGridSectorIndexFromUnitLabel(locTimeData.get(finalJ).unitLabel);
+                                    //getGridSectorIndexFromUnitLabel
+                                    
                                     int nextIndex = finalJ+1;
                                     // (Parker): prevent an index out of bounds error:
                                     if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
-                                    int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
+                                    int gridSectorIndex_current = getGridSectorIndexFromUnitLabel(locTimeData.get(nextIndex).unitLabel);
                                     /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                                     
                                     GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
@@ -924,7 +941,8 @@ public class Grid {
                 mouseDate = mice.get(i).locTimeData.get(j).timestamp;
                 if (mouseDate.compareTo(start) >= 0) {
                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                    int gridSectorIndex = Integer.parseInt(mice.get(i).locTimeData.get(j).unitLabel.substring(4));
+                    int gridSectorIndex = getGridSectorIndexFromUnitLabel(mice.get(i).locTimeData.get(j).unitLabel);
+                    
                     UnitLabels.add(gridSectorIndex);
                     }//end if
                 }//end for
@@ -1088,11 +1106,11 @@ public class Grid {
                                     currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
                                     
                                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
-                                    int gridSectorIndex_previous = Integer.parseInt(locTimeData.get(finalJ).unitLabel.substring(4));
+                                    int gridSectorIndex_previous = getGridSectorIndexFromUnitLabel(locTimeData.get(finalJ).unitLabel);
                                     int nextIndex = finalJ+1;
                                     // (Parker): prevent an index out of bounds error:
                                     if (nextIndex >= locTimeData.size()) nextIndex = finalJ;
-                                    int gridSectorIndex_current = Integer.parseInt(locTimeData.get(nextIndex).unitLabel.substring(4));
+                                    int gridSectorIndex_current = getGridSectorIndexFromUnitLabel(locTimeData.get(nextIndex).unitLabel);
                                     /* use the gridIndex to retrieve the matching gridSector object from the grid's gridSector array: */
                                     
                                     GridSector previous_grid = getSectorByGridIndex(gridSectorIndex_previous);
