@@ -410,8 +410,12 @@ public class Grid {
                 gridSectors with less activity will have lighter shades: */
                 opacity = this.sectors.get(i).finalTotalDuration / maxDuration;
             }//end if
+            //Increase gradient by 20 percent: Christian
             if(opacity > 0.83){
                 opacity = 1.0;
+            }
+            else{
+                opacity *= 1.2;
             }
             /* perform the drawing of the shade onto the Canvas for this gridSector */
             dataCanvasContext.setFill(Color.rgb(0, 0, 255, opacity));
