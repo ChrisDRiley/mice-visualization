@@ -2143,8 +2143,19 @@ public class AppStageController {
                          //pulls next line of input:
                         String line = sc.nextLine();
                         //splits up line using commas:
-                        List<String> items = Arrays.asList(line.split(",")); 
-                        
+                        List<String> items = null;
+                        if(line.contains(";")){
+                            line.replaceAll(",", "");
+                            items = Arrays.asList(line.split(";"));
+                            if(!items.get(TIMESTAMP).contains("ID")){
+                                Date format = sdf.parse(items.get(TIMESTAMP));
+                                String newFormat = sdf.format(format);
+                                items.set(TIMESTAMP, newFormat);
+                            }
+                        }
+                        else{
+                                items = Arrays.asList(line.split(",")); 
+                        }
                         /*
                         Parker (3/22/17):
                         For each row of data in the data set, take each tokenized string of data
