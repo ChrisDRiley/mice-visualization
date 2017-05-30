@@ -23,14 +23,19 @@ public class Mouse {
         this.IdRFID = idr;
         this.IdLabel = idl;
         this.locTimeData = new ArrayList<>();
-        
-        Random rand = new Random();
-        this.mouse_color = Color.rgb(rand.nextInt(256),
-                rand.nextInt(256),
-                rand.nextInt(256));
+         //Whitney Post 5/29/17: Removed randomly generated mouse colors        
+        //Random rand = new Random();
+        //this.mouse_color = Color.rgb(rand.nextInt(256),
+               // rand.nextInt(256),
+               // rand.nextInt(256));
     }
     
     public Boolean addLocTime(MouseLocTime mlt) {
         return locTimeData.add(mlt);
     }
+       //whitney post 5/23/17 adding method to return the mouse color
+    public Color getColor() {
+        return this.mouse_color;
+    }
+    
 }
