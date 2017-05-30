@@ -2138,6 +2138,8 @@ public class AppStageController {
                     Boolean validDataRowRead = false;
                     
                     // while there are lines to be read in the data file:
+                    //Whitney Post 5/29/17: Create a counter to keep track of the number of mice
+                    int mouseCount = 0;
                     while (sc.hasNextLine()) {
                         linesProcessed++;
                          //pulls next line of input:
@@ -2193,6 +2195,9 @@ public class AppStageController {
                         }//end if
                         
                         // check if the mice object contains a mouse with the current row's IdRFID:
+                        //Whitney Post 5/29/17: Create a color list for all the mice in the data set
+                        final Color ColorList[] = {Color.BLUE, Color.BLACK, Color.CORAL, Color.BROWN, Color.DARKGREEN, Color.RED, Color.YELLOW, Color.DARKGREY};
+                        
                         if (mice.hasMouse(items.get(ID_RFID)) == false) {
                             // if the current mouse in the data set does not have a corresponding Mouse object, create one:
                             Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
@@ -2200,6 +2205,7 @@ public class AppStageController {
                             m.addLocTime(mlt);
                             // add the mouse object to the mice array:
                             mice.add(m);
+                            mouseCount++;
                         }//end if
                         
                         // else, the mouse of the current row already has a corresponding Mouse object;
