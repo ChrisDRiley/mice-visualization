@@ -19,10 +19,11 @@ public class Mouse {
     String IdLabel;
     Color mouse_color;
     
-    public Mouse(String idr, String idl) {
+    public Mouse(String idr, String idl, Color mouseColor) {
         this.IdRFID = idr;
         this.IdLabel = idl;
         this.locTimeData = new ArrayList<>();
+        this.mouse_color = mouseColor;
          //Whitney Post 5/29/17: Removed randomly generated mouse colors        
         //Random rand = new Random();
         //this.mouse_color = Color.rgb(rand.nextInt(256),
