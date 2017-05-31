@@ -53,6 +53,7 @@ import com.sun.javafx.scene.control.skin.ButtonSkin;
 import com.sun.javafx.scene.control.skin.TextAreaSkin;
 import java.awt.AWTException;
 import java.text.ParseException;
+import java.util.Calendar;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -2150,14 +2151,18 @@ public class AppStageController {
                             line.replaceAll(",", "");
                             items = Arrays.asList(line.split(";"));
                             if(!items.get(TIMESTAMP).contains("ID")){
-                                Date format = sdf.parse(items.get(TIMESTAMP));
-                                String newFormat = sdf.format(format);
-                                items.set(TIMESTAMP, newFormat);
+                               double doubleStamp = Double.parseDouble(items.get(TIMESTAMP))*1L;
+                               long longTime = 1493805670378L;
+                               long longStamp = (long) (doubleStamp * 28750L);
+                               Date toFormat = new Date(longStamp+longTime);
+                               String finalDate = sdf.format(toFormat);
+                               items.set(TIMESTAMP, finalDate);
                             }
                         }
                         else{
                                 items = Arrays.asList(line.split(",")); 
                         }
+
                         /*
                         Parker (3/22/17):
                         For each row of data in the data set, take each tokenized string of data
