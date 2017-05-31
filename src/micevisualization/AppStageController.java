@@ -2200,11 +2200,12 @@ public class AppStageController {
                         
                         if (mice.hasMouse(items.get(ID_RFID)) == false) {
                             // if the current mouse in the data set does not have a corresponding Mouse object, create one:
-                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL));
+                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL), ColorList[mouseCount]);
                             // add the current row's location and timestamp info to the new mouse object:
                             m.addLocTime(mlt);
                             // add the mouse object to the mice array:
                             mice.add(m);
+                            //System.out.println(items.get(ID_RFID) == '');
                             mouseCount++;
                         }//end if
                         
