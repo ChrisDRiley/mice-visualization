@@ -23,6 +23,7 @@ public class Mouse {
         this.IdRFID = idr;
         this.IdLabel = idl;
         this.locTimeData = new ArrayList<>();
+        this.mouse_color = clr;
          //Whitney Post 5/29/17: Removed randomly generated mouse colors        
         this.mouse_color = clr;
     }
