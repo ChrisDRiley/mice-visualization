@@ -74,6 +74,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.scene.text.Text;
+import org.apache.poi.ss.usermodel.DateUtil;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -2145,16 +2146,19 @@ public class AppStageController {
                         linesProcessed++;
                          //pulls next line of input:
                         String line = sc.nextLine();
+                        if(line != null && line.isEmpty()){
+                            break;
+                        }
                         //splits up line using commas:
                         List<String> items = null;
                         if(line.contains(";")){
                             line.replaceAll(",", "");
                             items = Arrays.asList(line.split(";"));
                             if(!items.get(TIMESTAMP).contains("ID")){
-                               double doubleStamp = Double.parseDouble(items.get(TIMESTAMP))*1L;
-                               long longTime = 1493805670378L;
-                               long longStamp = (long) (doubleStamp * 28750L);
-                               Date toFormat = new Date(longStamp+longTime);
+                               double doubleStamp = Double.parseDouble(items.get(TIMESTAMP));
+                               long longTime = 1494995382721l;
+                               long longStamp = (long) (doubleStamp * 1000);
+                               Date toFormat = DateUtil.getJavaDate(doubleStamp);
                                String finalDate = sdf.format(toFormat);
                                items.set(TIMESTAMP, finalDate);
                             }
