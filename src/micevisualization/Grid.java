@@ -52,7 +52,11 @@ public class Grid {
     Canvas viewerPaneGridLines; //checks if user has gridlines active
     
     Boolean animationCancelled; // for storing if the current animation (if applicable) has been cancelled or not
+    Boolean animationPaused; //boolean if the animation was paused
     
+    //Jacqueline: the two variables bellow is for the pause button
+    int overallfinalJ = 0; //Jacqueline: an int that saves the current number
+    MouseLocTime overalllocTimeData; //Jacqueline: a mouseloctime that saves every time
     // (Parker 3/26/17): allocate the arrays during grid object construction:
     Grid() {
         this.sectors = new ArrayList<>();
@@ -451,11 +455,23 @@ public class Grid {
     void stopAnimation(Button button) {
         button.setText("Play Animation");
         this.animationCancelled = true;
+        this.animationPaused = false;
         Image buttonIcon = new Image("resources/play.png", 16, 16, true, true);
         button.setGraphic(new ImageView(buttonIcon));
+        overallfinalJ = 0;
     }//end stopAnimation
     
-    
+    /**
+     * author Jacqueline
+     * Paused the the animation it changes the text and the image icon.
+     * @param button
+    */
+    void pauseAnimation(Button button){
+        button.setText("Pause Animation");
+        this.animationPaused = true;
+        Image buttonIcon = new Image("resources/pause.png",16,16,true,true);
+        button.setGraphic(new ImageView(buttonIcon));
+    }//end pauseAnimation
     
     /**
      * 
@@ -531,7 +547,7 @@ public class Grid {
                             // since we need to reference the 'j' incrementor inside the Platform.runlater code,
                             // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
-                                
+                            overallfinalJ = finalJ;   
                             // Create a Platform to run code in the background on the new thread;
                             // this is where the data layer of the Grid's Canvas objects gets updated:
                             Platform.runLater(() -> {
@@ -540,6 +556,8 @@ public class Grid {
                                 /* (Parker 4/3/17): display to the user the current frame being rendered: */
                                 SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
                                 currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                //Jacqueline save the current locTimeData
+                                overalllocTimeData = locTimeData.get(finalJ);
                                 
                                 /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                                 int gridSectorIndex = getGridSectorIndexFromUnitLabel(locTimeData.get(finalJ).unitLabel);
@@ -713,7 +731,7 @@ public class Grid {
                         
                         // (Parker): begin looping through the sorted locTimeData (the data row entries). Ensure the loop
                         // stops at the stopping index:
-                        for (int j = 0; j < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
+                        for (int j = overallfinalJ; j < locTimeData.size() && locTimeData.get(j).timestamp.compareTo(stop) <= 0; ++j) {
                             // if the animation was cancelled (by setting the Grid class' animationCancelled property),
                             // then cancel the animation thread:
                             if (animationCancelled == true)
@@ -723,6 +741,7 @@ public class Grid {
                            // since we need to reference the 'j' incrementor inside the Platform.runlater code, 
                            // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
+                            overallfinalJ = finalJ;
                             
                             // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
                             mouseDate = locTimeData.get(j).timestamp;
@@ -743,6 +762,8 @@ public class Grid {
                                     /* (Parker 4/3/17): display to the user the current frame being rendered: */
                                     SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
                                     currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                    //this saves the current mouseloctime point
+                                    overalllocTimeData = locTimeData.get(finalJ);
                                     
                                     /* GENERATE HEAT MAP: *************************************************** */
                                     
@@ -1089,6 +1110,7 @@ public class Grid {
                             // since we need to reference the 'j' incrementor inside the Platform.runlater code,
                             // we need to make a new final variable that is a copy of j's current value:
                             final int finalJ = j;
+                            overallfinalJ = finalJ;
                             // determine if the current data row (MouseLocTime object) falls within the range of the Start and Stop indicies:
                             mouseDate = locTimeData.get(j).timestamp;
                             // if the current data row is within the Start and Stop indicies, perform the
@@ -1110,6 +1132,7 @@ public class Grid {
                                     /* (Parker 4/3/17): display to the user the current frame being rendered: */
                                     SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
                                     currentAnimationFrame.setText(formatter.format(locTimeData.get(finalJ).timestamp));
+                                    overalllocTimeData = locTimeData.get(finalJ);
                                     
                                     /* perform string manipulation to get the integer gridIndex from the unitLabel locTimeData parameter: */
                                     int gridSectorIndex_previous = getGridSectorIndexFromUnitLabel(locTimeData.get(finalJ).unitLabel);
