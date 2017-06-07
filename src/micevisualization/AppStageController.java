@@ -2205,16 +2205,16 @@ public class AppStageController {
                         
                         // check if the mice object contains a mouse with the current row's IdRFID:
                         //Whitney Post 5/29/17: Create a color list for all the mice in the data set
-                        final Color ColorList[] = {Color.BLUE, Color.BLACK, Color.CORAL, Color.BROWN, Color.DARKGREEN, Color.RED, Color.YELLOW, Color.DARKGREY};
+                        final Color ColorList[] = {Color.BLUE, Color.BLACK, Color.MAGENTA, Color.BROWN, Color.YELLOWGREEN, Color.RED, Color.CYAN, Color.DARKGREY};
+                        final double[][] location = {{0.5d,0.5d},{1.0d,0.5d},{1.5d,0.5d},{0.5d,1.0d},{1.0d,1.0d},{1.5d,1.0d},{0.5d,1.5d},{1.0d,1.5d},{1.5d,1.5d}};
                         
                         if (mice.hasMouse(items.get(ID_RFID)) == false) {
                             // if the current mouse in the data set does not have a corresponding Mouse object, create one:
-                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL), ColorList[mouseCount]);
+                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL), ColorList[mouseCount], location[mouseCount][0], location[mouseCount][1]);
                             // add the current row's location and timestamp info to the new mouse object:
                             m.addLocTime(mlt);
                             // add the mouse object to the mice array:
                             mice.add(m);
-                            //System.out.println(items.get(ID_RFID) == '');
                             mouseCount++;
                         }//end if
                         
