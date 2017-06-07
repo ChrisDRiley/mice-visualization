@@ -75,6 +75,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.scene.text.Text;
 import org.apache.poi.ss.usermodel.DateUtil;
+import java.awt.event.*;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -2146,21 +2147,23 @@ public class AppStageController {
                         linesProcessed++;
                          //pulls next line of input:
                         String line = sc.nextLine();
-                        if(line != null && line.isEmpty()){
-                            break;
-                        }
                         //splits up line using commas:
                         List<String> items = null;
+                        //Christian (6/2/17): Split and convert file by semicolon if file is unconverted
                         if(line.contains(";")){
                             line.replaceAll(",", "");
                             items = Arrays.asList(line.split(";"));
                             if(!items.get(TIMESTAMP).contains("ID")){
+                              
                                double doubleStamp = Double.parseDouble(items.get(TIMESTAMP));
-                               long longTime = 1494995382721l;
-                               long longStamp = (long) (doubleStamp * 1000);
                                Date toFormat = DateUtil.getJavaDate(doubleStamp);
                                String finalDate = sdf.format(toFormat);
                                items.set(TIMESTAMP, finalDate);
+                               if(!items.get(UNIT_LABEL).startsWith("R")){
+                                   String finalLabel = "";
+                                   finalLabel = finalLabel.substring(4);
+                                   items.set(UNIT_LABEL, finalLabel);
+                               }
                             }
                         }
                         else{

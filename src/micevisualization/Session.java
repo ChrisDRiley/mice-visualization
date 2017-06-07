@@ -84,5 +84,14 @@ public class Session {
         }
 
     }
+    public void saveFrameState(String currentIndex) throws FileNotFoundException {
+        startingIndex = currentIndex;
+        Gson gson = new Gson();
+        String json = gson.toJson(this);
+        try (PrintStream ps = new PrintStream(currentSessionFilePath)) {
+            ps.println(json);
+        }
+        
+    }
 
 }
