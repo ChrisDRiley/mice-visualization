@@ -835,7 +835,7 @@ public class Grid {
                                     vectorCanvasContext.setLineWidth(5);
                                     
                                     int frame_number = 1;
-                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp), frame_number);
                                     line_frames.add(vectorFrame);
                                     
                                      //update mouse position before drawing lines
@@ -864,12 +864,18 @@ public class Grid {
                                             vectorCanvasContext.setStroke(Color.TRANSPARENT);
                                             vectorCanvasContext.setLineDashes(0d);
                                         }//end else if
-                                        
+                                        //dataCanvasContext.fillOval((entry.getKey().x * (entry.getValue().center_x - entry.getValue().x)) + entry.getValue().x, (entry.getKey().y * (entry.getValue().center_y - entry.getValue().y)) + entry.getValue().y, 9, 9);
                                         vectorCanvasContext.strokeLine(
                                                 line_frames.get(position).first.center_x,
                                                 line_frames.get(position).first.center_y,
                                                 line_frames.get(position).second.center_x,
                                                 line_frames.get(position).second.center_y);
+                                        
+                                      /*  vectorCanvasContext.strokeLine(
+                                                line_frames.get(position).x,
+                                                line_frames.get(position).first.center_y,
+                                                line_frames.get(position).second.center_x,
+                                                line_frames.get(position).second.center_y);*/
                                     }//end for
                                     
                                     //Checks grid line/numbers if they are active or not; if they are active, move them to the front of the Canvas layers
@@ -1157,18 +1163,24 @@ public class Grid {
                                     dataCanvasContext.setLineWidth(5);
                                     
                                     int frame_number = 1;
-                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp).mouse_color, frame_number);
+                                    VectorFrame vectorFrame = new VectorFrame(previous_grid, current_grid, mouse_color.get(locTimeData.get(finalJ).timestamp), frame_number);
                                     line_frames.add(vectorFrame);
                                     
                                     //update mouse position before drawing lines
                                     current_mouse_positions.put(mouse_color.get(locTimeData.get(finalJ).timestamp), current_grid);
                                     
                                     //Draw on the mouse positions
+                                    
+                                    
                                     current_mouse_positions.entrySet().stream().filter((entry) -> (entry.getValue()!=null)).map((entry) -> {
                                         dataCanvasContext.setFill(entry.getKey().mouse_color);
                                         return entry;
                                     }).forEachOrdered((entry) -> {
-                                        dataCanvasContext.fillOval(entry.getValue().center_x-5,entry.getValue().center_y-5, 9, 9);
+                                        //Whitney Post 6/5/17: Modified the method so that it draws each mouse in unique location within grid sector
+                                        dataCanvasContext.fillOval((entry.getKey().x * (entry.getValue().center_x - entry.getValue().x)) + entry.getValue().x, (entry.getKey().y * (entry.getValue().center_y - entry.getValue().y)) + entry.getValue().y, 9, 9);
+                                        //dataCanvasContext.fillOval(entry.getValue().center_x -5, entry.getValue().center_y -5, 9, 9);
+                                        
+                                  
                                     });
                                     
                                     for (int position = 0; position < line_frames.size(); position ++){
@@ -1192,11 +1204,20 @@ public class Grid {
                                             dataCanvasContext.setLineDashes(0d);
                                             
                                         }//end else if
+                                        //(entry.getKey().x * (entry.getValue().center_x - entry.getValue().x)) + entry.getValue().x, (entry.getKey().y * (entry.getValue().center_y - entry.getValue().y)) + entry.getValue().y
+                                        //Whitney Post 6/6/2017: Modified the way the vector lines are drawn by matching the unique mouse position in the grids to the position of the vectors start and stop point
                                         dataCanvasContext.strokeLine(
+                                                (line_frames.get(position).mouse.x * (line_frames.get(position).first.center_x - line_frames.get(position).first.x)) + line_frames.get(position).first.x,
+                                                (line_frames.get(position).mouse.y * (line_frames.get(position).first.center_y - line_frames.get(position).first.y)) + line_frames.get(position).first.y,
+                                                (line_frames.get(position).mouse.x * (line_frames.get(position).second.center_x - line_frames.get(position).second.x)) + line_frames.get(position).second.x,
+                                                (line_frames.get(position).mouse.y * (line_frames.get(position).second.center_y - line_frames.get(position).second.y)) + line_frames.get(position).second.y);
+                                        
+                                        /*dataCanvasContext.strokeLine(
                                                 line_frames.get(position).first.center_x,
                                                 line_frames.get(position).first.center_y,
                                                 line_frames.get(position).second.center_x,
                                                 line_frames.get(position).second.center_y);
+                                        */
                                     }//end for
                                     // If the exportFolder parameter contains a File object, create a new File.
                                     // Using the path of the exportFolder appeneded to the number of the current frame, create a filename
