@@ -16,12 +16,14 @@ public class VectorFrame {
     GridSector first;
     GridSector second;
     Color color;
+    Mouse mouse;
     private int animation_state;
 
-    public VectorFrame(GridSector first, GridSector second, Color color, int animation_state){
+    public VectorFrame(GridSector first, GridSector second, Mouse mouse, int animation_state){
         this.first = first;
         this.second = second;
-        this.color = color;
+        this.color = mouse.mouse_color;
+        this.mouse = mouse;
         this.animation_state = animation_state;
     }
     
