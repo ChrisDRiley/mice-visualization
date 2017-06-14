@@ -74,6 +74,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.scene.text.Text;
+import org.apache.poi.ss.usermodel.DateUtil;
+import java.awt.event.*;
 
 public class AppStageController {
     // Parker (3/19/17): access certain GUI elements from the XML:
@@ -118,6 +120,7 @@ public class AppStageController {
     
     // Parker (3/19/17): The name of the folder for storing session data in:
     final String SESSIONS_FOLDER = "\\mice-sessions";
+    
     
     /**
      * 
@@ -784,7 +787,6 @@ public class AppStageController {
      */
     void addEnterKeyDisplayToChoiceBox(ChoiceBox cb) {
         cb.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-            System.out.println("addEnterKeyDisplay class: enter code");
             if (event.getCode() == KeyCode.ENTER) {
                 if (event.getSource() instanceof ChoiceBox) {
                     if (cb.showingProperty().get())
@@ -812,7 +814,6 @@ public class AppStageController {
      */
     void addEnterKeyToggleToCheckBox(CheckBox cb) {
         cb.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-            System.out.println("addEnterkeytoggles: enter key pressed");
             if (event.getCode() == KeyCode.ENTER) {
                 if (event.getSource() instanceof CheckBox) {
                     CheckBox currentCheckBox = (CheckBox) event.getSource();
@@ -839,7 +840,6 @@ public class AppStageController {
      */
     void addTabKeyNavigationToTextArea(TextArea ta) {
         ta.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-            System.out.println("addtabekeynavigation: tab key pressed");
             if (event.getCode() == KeyCode.TAB) {
                 TextAreaSkin skin = (TextAreaSkin) ta.getSkin();
                 if (skin.getBehavior() instanceof TextAreaBehavior) {
@@ -951,8 +951,6 @@ public class AppStageController {
         // if the user resizes the window during an animation, cancel the animation:
         if (grid.animationCancelled == false)
             grid.stopAnimation(generateButton);
-        else if(grid.animationPaused == true)
-                    grid.pauseAnimation(generateButton);
     }//end redrawGridUponWindowResize
     
     /**
@@ -1001,9 +999,6 @@ public class AppStageController {
                     // if the user changes a visualization option during an animation, cancel the animation:
                     if (grid.animationCancelled == false)
                         grid.stopAnimation(generateButton);
-                    //Jacqueline Added for pause button to stay
-                    //else if(grid.animationPaused == true)
-                        //grid.pauseAnimation(generateButton);
                     
                     animationOptionsVBox.setDisable(true);
                     generateButton.setText("Generate Static Map");
@@ -1034,8 +1029,7 @@ public class AppStageController {
                 // if the user changes a visualization option during an animation, cancel the animation:
                 if (grid.animationCancelled == false)
                     grid.stopAnimation(generateButton);
-                //else if(grid.animationPaused == true)
-                    //grid.pauseAnimation(generateButton);
+                
                 try {
                     session.mapType = newValue;
                     session.saveState();
@@ -1068,9 +1062,7 @@ public class AppStageController {
         // selected, make it possible to trigger the button's associated onAction function via the
         // Enter key:
         generateButton.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-            System.out.println("generateButton reacts to pressed key");
             if (event.getCode() == KeyCode.ENTER) {
-                System.out.println("pressed key ENTER.");
                 ButtonSkin skin = (ButtonSkin) generateButton.getSkin();
                 if (event.getSource() instanceof Button) {
                     try {
@@ -1083,18 +1075,6 @@ public class AppStageController {
                     }//end finally
                 }//end if
             }//end if
-            /**  
-             * Jacqueline: When the space is pressed it will print out the current timestamp and
-             * iteration in array list.
-             */
-            else if(event.getCode() == KeyCode.SPACE){
-                SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
-                String timestamp = formatter.format(grid.overalllocTimeData.timestamp);
-                System.out.println("Time Stamp:"+timestamp+" and Number:"+ grid.overallfinalJ+"\n");
-                grid.animationCancelled = true;
-                grid.animationPaused = true;
-                grid.pauseAnimation(generateButton);
-            }//end else if
         } //end handle
         );
         
@@ -1642,7 +1622,7 @@ public class AppStageController {
                     // stop the animation
                     if (grid.animationCancelled == false)
                         grid.stopAnimation(generateButton);
-                   
+                    
                     // else, the current animation has been cancelled (or there is no current animation),
                     // so proceed to generate one:
                     else {
@@ -2169,16 +2149,21 @@ public class AppStageController {
                         String line = sc.nextLine();
                         //splits up line using commas:
                         List<String> items = null;
+                        //Christian (6/2/17): Split and convert file by semicolon if file is unconverted
                         if(line.contains(";")){
                             line.replaceAll(",", "");
                             items = Arrays.asList(line.split(";"));
                             if(!items.get(TIMESTAMP).contains("ID")){
-                               double doubleStamp = Double.parseDouble(items.get(TIMESTAMP))*1L;
-                               long longTime = 1493805670378L;
-                               long longStamp = (long) (doubleStamp * 28750L);
-                               Date toFormat = new Date(longStamp+longTime);
+                              
+                               double doubleStamp = Double.parseDouble(items.get(TIMESTAMP));
+                               Date toFormat = DateUtil.getJavaDate(doubleStamp);
                                String finalDate = sdf.format(toFormat);
                                items.set(TIMESTAMP, finalDate);
+                               if(!items.get(UNIT_LABEL).startsWith("R")){
+                                   String finalLabel = "";
+                                   finalLabel = finalLabel.substring(4);
+                                   items.set(UNIT_LABEL, finalLabel);
+                               }
                             }
                         }
                         else{
@@ -2223,16 +2208,16 @@ public class AppStageController {
                         
                         // check if the mice object contains a mouse with the current row's IdRFID:
                         //Whitney Post 5/29/17: Create a color list for all the mice in the data set
-                        final Color ColorList[] = {Color.BLUE, Color.BLACK, Color.CORAL, Color.BROWN, Color.DARKGREEN, Color.RED, Color.YELLOW, Color.DARKGREY};
+                        final Color ColorList[] = {Color.BLUE, Color.BLACK, Color.MAGENTA, Color.BROWN, Color.YELLOWGREEN, Color.RED, Color.CYAN, Color.DARKGREY};
+                        final double[][] location = {{0.5d,0.5d},{1.0d,0.5d},{1.5d,0.5d},{0.5d,1.0d},{1.0d,1.0d},{1.5d,1.0d},{0.5d,1.5d},{1.0d,1.5d},{1.5d,1.5d}};
                         
                         if (mice.hasMouse(items.get(ID_RFID)) == false) {
                             // if the current mouse in the data set does not have a corresponding Mouse object, create one:
-                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL), ColorList[mouseCount]);
+                            Mouse m = new Mouse(items.get(ID_RFID), items.get(ID_LABEL), ColorList[mouseCount], location[mouseCount][0], location[mouseCount][1]);
                             // add the current row's location and timestamp info to the new mouse object:
                             m.addLocTime(mlt);
                             // add the mouse object to the mice array:
                             mice.add(m);
-                            //System.out.println(items.get(ID_RFID) == '');
                             mouseCount++;
                         }//end if
                         

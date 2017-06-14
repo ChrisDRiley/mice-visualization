@@ -259,11 +259,11 @@
                                  </Label>
                                     <Rectangle arcHeight="5.0" arcWidth="5.0" fill="BLUE" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
                                     <Rectangle arcHeight="5.0" arcWidth="5.0" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
-                                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="CORAL" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+                                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="MAGENTA" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
                                     <Rectangle arcHeight="5.0" arcWidth="5.0" fill="BROWN" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER" />
-                                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DARKGREEN" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="YELLOWGREEN" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
                                     <Rectangle arcHeight="5.0" arcWidth="5.0" fill="RED" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
-                                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="YELLOW" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
+                                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="AQUA" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
                                     <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DARKGRAY" height="15.0" stroke="BLACK" strokeType="INSIDE" width="45.0" GridPane.halignment="CENTER" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
                                  </children>
                                  <VBox.margin>
